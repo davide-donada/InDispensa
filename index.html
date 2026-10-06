@@ -30,7 +30,7 @@
 
     <div class="max-w-md mx-auto p-4 space-y-4 w-full box-border">
 
-        <!-- Form Aggiunta Rapida (Layout Mobile Ottimizzato) -->
+        <!-- Form Aggiunta Rapida -->
         <div class="bg-white p-3 rounded-xl shadow-sm space-y-2 border border-gray-100">
             <input type="text" id="newItemText" placeholder="Aggiungi prodotto..." class="w-full bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
             <div class="flex gap-2">
@@ -39,7 +39,11 @@
                     <option value="Carne e Pesce">🥩 Carne/Pesce</option>
                     <option value="Latticini e Uova">🧀 Latticini</option>
                     <option value="Dispensa">📦 Dispensa</option>
-                    <option value="Sfizi e Dolci">🍫 Sfizi</option>
+                    <option value="Surgelati">❄️ Surgelati</option>
+                    <option value="Casa e Pulizia">🧹 Casa e Pulizia</option>
+                    <option value="Bucato">🧺 Bucato</option>
+                    <option value="Igiene Personale">🧴 Igiene Personale</option>
+                    <option value="Sfizi e Dolci">🍫 Sfizi e Dolci</option>
                 </select>
                 <button onclick="addItem()" class="bg-indigo-600 text-white font-bold px-4 py-2 rounded-lg text-base hover:bg-indigo-700 active:scale-95 transition min-w-[48px] flex items-center justify-center">+</button>
             </div>
@@ -66,10 +70,23 @@
         }
         const db = firebase.database();
 
-        // ID lista fisso ("casa") per sincronizzare sempre la stessa lista tra i dispositivi
+        // ID lista fisso ("casa")
         const listRef = db.ref('liste/casa');
 
-        // Prodotti di Default
+        // Ordine del percorso in ipermercato
+        const deptOrder = [
+            "Ortofrutta",
+            "Dispensa",
+            "Carne e Pesce",
+            "Latticini e Uova",
+            "Casa e Pulizia",
+            "Bucato",
+            "Igiene Personale",
+            "Surgelati",
+            "Sfizi e Dolci"
+        ];
+
+        // Prodotti di Default Ampliati
         const defaultItems = [
             // Ortofrutta
             { name: "Zucca", dept: "Ortofrutta", checked: false },
@@ -105,6 +122,27 @@
             { name: "Mandorle, noci o nocciole", dept: "Dispensa", checked: false },
             { name: "Olio Extravergine d'Oliva", dept: "Dispensa", checked: false },
 
+            // Surgelati
+            { name: "Piselli fini surgelati", dept: "Surgelati", checked: false },
+            { name: "Filetti di merluzzo / nasello surgelati", dept: "Surgelati", checked: false },
+            { name: "Verdure per minestrone / macedonia di bosco", dept: "Surgelati", checked: false },
+
+            // Casa e Pulizia
+            { name: "Detersivo piatti", dept: "Casa e Pulizia", checked: false },
+            { name: "Pastiglie / Gel Lavastoviglie", dept: "Casa e Pulizia", checked: false },
+            { name: "Sgrassatore universale / Multiuso", dept: "Casa e Pulizia", checked: false },
+            { name: "Carta casa / Rotoloni asciugatutto", dept: "Casa e Pulizia", checked: false },
+            { name: "Sacchetti spazzatura (differenziata)", dept: "Casa e Pulizia", checked: false },
+
+            // Bucato
+            { name: "Detersivo lavatrice (liquido o pod)", dept: "Bucato", checked: false },
+            { name: "Ammorbidente / Profumatore bucato", dept: "Bucato", checked: false },
+
+            // Igiene Personale
+            { name: "Carta igienica", dept: "Igiene Personale", checked: false },
+            { name: "Bagnoschiuma / Sapone liquido", dept: "Igiene Personale", checked: false },
+            { name: "Dentifricio", dept: "Igiene Personale", checked: false },
+
             // Sfizi e Dolci
             { name: "Biscotti avena/cornflakes con gocce di cioccolato", dept: "Sfizi e Dolci", checked: false },
             { name: "Cioccolato fondente (minimo 70-75%)", dept: "Sfizi e Dolci", checked: false }
@@ -114,7 +152,6 @@
         listRef.on('value', (snapshot) => {
             const data = snapshot.val();
             if (!data) {
-                // Se il database è vuoto, popola con i prodotti iniziali
                 listRef.set(defaultItems);
             } else {
                 renderList(data);
@@ -127,6 +164,10 @@
             "Carne e Pesce": "🥩",
             "Latticini e Uova": "🧀",
             "Dispensa": "📦",
+            "Surgelati": "❄️",
+            "Casa e Pulizia": "🧹",
+            "Bucato": "🧺",
+            "Igiene Personale": "🧴",
             "Sfizi e Dolci": "🍫"
         };
 
@@ -141,7 +182,17 @@
                 grouped[item.dept].push({ ...item, originalIndex: index });
             });
 
-            for (const [dept, deptItems] of Object.entries(grouped)) {
+            // Ordinamento reparti in base al percorso al supermercato
+            const sortedDepts = Object.keys(grouped).sort((a, b) => {
+                let indexA = deptOrder.indexOf(a);
+                let indexB = deptOrder.indexOf(b);
+                if (indexA === -1) indexA = 99;
+                if (indexB === -1) indexB = 99;
+                return indexA - indexB;
+            });
+
+            for (const dept of sortedDepts) {
+                const deptItems = grouped[dept];
                 const deptCard = document.createElement('div');
                 deptCard.className = 'bg-white rounded-xl p-4 shadow-sm border border-gray-100 overflow-hidden';
 
