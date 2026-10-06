@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Lista Spesa Condivisa</title>
-    <!-- Tailwind CSS per layout responsive mobile -->
+    <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Firebase SDK -->
     <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
@@ -16,12 +16,15 @@
         }
     </style>
 </head>
-<body class="bg-gray-100 min-h-screen pb-12 overflow-x-hidden">
+<body class="bg-gray-100 min-h-screen pb-16 overflow-x-hidden">
 
-    <!-- Header / Banner Condivisione -->
+    <!-- Header / Banner Condivisione + Contatore -->
     <div class="bg-indigo-600 text-white p-4 shadow-md sticky top-0 z-10">
         <div class="max-w-md mx-auto flex justify-between items-center">
-            <h1 class="text-xl font-bold flex items-center gap-2">🛒 Lista Spesa</h1>
+            <div>
+                <h1 class="text-xl font-bold flex items-center gap-2">🛒 Lista Spesa</h1>
+                <p id="progressCounter" class="text-xs text-indigo-200 mt-0.5">Caricamento...</p>
+            </div>
             <button onclick="copiaLink()" class="bg-indigo-700 hover:bg-indigo-800 text-xs py-1.5 px-3 rounded-full border border-indigo-400 flex items-center gap-1 active:scale-95 transition">
                 🔗 Condividi
             </button>
@@ -30,11 +33,19 @@
 
     <div class="max-w-md mx-auto p-4 space-y-4 w-full box-border">
 
-        <!-- Campo Ricerca In Tempo Reale -->
-        <div class="bg-white p-2 rounded-xl shadow-sm border border-gray-100 flex items-center px-3 gap-2">
-            <span class="text-gray-400 text-sm">🔍</span>
-            <input type="text" id="searchInput" oninput="filterList()" placeholder="Cerca prodotto..." class="w-full bg-transparent text-sm focus:outline-none py-1">
-            <button onclick="clearSearch()" id="clearSearchBtn" class="text-gray-400 text-xs hidden hover:text-gray-600">✕</button>
+        <!-- Barra Strumenti: Ricerca + Filtro "Da Comprare" -->
+        <div class="flex gap-2">
+            <!-- Campo Ricerca -->
+            <div class="bg-white p-2 rounded-xl shadow-sm border border-gray-100 flex items-center px-3 gap-2 flex-1">
+                <span class="text-gray-400 text-sm">🔍</span>
+                <input type="text" id="searchInput" oninput="filterList()" placeholder="Cerca prodotto..." class="w-full bg-transparent text-sm focus:outline-none py-1">
+                <button onclick="clearSearch()" id="clearSearchBtn" class="text-gray-400 text-xs hidden hover:text-gray-600">✕</button>
+            </div>
+
+            <!-- Tasto Filtro Mostra Solo Mancanti -->
+            <button id="hideCheckedBtn" onclick="toggleHideChecked()" class="bg-white border border-gray-200 text-gray-700 text-xs px-3 py-2 rounded-xl font-medium shadow-sm flex items-center gap-1.5 active:scale-95 transition">
+                <span>👁️</span> <span id="hideCheckedLabel">Solo da prendere</span>
+            </button>
         </div>
 
         <!-- Form Aggiunta Rapida -->
@@ -61,49 +72,36 @@
 
         <!-- Messaggio Nessun Risultato Trovato -->
         <div id="noResults" class="hidden text-center text-gray-500 py-8 text-sm">
-            Nessun prodotto trovato nella ricerca.
+            Nessun prodotto trovato.
         </div>
 
-        <!-- Bottone Reset/Pulizia -->
-        <div class="text-center pt-4">
-            <button onclick="deselezionaTutti()" class="text-xs text-gray-500 hover:text-red-600 underline">Deseleziona tutti gli elementi</button>
+        <!-- Bottoni Azioni In Blocco -->
+        <div class="flex justify-between items-center pt-4 border-t border-gray-200">
+            <button onclick="deselezionaTutti()" class="text-xs text-gray-500 hover:text-indigo-600 underline">Deseleziona tutti</button>
+            <button onclick="eliminaComprati()" class="text-xs text-red-500 hover:text-red-700 underline">Elimina elementi presi</button>
         </div>
     </div>
 
     <script>
-        // Configurazione Realtime Database di Firebase
         const firebaseConfig = {
             databaseURL: "https://lista-spesa-10e72-default-rtdb.europe-west1.firebasedatabase.app/"
         };
         
-        // Inizializzazione Firebase
         if (!firebase.apps.length) {
             firebase.initializeApp(firebaseConfig);
         }
         const db = firebase.database();
-
-        // ID lista fisso ("casa")
         const listRef = db.ref('liste/casa');
 
-        // Variabile globale per conservare i dati correnti
         let currentItemsData = [];
+        let hideChecked = false;
 
-        // Ordine del percorso in ipermercato
         const deptOrder = [
-            "Ortofrutta",
-            "Dispensa",
-            "Carne e Pesce",
-            "Latticini e Uova",
-            "Casa e Pulizia",
-            "Bucato",
-            "Igiene Personale",
-            "Surgelati",
-            "Sfizi e Dolci"
+            "Ortofrutta", "Dispensa", "Carne e Pesce", "Latticini e Uova", 
+            "Casa e Pulizia", "Bucato", "Igiene Personale", "Surgelati", "Sfizi e Dolci"
         ];
 
-        // Prodotti di Default Ampliati
         const defaultItems = [
-            // Ortofrutta
             { name: "Zucca", dept: "Ortofrutta", checked: false },
             { name: "Broccoli", dept: "Ortofrutta", checked: false },
             { name: "Cavolfiore", dept: "Ortofrutta", checked: false },
@@ -112,8 +110,6 @@
             { name: "Porri e cipolle (in abbondanza)", dept: "Ortofrutta", checked: false },
             { name: "Avocado", dept: "Ortofrutta", checked: false },
             { name: "Mele (renette o annurche), pere e melograno", dept: "Ortofrutta", checked: false },
-            
-            // Carne e Pesce
             { name: "Pancetta a cubetti o speck a fiammiferi", dept: "Carne e Pesce", checked: false },
             { name: "Alette di pollo, petti di pollo o fesa di tacchino", dept: "Carne e Pesce", checked: false },
             { name: "Petto di pollo/tacchino", dept: "Carne e Pesce", checked: false },
@@ -122,40 +118,209 @@
             { name: "Tonno o sgombro in vetro/scatola", dept: "Carne e Pesce", checked: false },
             { name: "Salmone (tranci o filetti)", dept: "Carne e Pesce", checked: false },
             { name: "Orata o branzino", dept: "Carne e Pesce", checked: false },
-
-            // Latticini e Uova
             { name: "Uova (a pasta gialla/arancione)", dept: "Latticini e Uova", checked: false },
             { name: "Stracchino (confezionato/pastorizzato, es. Granarolo)", dept: "Latticini e Uova", checked: false },
             { name: "Yogurt Greco intero (5% di grassi)", dept: "Latticini e Uova", checked: false },
             { name: "Grana Padano o Parmigiano Reggiano", dept: "Latticini e Uova", checked: false },
             { name: "Latte intero", dept: "Latticini e Uova", checked: false },
             { name: "Fiocchi di latte", dept: "Latticini e Uova", checked: false },
-
-            // Dispensa
             { name: "Pasta (trafilata al bronzo o integrale)", dept: "Dispensa", checked: false },
             { name: "Riso Basmati", dept: "Dispensa", checked: false },
             { name: "Mandorle, noci o nocciole", dept: "Dispensa", checked: false },
             { name: "Olio Extravergine d'Oliva", dept: "Dispensa", checked: false },
-
-            // Surgelati
             { name: "Piselli fini surgelati", dept: "Surgelati", checked: false },
             { name: "Filetti di merluzzo / nasello surgelati", dept: "Surgelati", checked: false },
             { name: "Verdure per minestrone / macedonia di bosco", dept: "Surgelati", checked: false },
-
-            // Casa e Pulizia
             { name: "Detersivo piatti", dept: "Casa e Pulizia", checked: false },
             { name: "Pastiglie / Gel Lavastoviglie", dept: "Casa e Pulizia", checked: false },
             { name: "Sgrassatore universale / Multiuso", dept: "Casa e Pulizia", checked: false },
             { name: "Carta casa / Rotoloni asciugatutto", dept: "Casa e Pulizia", checked: false },
             { name: "Sacchetti spazzatura (differenziata)", dept: "Casa e Pulizia", checked: false },
-
-            // Bucato
             { name: "Detersivo lavatrice (liquido o pod)", dept: "Bucato", checked: false },
             { name: "Ammorbidente / Profumatore bucato", dept: "Bucato", checked: false },
-
-            // Igiene Personale
             { name: "Carta igienica", dept: "Igiene Personale", checked: false },
             { name: "Bagnoschiuma / Sapone liquido", dept: "Igiene Personale", checked: false },
             { name: "Dentifricio", dept: "Igiene Personale", checked: false },
+            { name: "Biscotti avena/cornflakes con gocce di cioccolato", dept: "Sfizi e Dolci", checked: false },
+            { name: "Cioccolato fondente (minimo 70-75%)", dept: "Sfizi e Dolci", checked: false }
+        ];
 
-            // Sfizi e Dolci
+        listRef.on('value', (snapshot) => {
+            const data = snapshot.val();
+            if (!data) {
+                listRef.set(defaultItems);
+            } else {
+                currentItemsData = data;
+                updateCounter();
+                filterList();
+            }
+        });
+
+        const deptIcons = {
+            "Ortofrutta": "🥬", "Carne e Pesce": "🥩", "Latticini e Uova": "🧀",
+            "Dispensa": "📦", "Surgelati": "❄️", "Casa e Pulizia": "🧹",
+            "Bucato": "🧺", "Igiene Personale": "🧴", "Sfizi e Dolci": "🍫"
+        };
+
+        function updateCounter() {
+            const total = currentItemsData.length;
+            const checkedCount = currentItemsData.filter(i => i.checked).length;
+            const counterEl = document.getElementById('progressCounter');
+            counterEl.textContent = `${checkedCount} di ${total} prodotti presi`;
+        }
+
+        function renderList(items) {
+            const container = document.getElementById('listContainer');
+            const noResults = document.getElementById('noResults');
+            container.innerHTML = '';
+
+            if (!items || items.length === 0) {
+                noResults.classList.remove('hidden');
+                return;
+            } else {
+                noResults.classList.add('hidden');
+            }
+
+            const grouped = {};
+            items.forEach((item) => {
+                if (!grouped[item.dept]) grouped[item.dept] = [];
+                grouped[item.dept].push(item);
+            });
+
+            const sortedDepts = Object.keys(grouped).sort((a, b) => {
+                let indexA = deptOrder.indexOf(a);
+                let indexB = deptOrder.indexOf(b);
+                if (indexA === -1) indexA = 99;
+                if (indexB === -1) indexB = 99;
+                return indexA - indexB;
+            });
+
+            for (const dept of sortedDepts) {
+                const deptItems = grouped[dept];
+                const deptCard = document.createElement('div');
+                deptCard.className = 'bg-white rounded-xl p-4 shadow-sm border border-gray-100 overflow-hidden';
+
+                const icon = deptIcons[dept] || '🛒';
+                let itemsHtml = deptItems.map(item => `
+                    <li class="flex items-center justify-between py-2.5 border-b border-gray-50 last:border-0 gap-2">
+                        <label class="flex items-center gap-3 flex-1 cursor-pointer select-none min-w-0">
+                            <input type="checkbox" 
+                                   ${item.checked ? 'checked' : ''} 
+                                   onchange="toggleCheck(${item.originalIndex})" 
+                                   class="w-5 h-5 rounded text-indigo-600 focus:ring-indigo-500 border-gray-300 flex-shrink-0">
+                            <span class="text-sm ${item.checked ? 'item-checked' : 'text-gray-800'} break-words min-w-0">${item.name}</span>
+                        </label>
+                        <button onclick="deleteItem(${item.originalIndex})" class="text-gray-300 hover:text-red-500 text-xs p-1 flex-shrink-0">✕</button>
+                    </li>
+                `).join('');
+
+                deptCard.innerHTML = `
+                    <h2 class="font-bold text-sm text-indigo-900 border-b pb-2 mb-2 flex items-center gap-2">
+                        <span>${icon}</span> Reparto ${dept}
+                    </h2>
+                    <ul>${itemsHtml}</ul>
+                `;
+                container.appendChild(deptCard);
+            }
+        }
+
+        function filterList() {
+            const query = document.getElementById('searchInput').value.toLowerCase().trim();
+            const clearBtn = document.getElementById('clearSearchBtn');
+
+            if (query.length > 0) {
+                clearBtn.classList.remove('hidden');
+            } else {
+                clearBtn.classList.add('hidden');
+            }
+
+            let indexedItems = currentItemsData.map((item, index) => ({ ...item, originalIndex: index }));
+            
+            if (hideChecked) {
+                indexedItems = indexedItems.filter(item => !item.checked);
+            }
+
+            const filtered = indexedItems.filter(item => 
+                item.name.toLowerCase().includes(query) || 
+                item.dept.toLowerCase().includes(query)
+            );
+
+            renderList(filtered);
+        }
+
+        function toggleHideChecked() {
+            hideChecked = !hideChecked;
+            const btn = document.getElementById('hideCheckedBtn');
+            const label = document.getElementById('hideCheckedLabel');
+
+            if (hideChecked) {
+                btn.classList.add('bg-indigo-50', 'border-indigo-300', 'text-indigo-700');
+                label.textContent = "Mostra tutti";
+            } else {
+                btn.classList.remove('bg-indigo-50', 'border-indigo-300', 'text-indigo-700');
+                label.textContent = "Solo da prendere";
+            }
+            filterList();
+        }
+
+        function clearSearch() {
+            document.getElementById('searchInput').value = '';
+            filterList();
+        }
+
+        function toggleCheck(index) {
+            listRef.child(index).child('checked').transaction(checked => !checked);
+        }
+
+        function addItem() {
+            const nameInput = document.getElementById('newItemText');
+            const deptInput = document.getElementById('newItemDept');
+            const name = nameInput.value.trim();
+            const dept = deptInput.value;
+
+            if (name) {
+                listRef.once('value', snapshot => {
+                    const currentList = snapshot.val() || [];
+                    currentList.push({ name, dept, checked: false });
+                    listRef.set(currentList);
+                    nameInput.value = '';
+                });
+            }
+        }
+
+        function deleteItem(index) {
+            listRef.once('value', snapshot => {
+                const currentList = snapshot.val() || [];
+                currentList.splice(index, 1);
+                listRef.set(currentList);
+            });
+        }
+
+        function deselezionaTutti() {
+            listRef.once('value', snapshot => {
+                const currentList = snapshot.val() || [];
+                const updatedList = currentList.map(item => ({ ...item, checked: false }));
+                listRef.set(updatedList);
+            });
+        }
+
+        function eliminaComprati() {
+            if (confirm("Vuoi eliminare definitivamente tutti gli elementi già presi/spuntati?")) {
+                listRef.once('value', snapshot => {
+                    const currentList = snapshot.val() || [];
+                    const updatedList = currentList.filter(item => !item.checked);
+                    listRef.set(updatedList);
+                });
+            }
+        }
+
+        function copiaLink() {
+            navigator.clipboard.writeText(window.location.href).then(() => {
+                alert("Link copiato! Invialo via WhatsApp.");
+            }).catch(() => {
+                prompt("Copia questo link e invialo:", window.location.href);
+            });
+        }
+    </script>
+</body>
+</html>
