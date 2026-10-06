@@ -4,6 +4,15 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Lista Spesa Condivisa</title>
+    
+    <!-- Meta PWA / iOS -->
+    <link rel="manifest" href="./manifest.json">
+    <meta name="theme-color" content="#4f46e5">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Lista Spesa">
+    <link rel="apple-touch-icon" href="https://cdn-icons-png.flaticon.com/512/3081/3081986.png">
+
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Firebase SDK -->
@@ -83,6 +92,15 @@
     </div>
 
     <script>
+        // Registrazione Service Worker per funzionamento Offline
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('./sw.js')
+                    .then(reg => console.log('Service Worker Registrato'))
+                    .catch(err => console.log('Errore Service Worker:', err));
+            });
+        }
+
         const firebaseConfig = {
             databaseURL: "https://lista-spesa-10e72-default-rtdb.europe-west1.firebasedatabase.app/"
         };
@@ -91,6 +109,14 @@
             firebase.initializeApp(firebaseConfig);
         }
         const db = firebase.database();
+        
+        // Attiva salvataggio offline automatico su Firebase
+        db.ref('.info/connected').on('value', (snap) => {
+            if (snap.val() === false) {
+                console.log("Modalità offline: le modifiche verranno sincronizzate al ripristino della connessione.");
+            }
+        });
+
         const listRef = db.ref('liste/casa');
 
         let currentItemsData = [];
