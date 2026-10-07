@@ -98,7 +98,7 @@
                 </div>
                 <div class="flex items-center gap-2">
                     <button id="deleteHouseBtn" onclick="eliminaListaCorrente()" title="Rimuovi lista salvata" class="text-gray-400 hover:text-red-500 p-1 text-xs">🗑️</button>
-                    <button id="shareBtn" onclick="copiaLink()" class="bg-indigo-600 text-white px-2.5 py-1 rounded-lg font-medium hover:bg-indigo-700 active:scale-95 transition shadow-sm flex items-center gap-1">
+                    <button id="shareBtn" onclick="openShareModal()" class="bg-indigo-600 text-white px-2.5 py-1 rounded-lg font-medium hover:bg-indigo-700 active:scale-95 transition shadow-sm flex items-center gap-1">
                         <span>🔗</span> Condividi
                     </button>
                 </div>
@@ -148,6 +148,81 @@
             <div class="flex justify-between items-center pt-4 border-t border-gray-200">
                 <button onclick="deselezionaTutti()" class="text-xs text-gray-500 hover:text-indigo-600 underline">Deseleziona tutti</button>
                 <button onclick="eliminaComprati()" class="text-xs text-red-500 hover:text-red-700 underline">Elimina elementi presi</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modale Grafica: Nuova Lista -->
+    <div id="newListModal" class="hidden fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl max-w-sm w-full p-6 shadow-2xl border border-gray-100 space-y-5">
+            <div class="flex justify-between items-center border-b border-gray-100 pb-3">
+                <h3 class="font-extrabold text-base text-indigo-950 flex items-center gap-2">
+                    <span>✨</span> Nuova Lista / Spazio
+                </h3>
+                <button onclick="closeNewListModal()" class="text-gray-400 hover:text-gray-600 text-lg font-bold p-1">✕</button>
+            </div>
+
+            <div class="space-y-4">
+                <div>
+                    <label class="block text-xs font-bold text-gray-700 mb-1.5">Nome della lista</label>
+                    <input type="text" id="modalListName" placeholder="es. Festa Compleanno, Grigliata, Fai da te..." class="w-full bg-gray-50 border border-gray-300 rounded-xl px-3.5 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white transition">
+                </div>
+
+                <div>
+                    <label class="block text-xs font-bold text-gray-700 mb-2">Tipologia di accesso</label>
+                    <div class="grid grid-cols-2 gap-2.5">
+                        <label class="cursor-pointer">
+                            <input type="radio" name="modalListType" value="private" class="peer hidden">
+                            <div class="border-2 border-gray-200 peer-checked:border-indigo-600 peer-checked:bg-indigo-50/50 rounded-xl p-3 text-center transition">
+                                <div class="text-xl mb-1">🔒</div>
+                                <div class="font-bold text-xs text-gray-800">Privata</div>
+                                <div class="text-[10px] text-gray-500 mt-0.5">Solo per te</div>
+                            </div>
+                        </label>
+                        <label class="cursor-pointer">
+                            <input type="radio" name="modalListType" value="shared" class="peer hidden" checked>
+                            <div class="border-2 border-gray-200 peer-checked:border-indigo-600 peer-checked:bg-indigo-50/50 rounded-xl p-3 text-center transition">
+                                <div class="text-xl mb-1">👥</div>
+                                <div class="font-bold text-xs text-gray-800">Condivisa</div>
+                                <div class="text-[10px] text-gray-500 mt-0.5">Con link/invito</div>
+                            </div>
+                        </label>
+                    </div>
+                </div>
+            </div>
+
+            <div class="flex gap-2 pt-2">
+                <button onclick="closeNewListModal()" class="flex-1 bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold py-2.5 rounded-xl text-xs transition">Annulla</button>
+                <button onclick="confermaCreaLista()" class="flex-1 bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2.5 rounded-xl text-xs transition shadow-md active:scale-95">Crea Lista</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modale Grafica: Condivisione Universale -->
+    <div id="shareModal" class="hidden fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl max-w-sm w-full p-6 shadow-2xl border border-gray-100 space-y-5">
+            <div class="flex justify-between items-center border-b border-gray-100 pb-3">
+                <h3 class="font-extrabold text-base text-indigo-950 flex items-center gap-2">
+                    <span>🔗</span> Condividi Lista
+                </h3>
+                <button onclick="closeShareModal()" class="text-gray-400 hover:text-gray-600 text-lg font-bold p-1">✕</button>
+            </div>
+
+            <div class="space-y-3">
+                <p id="shareModalSubhead" class="text-xs text-gray-600 leading-relaxed">Invia questo link d'invito. Chiunque lo apra potrà visualizzare e spuntare i prodotti in tempo reale.</p>
+                
+                <div class="relative">
+                    <input type="text" id="shareUrlInput" readonly onclick="this.select()" class="w-full bg-gray-50 border border-gray-300 text-gray-700 rounded-xl px-3.5 py-2.5 text-xs font-mono pr-10 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                </div>
+            </div>
+
+            <div class="space-y-2 pt-1">
+                <button id="nativeShareBtn" onclick="nativeShare()" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2.5 px-4 rounded-xl text-xs flex items-center justify-center gap-2 transition shadow-md active:scale-95">
+                    <span>📲</span> Condividi via App (WhatsApp...)
+                </button>
+                <button id="copyShareUrlBtn" onclick="copyShareUrl()" class="w-full bg-gray-100 hover:bg-gray-200 text-gray-800 font-bold py-2.5 px-4 rounded-xl text-xs flex items-center justify-center gap-2 transition active:scale-95">
+                    <span>📋</span> Copia Link negli Appunti
+                </button>
             </div>
         </div>
     </div>
@@ -233,22 +308,25 @@
             auth.signOut();
         }
 
-        // Inizializza l'elenco delle liste personali e condivise
         function initUserLists() {
-            const storageKey = `userLists_v2_${currentUser.uid}`;
+            const storageKey = `userLists_v3_${currentUser.uid}`;
             
             userLists = JSON.parse(localStorage.getItem(storageKey)) || [
-                { id: 'p_main', name: '🔒 Spesa Personale', type: 'private' }
+                { id: 'p_main', name: 'Spesa Personale', type: 'private' }
             ];
 
-            // Rileva inviti via URL (?house=...)
             const urlParams = new URLSearchParams(window.location.search);
             let urlHouse = urlParams.get('house');
 
             if (urlHouse) {
                 urlHouse = urlHouse.trim().toLowerCase().replace(/[^a-z0-9_-]/g, '');
                 if (urlHouse && !userLists.some(l => l.id === urlHouse)) {
-                    userLists.push({ id: urlHouse, name: `👥 Lista: ${urlHouse}`, type: 'shared' });
+                    // Formatta lo slug in Title Case con spazi per la visualizzazione
+                    const formattedTitle = urlHouse.split('-')
+                        .map(w => w.charAt(0).toUpperCase() + w.slice(1))
+                        .join(' ');
+                    
+                    userLists.push({ id: urlHouse, name: formattedTitle, type: 'shared' });
                 }
             }
 
@@ -278,7 +356,6 @@
                 houseIcon.textContent = '👥';
             }
 
-            // Permetti di eliminare qualsiasi lista purché ce ne sia almeno un'altra
             if (userLists.length > 1) {
                 deleteBtn.classList.remove('hidden');
             } else {
@@ -288,7 +365,8 @@
             userLists.forEach(l => {
                 const option = document.createElement('option');
                 option.value = l.id;
-                option.textContent = l.name;
+                const icon = l.type === 'private' ? '🔒' : '👥';
+                option.textContent = `${icon} ${l.name}`;
                 if (l.id === activeListId) option.selected = true;
                 select.appendChild(option);
             });
@@ -301,42 +379,136 @@
 
         function onHouseSelectChange(value) {
             if (value === '__ADD_NEW__') {
-                creaNuovaLista();
+                openNewListModal();
             } else {
                 switchList(value);
             }
         }
 
-        function creaNuovaLista() {
-            const nome = prompt("Inserisci il nome della nuova lista (es. Festa Compleanno, Grigliata, Fai da te):");
-            if (!nome || nome.trim() === "") {
-                renderHouseSelect();
+        // --- Gestione Modale Nuova Lista ---
+        function openNewListModal() {
+            document.getElementById('modalListName').value = '';
+            document.getElementById('newListModal').classList.remove('hidden');
+            setTimeout(() => document.getElementById('modalListName').focus(), 100);
+        }
+
+        function closeNewListModal() {
+            document.getElementById('newListModal').classList.add('hidden');
+            renderHouseSelect();
+        }
+
+        function confermaCreaLista() {
+            const input = document.getElementById('modalListName');
+            const rawName = input.value.trim();
+            if (!rawName) {
+                alert("Inserisci un nome per la lista.");
                 return;
             }
 
-            const tipo = prompt("Che tipo di lista vuoi creare?\n\nDigita '1' per 🔒 Privata (solo per te)\nDigita '2' per 👥 Condivisa (accessibile con link per amici/parenti)", "2");
-            
-            const isShared = (tipo === "2");
-            const cleanName = nome.trim();
-            
-            let listId;
-            let listObj;
+            const typeRadio = document.querySelector('input[name="modalListType"]:checked');
+            const type = typeRadio ? typeRadio.value : 'shared';
 
-            if (isShared) {
-                const code = cleanName.toLowerCase().replace(/[^a-z0-9_-]/g, '-');
-                listId = code || `festa-${Date.now()}`;
-                listObj = { id: listId, name: `👥 ${cleanName}`, type: 'shared' };
+            let listId;
+            // Mantiene il nome inserito con maiuscole e spazi
+            const displayName = rawName;
+
+            if (type === 'shared') {
+                const cleanSlug = rawName.toLowerCase()
+                    .normalize("NFD").replace(/[\u0300-\u036f]/g, "")
+                    .replace(/[^a-z0-9_-]/g, '-')
+                    .replace(/-+/g, '-')
+                    .replace(/^-|-$/g, '');
+                
+                listId = cleanSlug || `festa-${Date.now()}`;
             } else {
                 listId = `p_${Date.now()}`;
-                listObj = { id: listId, name: `🔒 ${cleanName}`, type: 'private' };
             }
+
+            const newListObj = {
+                id: listId,
+                name: displayName,
+                type: type
+            };
 
             if (!userLists.some(l => l.id === listId)) {
-                userLists.push(listObj);
-                localStorage.setItem(`userLists_v2_${currentUser.uid}`, JSON.stringify(userLists));
+                userLists.push(newListObj);
+                localStorage.setItem(`userLists_v3_${currentUser.uid}`, JSON.stringify(userLists));
             }
 
+            closeNewListModal();
             switchList(listId);
+        }
+
+        // --- Gestione Modale Condividi ---
+        function openShareModal() {
+            const currentObj = userLists.find(l => l.id === activeListId);
+            const subhead = document.getElementById('shareModalSubhead');
+            const urlInput = document.getElementById('shareUrlInput');
+
+            if (currentObj.type === 'private') {
+                subhead.textContent = "Attenzione: Questa è una Lista Privata. Per condividerla con altre persone, crea una nuova lista Condivisa.";
+                urlInput.value = "Lista Privata (non condivisibile)";
+            } else {
+                subhead.textContent = `Condividi la lista "${currentObj.name}". Chiunque apra questo link potrà collaborare in tempo reale.`;
+                const inviteUrl = `${window.location.origin}${window.location.pathname}?house=${activeListId}`;
+                urlInput.value = inviteUrl;
+            }
+
+            document.getElementById('shareModal').classList.remove('hidden');
+        }
+
+        function closeShareModal() {
+            document.getElementById('shareModal').classList.add('hidden');
+        }
+
+        async function nativeShare() {
+            const currentObj = userLists.find(l => l.id === activeListId);
+            if (currentObj.type === 'private') {
+                alert("Crea una lista Condivisa per poterla inviare agli amici.");
+                return;
+            }
+
+            const inviteUrl = `${window.location.origin}${window.location.pathname}?house=${activeListId}`;
+            const shareData = {
+                title: `InDispensa - ${currentObj.name}`,
+                text: `Unisciti alla lista della spesa condivisa: "${currentObj.name}"`,
+                url: inviteUrl
+            };
+
+            if (navigator.share) {
+                try {
+                    await navigator.share(shareData);
+                } catch (err) {
+                    console.log("Condivisione annullata");
+                }
+            } else {
+                // Fallback diretto per WhatsApp se navigator.share non è supportato da desktop
+                const waUrl = `https://api.whatsapp.com/send?text=${encodeURIComponent(shareData.text + "\n" + inviteUrl)}`;
+                window.open(waUrl, '_blank');
+            }
+        }
+
+        function copyShareUrl() {
+            const currentObj = userLists.find(l => l.id === activeListId);
+            if (currentObj.type === 'private') {
+                alert("Crea una lista Condivisa per poterla inviare agli amici.");
+                return;
+            }
+
+            const inviteUrl = `${window.location.origin}${window.location.pathname}?house=${activeListId}`;
+            const copyBtn = document.getElementById('copyShareUrlBtn');
+
+            navigator.clipboard.writeText(inviteUrl).then(() => {
+                copyBtn.innerHTML = `<span>✅</span> Link Copiato!`;
+                setTimeout(() => {
+                    copyBtn.innerHTML = `<span>📋</span> Copia Link negli Appunti`;
+                }, 2000);
+            }).catch(() => {
+                const input = document.getElementById('shareUrlInput');
+                input.select();
+                document.execCommand('copy');
+                alert("Link copiato!");
+            });
         }
 
         function switchList(listId) {
@@ -347,10 +519,8 @@
             const currentObj = userLists.find(l => l.id === activeListId) || userLists[0];
 
             if (currentObj.type === 'private') {
-                // Percorso privato del singolo utente
                 listRef = db.ref(`utenti/${currentUser.uid}/liste/${activeListId}`);
             } else {
-                // Percorso condiviso
                 listRef = db.ref(`shared_liste/${activeListId}`);
             }
 
@@ -366,7 +536,7 @@
             const currentObj = userLists.find(l => l.id === activeListId);
             if (confirm(`Rimuovere la lista "${currentObj.name}" dal tuo elenco?`)) {
                 userLists = userLists.filter(l => l.id !== activeListId);
-                localStorage.setItem(`userLists_v2_${currentUser.uid}`, JSON.stringify(userLists));
+                localStorage.setItem(`userLists_v3_${currentUser.uid}`, JSON.stringify(userLists));
                 switchList(userLists[0].id);
             }
         }
@@ -588,21 +758,6 @@
                     const currentList = snapshot.val() || [];
                     const updatedList = currentList.filter(item => !item.checked);
                     listRef.set(updatedList);
-                });
-            }
-        }
-
-        function copiaLink() {
-            const currentObj = userLists.find(l => l.id === activeListId);
-            
-            if (currentObj.type === 'private') {
-                alert("Questa è una 'Lista Privata' ed è visibile solo a te dal tuo account.\n\nSe vuoi organizzare una spesa condivisa (es. per una festa o per la casa), fai tap sul selettore in alto e crea una '➕ Nuova Lista / Spazio...' scegliendo l'opzione Condivisa!");
-            } else {
-                const inviteUrl = `${window.location.origin}${window.location.pathname}?house=${activeListId}`;
-                navigator.clipboard.writeText(inviteUrl).then(() => {
-                    alert(`Link d'invito copiato per "${currentObj.name}"!\n\nInvia questo link via WhatsApp agli invitati/partecipanti.`);
-                }).catch(() => {
-                    prompt("Copia e invia questo link d'invito:", inviteUrl);
                 });
             }
         }
