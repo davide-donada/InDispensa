@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>InDispensa - Lista Spesa Condivisa</title>
+    <title>InDispensa - Liste Spesa & Eventi</title>
     
     <!-- Meta PWA / iOS -->
     <link rel="manifest" href="./manifest.json">
@@ -30,7 +30,7 @@
 </head>
 <body class="bg-gray-100 min-h-screen pb-16 overflow-x-hidden">
 
-    <!-- Splash / Loading Screen (Evita lo sfarfallio al ricaricamento) -->
+    <!-- Splash / Loading Screen -->
     <div id="loadingScreen" class="fixed inset-0 bg-indigo-600 z-50 flex flex-col items-center justify-center p-6 text-white text-center">
         <div class="text-6xl animate-bounce mb-4">🛒</div>
         <h1 class="text-2xl font-extrabold tracking-tight">InDispensa</h1>
@@ -39,11 +39,11 @@
                 <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
                 <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
             </svg>
-            Verifica sessione in corso...
+            Caricamento in corso...
         </p>
     </div>
 
-    <!-- Schermata di Login Obbligatoria (Nascosta di default) -->
+    <!-- Schermata di Login Obbligatoria -->
     <div id="loginScreen" class="hidden fixed inset-0 bg-indigo-600 z-40 flex items-center justify-center p-6 text-white text-center">
         <div class="max-w-sm w-full bg-white text-gray-800 p-8 rounded-2xl shadow-2xl space-y-6">
             <div class="text-5xl">🛒</div>
@@ -51,7 +51,7 @@
                 <h1 class="text-2xl font-extrabold text-indigo-900">InDispensa</h1>
                 <p class="text-xs text-gray-500 mt-1">La tua spesa e la tua casa in sintonia</p>
             </div>
-            <p class="text-xs text-gray-600">Accedi con il tuo account Google per visualizzare la tua lista privata e le liste di casa condivise.</p>
+            <p class="text-xs text-gray-600">Accedi con il tuo account Google per gestire le tue liste private ed eventi condivisi.</p>
             
             <button type="button" onclick="loginGoogle()" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 px-4 rounded-xl flex items-center justify-center gap-3 transition active:scale-95 shadow-md">
                 <svg class="w-5 h-5 bg-white rounded-full p-0.5" viewBox="0 0 24 24">
@@ -88,17 +88,17 @@
 
         <div class="max-w-md mx-auto p-4 space-y-4 w-full box-border">
 
-            <!-- Banner Casa / Selettore Multi-Casa -->
+            <!-- Banner Lista / Selettore Multi-Lista -->
             <div class="bg-indigo-50 border border-indigo-100 rounded-xl p-3 flex flex-wrap justify-between items-center gap-2 text-xs text-indigo-900 shadow-sm">
                 <div class="flex items-center gap-1.5 flex-1 min-w-[180px]">
-                    <span id="houseIcon" class="text-base">👤</span>
-                    <span class="font-medium">Spazio:</span>
+                    <span id="houseIcon" class="text-base">🔒</span>
+                    <span class="font-medium">Lista:</span>
                     <select id="houseSelect" onchange="onHouseSelectChange(this.value)" class="bg-white border border-indigo-200 text-indigo-900 font-bold rounded-lg px-2 py-1 text-xs focus:outline-none focus:ring-2 focus:ring-indigo-500 flex-1 max-w-[200px] truncate">
                     </select>
                 </div>
                 <div class="flex items-center gap-2">
-                    <button id="deleteHouseBtn" onclick="eliminaCasaCorrente()" title="Rimuovi casa salvata" class="text-gray-400 hover:text-red-500 p-1 text-xs hidden">🗑️</button>
-                    <button onclick="copiaLink()" class="bg-indigo-600 text-white px-2.5 py-1 rounded-lg font-medium hover:bg-indigo-700 active:scale-95 transition shadow-sm flex items-center gap-1">
+                    <button id="deleteHouseBtn" onclick="eliminaListaCorrente()" title="Rimuovi lista salvata" class="text-gray-400 hover:text-red-500 p-1 text-xs">🗑️</button>
+                    <button id="shareBtn" onclick="copiaLink()" class="bg-indigo-600 text-white px-2.5 py-1 rounded-lg font-medium hover:bg-indigo-700 active:scale-95 transition shadow-sm flex items-center gap-1">
                         <span>🔗</span> Condividi
                     </button>
                 </div>
@@ -179,19 +179,17 @@
         const provider = new firebase.auth.GoogleAuthProvider();
 
         let currentUser = null;
-        let activeHouseId = null;
+        let activeListId = null;
         let listRef = null;
-        let userHouses = [];
+        let userLists = [];
         let currentItemsData = [];
         let hideChecked = false;
 
-        // Gestione Auth con Splash Screen
         auth.onAuthStateChanged((user) => {
             const loadingScreen = document.getElementById('loadingScreen');
             const loginScreen = document.getElementById('loginScreen');
             const appContent = document.getElementById('appContent');
             
-            // Nasconde lo splash screen di caricamento
             if (loadingScreen) loadingScreen.classList.add('hidden');
 
             if (user) {
@@ -201,7 +199,7 @@
                 document.getElementById('userName').textContent = user.displayName ? user.displayName.split(' ')[0] : 'Utente';
                 document.getElementById('userAvatar').src = user.photoURL || 'https://cdn-icons-png.flaticon.com/512/847/847969.png';
                 
-                initUserHouses();
+                initUserLists();
             } else {
                 currentUser = null;
                 loginScreen.classList.remove('hidden');
@@ -235,34 +233,35 @@
             auth.signOut();
         }
 
-        function initUserHouses() {
-            const privateId = `private_${currentUser.uid}`;
-            const storageKey = `userHouses_${currentUser.uid}`;
+        // Inizializza l'elenco delle liste personali e condivise
+        function initUserLists() {
+            const storageKey = `userLists_v2_${currentUser.uid}`;
             
-            userHouses = JSON.parse(localStorage.getItem(storageKey)) || [
-                { id: privateId, name: '👤 Lista Privata (Solo tua)', isPrivate: true }
+            userLists = JSON.parse(localStorage.getItem(storageKey)) || [
+                { id: 'p_main', name: '🔒 Spesa Personale', type: 'private' }
             ];
 
+            // Rileva inviti via URL (?house=...)
             const urlParams = new URLSearchParams(window.location.search);
             let urlHouse = urlParams.get('house');
 
             if (urlHouse) {
                 urlHouse = urlHouse.trim().toLowerCase().replace(/[^a-z0-9_-]/g, '');
-                if (urlHouse && !userHouses.some(h => h.id === urlHouse)) {
-                    userHouses.push({ id: urlHouse, name: `🏠 Casa: ${urlHouse}`, isPrivate: false });
+                if (urlHouse && !userLists.some(l => l.id === urlHouse)) {
+                    userLists.push({ id: urlHouse, name: `👥 Lista: ${urlHouse}`, type: 'shared' });
                 }
             }
 
-            localStorage.setItem(storageKey, JSON.stringify(userHouses));
+            localStorage.setItem(storageKey, JSON.stringify(userLists));
             
-            const lastActive = localStorage.getItem(`lastActiveHouse_${currentUser.uid}`);
-            activeHouseId = urlHouse || lastActive || privateId;
+            const lastActive = localStorage.getItem(`lastActiveList_${currentUser.uid}`);
+            activeListId = urlHouse || lastActive || userLists[0].id;
 
-            if (!userHouses.some(h => h.id === activeHouseId)) {
-                activeHouseId = privateId;
+            if (!userLists.some(l => l.id === activeListId)) {
+                activeListId = userLists[0].id;
             }
 
-            switchHouse(activeHouseId);
+            switchList(activeListId);
         }
 
         function renderHouseSelect() {
@@ -271,72 +270,104 @@
             const houseIcon = document.getElementById('houseIcon');
             select.innerHTML = '';
             
-            const currentHouseObj = userHouses.find(h => h.id === activeHouseId) || userHouses[0];
+            const currentObj = userLists.find(l => l.id === activeListId) || userLists[0];
             
-            if (currentHouseObj.isPrivate) {
-                houseIcon.textContent = '👤';
-                deleteBtn.classList.add('hidden');
+            if (currentObj.type === 'private') {
+                houseIcon.textContent = '🔒';
             } else {
-                houseIcon.textContent = '🏠';
-                deleteBtn.classList.remove('hidden');
+                houseIcon.textContent = '👥';
             }
 
-            userHouses.forEach(h => {
+            // Permetti di eliminare qualsiasi lista purché ce ne sia almeno un'altra
+            if (userLists.length > 1) {
+                deleteBtn.classList.remove('hidden');
+            } else {
+                deleteBtn.classList.add('hidden');
+            }
+
+            userLists.forEach(l => {
                 const option = document.createElement('option');
-                option.value = h.id;
-                option.textContent = h.name;
-                if (h.id === activeHouseId) option.selected = true;
+                option.value = l.id;
+                option.textContent = l.name;
+                if (l.id === activeListId) option.selected = true;
                 select.appendChild(option);
             });
 
             const addOption = document.createElement('option');
             addOption.value = '__ADD_NEW__';
-            addOption.textContent = '➕ Nuova Casa Condivisa...';
+            addOption.textContent = '➕ Nuova Lista / Spazio...';
             select.appendChild(addOption);
         }
 
         function onHouseSelectChange(value) {
             if (value === '__ADD_NEW__') {
-                const nuovaCasa = prompt("Inserisci un nome univoco per la Casa Condivisa (es. famiglia-donada, casa-suocera):");
-                if (nuovaCasa && nuovaCasa.trim() !== "") {
-                    const clean = nuovaCasa.trim().toLowerCase().replace(/[^a-z0-9_-]/g, '');
-                    if (clean) {
-                        if (!userHouses.some(h => h.id === clean)) {
-                            userHouses.push({ id: clean, name: `🏠 Casa: ${clean}`, isPrivate: false });
-                            localStorage.setItem(`userHouses_${currentUser.uid}`, JSON.stringify(userHouses));
-                        }
-                        switchHouse(clean);
-                        return;
-                    }
-                }
-                renderHouseSelect();
+                creaNuovaLista();
             } else {
-                switchHouse(value);
+                switchList(value);
             }
         }
 
-        function switchHouse(houseId) {
-            activeHouseId = houseId;
-            localStorage.setItem(`lastActiveHouse_${currentUser.uid}`, activeHouseId);
+        function creaNuovaLista() {
+            const nome = prompt("Inserisci il nome della nuova lista (es. Festa Compleanno, Grigliata, Fai da te):");
+            if (!nome || nome.trim() === "") {
+                renderHouseSelect();
+                return;
+            }
+
+            const tipo = prompt("Che tipo di lista vuoi creare?\n\nDigita '1' per 🔒 Privata (solo per te)\nDigita '2' per 👥 Condivisa (accessibile con link per amici/parenti)", "2");
+            
+            const isShared = (tipo === "2");
+            const cleanName = nome.trim();
+            
+            let listId;
+            let listObj;
+
+            if (isShared) {
+                const code = cleanName.toLowerCase().replace(/[^a-z0-9_-]/g, '-');
+                listId = code || `festa-${Date.now()}`;
+                listObj = { id: listId, name: `👥 ${cleanName}`, type: 'shared' };
+            } else {
+                listId = `p_${Date.now()}`;
+                listObj = { id: listId, name: `🔒 ${cleanName}`, type: 'private' };
+            }
+
+            if (!userLists.some(l => l.id === listId)) {
+                userLists.push(listObj);
+                localStorage.setItem(`userLists_v2_${currentUser.uid}`, JSON.stringify(userLists));
+            }
+
+            switchList(listId);
+        }
+
+        function switchList(listId) {
+            activeListId = listId;
+            localStorage.setItem(`lastActiveList_${currentUser.uid}`, activeListId);
             renderHouseSelect();
 
-            const isPrivate = activeHouseId.startsWith('private_');
-            if (isPrivate) {
-                listRef = db.ref(`utenti/${currentUser.uid}/lista`);
+            const currentObj = userLists.find(l => l.id === activeListId) || userLists[0];
+
+            if (currentObj.type === 'private') {
+                // Percorso privato del singolo utente
+                listRef = db.ref(`utenti/${currentUser.uid}/liste/${activeListId}`);
             } else {
-                listRef = db.ref(`shared_liste/${activeHouseId}`);
+                // Percorso condiviso
+                listRef = db.ref(`shared_liste/${activeListId}`);
             }
 
             attachDatabaseListener();
         }
 
-        function eliminaCasaCorrente() {
-            if (activeHouseId.startsWith('private_')) return;
+        function eliminaListaCorrente() {
+            if (userLists.length <= 1) {
+                alert("Devi mantenere almeno una lista salvata.");
+                return;
+            }
 
-            if (confirm(`Rimuovere la casa condivisa "${activeHouseId}" dal tuo menu?`)) {
-                userHouses = userHouses.filter(h => h.id !== activeHouseId);
-                localStorage.setItem(`userHouses_${currentUser.uid}`, JSON.stringify(userHouses));
-                switchHouse(`private_${currentUser.uid}`);
+            const currentObj = userLists.find(l => l.id === activeListId);
+            if (confirm(`Rimuovere la lista "${currentObj.name}" dal tuo elenco?`)) {
+                userLists = userLists.filter(l => l.id !== activeListId);
+                localStorage.setItem(`userLists_v2_${currentUser.uid}`, JSON.stringify(userLists));
+                switchList(userLists[0].id);
             }
         }
 
@@ -562,27 +593,14 @@
         }
 
         function copiaLink() {
-            if (activeHouseId.startsWith('private_')) {
-                const risposta = prompt("La 'Lista Privata' è visibile solo a te. Per condividerla con tua moglie o con altri, inserisci un nome per la tua nuova Casa Condivisa (es. famiglia-donada):");
-                if (risposta && risposta.trim() !== "") {
-                    const clean = risposta.trim().toLowerCase().replace(/[^a-z0-9_-]/g, '');
-                    if (clean) {
-                        if (!userHouses.some(h => h.id === clean)) {
-                            userHouses.push({ id: clean, name: `🏠 Casa: ${clean}`, isPrivate: false });
-                            localStorage.setItem(`userHouses_${currentUser.uid}`, JSON.stringify(userHouses));
-                        }
-                        switchHouse(clean);
-                        
-                        const inviteUrl = `${window.location.origin}${window.location.pathname}?house=${clean}`;
-                        navigator.clipboard.writeText(inviteUrl).then(() => {
-                            alert(`Casa creata e Link d'invito copiato per "${clean}"!\n\nInvia questo link via WhatsApp.`);
-                        });
-                    }
-                }
+            const currentObj = userLists.find(l => l.id === activeListId);
+            
+            if (currentObj.type === 'private') {
+                alert("Questa è una 'Lista Privata' ed è visibile solo a te dal tuo account.\n\nSe vuoi organizzare una spesa condivisa (es. per una festa o per la casa), fai tap sul selettore in alto e crea una '➕ Nuova Lista / Spazio...' scegliendo l'opzione Condivisa!");
             } else {
-                const inviteUrl = `${window.location.origin}${window.location.pathname}?house=${activeHouseId}`;
+                const inviteUrl = `${window.location.origin}${window.location.pathname}?house=${activeListId}`;
                 navigator.clipboard.writeText(inviteUrl).then(() => {
-                    alert(`Link d'invito copiato per la casa "${activeHouseId}"!\n\nInvia questo link via WhatsApp per far accedere subito chi vuoi a questa lista.`);
+                    alert(`Link d'invito copiato per "${currentObj.name}"!\n\nInvia questo link via WhatsApp agli invitati/partecipanti.`);
                 }).catch(() => {
                     prompt("Copia e invia questo link d'invito:", inviteUrl);
                 });
