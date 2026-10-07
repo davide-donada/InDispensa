@@ -642,47 +642,68 @@
         ];
 
         const defaultItems = [
-            { name: "Mele (renette o annurche), pere e melograno", dept: "Frutta", checked: false },
+            // --- FRUTTA ---
+            { name: "Mele, pere o melograno", dept: "Frutta", checked: false },
+            { name: "Banane", dept: "Frutta", checked: false },
+            { name: "Limoni e Agrumi", dept: "Frutta", checked: false },
             { name: "Avocado", dept: "Frutta", checked: false },
-            { name: "Zucca", dept: "Verdura", checked: false },
-            { name: "Broccoli", dept: "Verdura", checked: false },
-            { name: "Cavolfiore", dept: "Verdura", checked: false },
+            { name: "Frutti rossi / Mirtilli", dept: "Frutta", checked: false },
+
+            // --- VERDURA ---
+            { name: "Broccoli e Cavolfiore", dept: "Verdura", checked: false },
+            { name: "Zucca e Carote", dept: "Verdura", checked: false },
+            { name: "Spinaci, bieta o zucchine", dept: "Verdura", checked: false },
+            { name: "Insalata fresca e Pomodori", dept: "Verdura", checked: false },
             { name: "Funghi (champignon o misti)", dept: "Verdura", checked: false },
-            { name: "Spinaci, bieta, zucchine o fagiolini", dept: "Verdura", checked: false },
-            { name: "Porri e cipolle (in abbondanza)", dept: "Verdura", checked: false },
-            { name: "Pancetta a cubetti o speck a fiammiferi", dept: "Carne e Pesce", checked: false },
-            { name: "Alette di pollo, petti di pollo o fesa di tacchino", dept: "Carne e Pesce", checked: false },
-            { name: "Petto di pollo/tacchino", dept: "Carne e Pesce", checked: false },
-            { name: "Fettine di manzo", dept: "Carne e Pesce", checked: false },
-            { name: "Macinato di manzo", dept: "Carne e Pesce", checked: false },
-            { name: "Tonno o sgombro in vetro/scatola", dept: "Carne e Pesce", checked: false },
+            { name: "Porri e Cipolle", dept: "Verdura", checked: false },
+
+            // --- CARNE E PESCE ---
+            { name: "Petto di pollo o fesa di tacchino", dept: "Carne e Pesce", checked: false },
+            { name: "Macinato o fettine di manzo", dept: "Carne e Pesce", checked: false },
+            { name: "Pancetta a cubetti o speck", dept: "Carne e Pesce", checked: false },
             { name: "Salmone (tranci o filetti)", dept: "Carne e Pesce", checked: false },
-            { name: "Orata o branzino", dept: "Carne e Pesce", checked: false },
-            { name: "Uova (a pasta gialla/arancione)", dept: "Latticini e Uova", checked: false },
-            { name: "Stracchino (confezionato/pastorizzato, es. Granarolo)", dept: "Latticini e Uova", checked: false },
+            { name: "Orata o Branzino", dept: "Carne e Pesce", checked: false },
+            { name: "Tonno o sgombro in vetro/scatola", dept: "Carne e Pesce", checked: false },
+
+            // --- LATTICINI E UOVA ---
+            { name: "Uova fresche", dept: "Latticini e Uova", checked: false },
             { name: "Yogurt Greco intero (5% di grassi)", dept: "Latticini e Uova", checked: false },
+            { name: "Fiocchi di latte", dept: "Latticini e Uova", checked: false },
+            { name: "Stracchino / Mozzarella", dept: "Latticini e Uova", checked: false },
             { name: "Grana Padano o Parmigiano Reggiano", dept: "Latticini e Uova", checked: false },
             { name: "Latte intero", dept: "Latticini e Uova", checked: false },
-            { name: "Fiocchi di latte", dept: "Latticini e Uova", checked: false },
+
+            // --- DISPENSA ---
             { name: "Pasta (trafilata al bronzo o integrale)", dept: "Dispensa", checked: false },
-            { name: "Riso Basmati", dept: "Dispensa", checked: false },
-            { name: "Mandorle, noci o nocciole", dept: "Dispensa", checked: false },
+            { name: "Riso Basmati o Integrale", dept: "Dispensa", checked: false },
             { name: "Olio Extravergine d'Oliva", dept: "Dispensa", checked: false },
+            { name: "Mandorle, noci o nocciole", dept: "Dispensa", checked: false },
+            { name: "Legumi (ceci, fagioli o lenticchie)", dept: "Dispensa", checked: false },
+
+            // --- SURGELATI ---
             { name: "Piselli fini surgelati", dept: "Surgelati", checked: false },
             { name: "Filetti di merluzzo / nasello surgelati", dept: "Surgelati", checked: false },
-            { name: "Verdure per minestrone / macedonia di bosco", dept: "Surgelati", checked: false },
+            { name: "Verdure per minestrone surgelate", dept: "Surgelati", checked: false },
+
+            // --- CASA E PULIZIA ---
             { name: "Detersivo piatti", dept: "Casa e Pulizia", checked: false },
             { name: "Pastiglie / Gel Lavastoviglie", dept: "Casa e Pulizia", checked: false },
             { name: "Sgrassatore universale / Multiuso", dept: "Casa e Pulizia", checked: false },
             { name: "Carta casa / Rotoloni asciugatutto", dept: "Casa e Pulizia", checked: false },
             { name: "Sacchetti spazzatura (differenziata)", dept: "Casa e Pulizia", checked: false },
+
+            // --- BUCATO ---
             { name: "Detersivo lavatrice (liquido o pod)", dept: "Bucato", checked: false },
             { name: "Ammorbidente / Profumatore bucato", dept: "Bucato", checked: false },
+
+            // --- IGIENE PERSONALE ---
             { name: "Carta igienica", dept: "Igiene Personale", checked: false },
             { name: "Bagnoschiuma / Sapone liquido", dept: "Igiene Personale", checked: false },
             { name: "Dentifricio", dept: "Igiene Personale", checked: false },
-            { name: "Biscotti avena/cornflakes con gocce di cioccolato", dept: "Sfizi e Dolci", checked: false },
-            { name: "Cioccolato fondente (minimo 70-75%)", dept: "Sfizi e Dolci", checked: false }
+
+            // --- SFIZI E DOLCI ---
+            { name: "Biscotti d'avena o cereali", dept: "Sfizi e Dolci", checked: false },
+            { name: "Cioccolato fondente (75%+)", dept: "Sfizi e Dolci", checked: false }
         ];
 
         function attachDatabaseListener() {
