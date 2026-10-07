@@ -3,21 +3,24 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Lista Spesa Condivisa</title>
+    <title>InDispensa - Lista Spesa Condivisa</title>
     
     <!-- Meta PWA / iOS -->
     <link rel="manifest" href="./manifest.json">
     <meta name="theme-color" content="#4f46e5">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <meta name="apple-mobile-web-app-title" content="Lista Spesa">
+    <meta name="apple-mobile-web-app-title" content="InDispensa">
     <link rel="apple-touch-icon" href="https://cdn-icons-png.flaticon.com/512/3081/3081986.png">
 
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Firebase SDK -->
+    
+    <!-- Firebase SDK (App, Database, Auth) -->
     <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-database-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-auth-compat.js"></script>
+
     <style>
         .item-checked {
             text-decoration: line-through;
@@ -27,31 +30,52 @@
 </head>
 <body class="bg-gray-100 min-h-screen pb-16 overflow-x-hidden">
 
-    <!-- Header / Banner Condivisione + Contatore -->
+    <!-- Header con Brand InDispensa, Stato Auth e Contatore -->
     <div class="bg-indigo-600 text-white p-4 shadow-md sticky top-0 z-10">
         <div class="max-w-md mx-auto flex justify-between items-center">
             <div>
-                <h1 class="text-xl font-bold flex items-center gap-2">🛒 Lista Spesa</h1>
+                <h1 class="text-xl font-extrabold tracking-tight flex items-center gap-2">
+                    🛒 InDispensa
+                </h1>
                 <p id="progressCounter" class="text-xs text-indigo-200 mt-0.5">Caricamento...</p>
             </div>
-            <button onclick="copiaLink()" class="bg-indigo-700 hover:bg-indigo-800 text-xs py-1.5 px-3 rounded-full border border-indigo-400 flex items-center gap-1 active:scale-95 transition">
-                🔗 Condividi
-            </button>
+            
+            <!-- Area Profilo / Login Google -->
+            <div id="authContainer">
+                <button id="loginBtn" onclick="loginGoogle()" class="hidden bg-indigo-700 hover:bg-indigo-800 text-xs py-1.5 px-3 rounded-full border border-indigo-400 flex items-center gap-1.5 active:scale-95 transition shadow-sm">
+                    <span>🔑</span> Accedi
+                </button>
+                <div id="userProfile" class="hidden flex items-center gap-2">
+                    <img id="userAvatar" src="" alt="User" class="w-7 h-7 rounded-full border border-indigo-300">
+                    <span id="userName" class="text-xs font-semibold hidden sm:inline"></span>
+                    <button onclick="logoutGoogle()" class="bg-indigo-700 hover:bg-indigo-800 text-[10px] py-1 px-2 rounded-md text-indigo-200 hover:text-white border border-indigo-500">Esci</button>
+                </div>
+            </div>
         </div>
     </div>
 
     <div class="max-w-md mx-auto p-4 space-y-4 w-full box-border">
 
+        <!-- Banner Casa / Condivisione -->
+        <div class="bg-indigo-50 border border-indigo-100 rounded-xl p-3 flex justify-between items-center text-xs text-indigo-900 shadow-sm">
+            <div class="flex items-center gap-1.5">
+                <span>🏠</span>
+                <span>Casa: <strong id="householdLabel" class="font-bold">casa</strong></span>
+            </div>
+            <div class="flex gap-2">
+                <button onclick="cambiaCasa()" class="text-indigo-600 hover:underline">Cambia</button>
+                <button onclick="copiaLink()" class="bg-indigo-600 text-white px-2.5 py-1 rounded-lg font-medium hover:bg-indigo-700 active:scale-95 transition shadow-sm">🔗 Invita</button>
+            </div>
+        </div>
+
         <!-- Barra Strumenti: Ricerca + Filtro "Da Comprare" -->
         <div class="flex gap-2">
-            <!-- Campo Ricerca -->
             <div class="bg-white p-2 rounded-xl shadow-sm border border-gray-100 flex items-center px-3 gap-2 flex-1">
                 <span class="text-gray-400 text-sm">🔍</span>
                 <input type="text" id="searchInput" oninput="filterList()" placeholder="Cerca prodotto..." class="w-full bg-transparent text-sm focus:outline-none py-1">
                 <button onclick="clearSearch()" id="clearSearchBtn" class="text-gray-400 text-xs hidden hover:text-gray-600">✕</button>
             </div>
 
-            <!-- Tasto Filtro Mostra Solo Mancanti -->
             <button id="hideCheckedBtn" onclick="toggleHideChecked()" class="bg-white border border-gray-200 text-gray-700 text-xs px-3 py-2 rounded-xl font-medium shadow-sm flex items-center gap-1.5 active:scale-95 transition">
                 <span>👁️</span> <span id="hideCheckedLabel">Solo da prendere</span>
             </button>
@@ -92,7 +116,7 @@
     </div>
 
     <script>
-        // Registrazione Service Worker per funzionamento Offline
+        // Registrazione Service Worker per PWA e uso Offline
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
                 navigator.serviceWorker.register('./sw.js')
@@ -109,16 +133,16 @@
             firebase.initializeApp(firebaseConfig);
         }
         const db = firebase.database();
-        
-        // Attiva salvataggio offline automatico su Firebase
-        db.ref('.info/connected').on('value', (snap) => {
-            if (snap.val() === false) {
-                console.log("Modalità offline: le modifiche verranno sincronizzate al ripristino della connessione.");
-            }
-        });
+        const auth = firebase.auth();
+        const provider = new firebase.auth.GoogleAuthProvider();
 
-        const listRef = db.ref('liste/casa');
+        // Gestione ID Casa / Household
+        const urlParams = new URLSearchParams(window.location.search);
+        let householdId = urlParams.get('house') || localStorage.getItem('householdId') || 'casa';
+        localStorage.setItem('householdId', householdId);
+        document.getElementById('householdLabel').textContent = householdId;
 
+        let listRef = db.ref(`liste/${householdId}`);
         let currentItemsData = [];
         let hideChecked = false;
 
@@ -171,16 +195,59 @@
             { name: "Cioccolato fondente (minimo 70-75%)", dept: "Sfizi e Dolci", checked: false }
         ];
 
-        listRef.on('value', (snapshot) => {
-            const data = snapshot.val();
-            if (!data) {
-                listRef.set(defaultItems);
+        // Gestione Stato Autenticazione Google
+        auth.onAuthStateChanged((user) => {
+            const loginBtn = document.getElementById('loginBtn');
+            const userProfile = document.getElementById('userProfile');
+            
+            if (user) {
+                loginBtn.classList.add('hidden');
+                userProfile.classList.remove('hidden');
+                document.getElementById('userName').textContent = user.displayName ? user.displayName.split(' ')[0] : 'Utente';
+                document.getElementById('userAvatar').src = user.photoURL || 'https://cdn-icons-png.flaticon.com/512/847/847969.png';
             } else {
-                currentItemsData = data;
-                updateCounter();
-                filterList();
+                loginBtn.classList.remove('hidden');
+                userProfile.classList.add('hidden');
             }
         });
+
+        function loginGoogle() {
+            auth.signInWithPopup(provider).catch(error => {
+                console.error("Errore Login:", error);
+                alert("Errore durante l'accesso Google: " + error.message);
+            });
+        }
+
+        function logoutGoogle() {
+            auth.signOut();
+        }
+
+        function attachDatabaseListener() {
+            listRef.off();
+            listRef.on('value', (snapshot) => {
+                const data = snapshot.val();
+                if (!data) {
+                    listRef.set(defaultItems);
+                } else {
+                    currentItemsData = data;
+                    updateCounter();
+                    filterList();
+                }
+            });
+        }
+
+        attachDatabaseListener();
+
+        function cambiaCasa() {
+            const nuovaCasa = prompt("Inserisci il nome identificativo della tua casa (es. famiglia-donada):", householdId);
+            if (nuovaCasa && nuovaCasa.trim() !== "") {
+                householdId = nuovaCasa.trim().toLowerCase().replace(/[^a-z0-9_-]/g, '');
+                localStorage.setItem('householdId', householdId);
+                document.getElementById('householdLabel').textContent = householdId;
+                listRef = db.ref(`liste/${householdId}`);
+                attachDatabaseListener();
+            }
+        }
 
         const deptIcons = {
             "Ortofrutta": "🥬", "Carne e Pesce": "🥩", "Latticini e Uova": "🧀",
@@ -191,8 +258,7 @@
         function updateCounter() {
             const total = currentItemsData.length;
             const checkedCount = currentItemsData.filter(i => i.checked).length;
-            const counterEl = document.getElementById('progressCounter');
-            counterEl.textContent = `${checkedCount} di ${total} prodotti presi`;
+            document.getElementById('progressCounter').textContent = `${checkedCount} di ${total} prodotti presi`;
         }
 
         function renderList(items) {
@@ -341,10 +407,11 @@
         }
 
         function copiaLink() {
-            navigator.clipboard.writeText(window.location.href).then(() => {
-                alert("Link copiato! Invialo via WhatsApp.");
+            const inviteUrl = `${window.location.origin}${window.location.pathname}?house=${householdId}`;
+            navigator.clipboard.writeText(inviteUrl).then(() => {
+                alert(`Link d'invito InDispensa copiato per la casa "${householdId}"!\n\nInvia questo link via WhatsApp per connettere subito tua moglie alla stessa lista.`);
             }).catch(() => {
-                prompt("Copia questo link e invialo:", window.location.href);
+                prompt("Copia e invia questo link d'invito InDispensa:", inviteUrl);
             });
         }
     </script>
