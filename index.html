@@ -134,7 +134,8 @@
                 <input type="text" id="newItemText" placeholder="Aggiungi nuovo prodotto..." class="w-full bg-gray-50 border border-gray-200 rounded-xl px-3.5 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
                 <div class="flex gap-2">
                     <select id="newItemDept" class="flex-1 bg-gray-50 border border-gray-200 rounded-xl px-3 py-2 text-xs focus:outline-none focus:ring-2 focus:ring-indigo-500">
-                        <option value="Ortofrutta">🥬 Ortofrutta</option>
+                        <option value="Frutta">🍎 Frutta</option>
+                        <option value="Verdura">🥬 Verdura</option>
                         <option value="Carne e Pesce">🥩 Carne/Pesce</option>
                         <option value="Latticini e Uova">🧀 Latticini</option>
                         <option value="Dispensa">📦 Dispensa</option>
@@ -636,19 +637,19 @@
         }
 
         const deptOrder = [
-            "Ortofrutta", "Dispensa", "Carne e Pesce", "Latticini e Uova", 
+            "Frutta", "Verdura", "Dispensa", "Carne e Pesce", "Latticini e Uova", 
             "Casa e Pulizia", "Bucato", "Igiene Personale", "Surgelati", "Sfizi e Dolci"
         ];
 
         const defaultItems = [
-            { name: "Zucca", dept: "Ortofrutta", checked: false },
-            { name: "Broccoli", dept: "Ortofrutta", checked: false },
-            { name: "Cavolfiore", dept: "Ortofrutta", checked: false },
-            { name: "Funghi (champignon o misti)", dept: "Ortofrutta", checked: false },
-            { name: "Spinaci, bieta, zucchine o fagiolini", dept: "Ortofrutta", checked: false },
-            { name: "Porri e cipolle (in abbondanza)", dept: "Ortofrutta", checked: false },
-            { name: "Avocado", dept: "Ortofrutta", checked: false },
-            { name: "Mele (renette o annurche), pere e melograno", dept: "Ortofrutta", checked: false },
+            { name: "Mele (renette o annurche), pere e melograno", dept: "Frutta", checked: false },
+            { name: "Avocado", dept: "Frutta", checked: false },
+            { name: "Zucca", dept: "Verdura", checked: false },
+            { name: "Broccoli", dept: "Verdura", checked: false },
+            { name: "Cavolfiore", dept: "Verdura", checked: false },
+            { name: "Funghi (champignon o misti)", dept: "Verdura", checked: false },
+            { name: "Spinaci, bieta, zucchine o fagiolini", dept: "Verdura", checked: false },
+            { name: "Porri e cipolle (in abbondanza)", dept: "Verdura", checked: false },
             { name: "Pancetta a cubetti o speck a fiammiferi", dept: "Carne e Pesce", checked: false },
             { name: "Alette di pollo, petti di pollo o fesa di tacchino", dept: "Carne e Pesce", checked: false },
             { name: "Petto di pollo/tacchino", dept: "Carne e Pesce", checked: false },
@@ -700,7 +701,7 @@
         }
 
         const deptIcons = {
-            "Ortofrutta": "🥬", "Carne e Pesce": "🥩", "Latticini e Uova": "🧀",
+            "Frutta": "🍎", "Verdura": "🥬", "Carne e Pesce": "🥩", "Latticini e Uova": "🧀",
             "Dispensa": "📦", "Surgelati": "❄️", "Casa e Pulizia": "🧹",
             "Bucato": "🧺", "Igiene Personale": "🧴", "Sfizi e Dolci": "🍫"
         };
