@@ -359,37 +359,52 @@
             auth.signOut();
         }
 
+        // --- Inizializzazione e Sincronizzazione Liste dell'Utente su Firebase ---
         function initUserLists() {
-            const storageKey = `userLists_v3_${currentUser.uid}`;
+            const userListsRef = db.ref(`utenti/${currentUser.uid}/userLists`);
             
-            userLists = JSON.parse(localStorage.getItem(storageKey)) || [
-                { id: 'p_main', name: 'Spesa Personale', type: 'private' }
-            ];
-
             const urlParams = new URLSearchParams(window.location.search);
             let urlHouse = urlParams.get('house');
-
             if (urlHouse) {
                 urlHouse = urlHouse.trim().toLowerCase().replace(/[^a-z0-9_-]/g, '');
-                if (urlHouse && !userLists.some(l => l.id === urlHouse)) {
+            }
+
+            userListsRef.on('value', (snapshot) => {
+                let listsFromDb = snapshot.val();
+                
+                if (!listsFromDb || !Array.isArray(listsFromDb) || listsFromDb.length === 0) {
+                    listsFromDb = [
+                        { id: 'p_main', name: 'Spesa Personale', type: 'private' }
+                    ];
+                }
+
+                if (urlHouse && !listsFromDb.some(l => l.id === urlHouse)) {
                     const formattedTitle = urlHouse.split('-')
                         .map(w => w.charAt(0).toUpperCase() + w.slice(1))
                         .join(' ');
-                    
-                    userLists.push({ id: urlHouse, name: formattedTitle, type: 'shared' });
+                    listsFromDb.push({ id: urlHouse, name: formattedTitle, type: 'shared' });
+                    userListsRef.set(listsFromDb);
+                    return;
                 }
+
+                userLists = listsFromDb;
+                
+                const lastActive = localStorage.getItem(`lastActiveList_${currentUser.uid}`);
+                activeListId = urlHouse || lastActive || userLists[0].id;
+
+                if (!userLists.some(l => l.id === activeListId)) {
+                    activeListId = userLists[0].id;
+                }
+
+                renderHouseSelect();
+                switchList(activeListId);
+            });
+        }
+
+        function salvaUserListsSuFirebase() {
+            if (currentUser && userLists) {
+                db.ref(`utenti/${currentUser.uid}/userLists`).set(userLists);
             }
-
-            localStorage.setItem(storageKey, JSON.stringify(userLists));
-            
-            const lastActive = localStorage.getItem(`lastActiveList_${currentUser.uid}`);
-            activeListId = urlHouse || lastActive || userLists[0].id;
-
-            if (!userLists.some(l => l.id === activeListId)) {
-                activeListId = userLists[0].id;
-            }
-
-            switchList(activeListId);
         }
 
         function renderHouseSelect() {
@@ -522,7 +537,7 @@
 
             if (!userLists.some(l => l.id === listId)) {
                 userLists.push(newListObj);
-                localStorage.setItem(`userLists_v3_${currentUser.uid}`, JSON.stringify(userLists));
+                salvaUserListsSuFirebase();
             }
 
             closeNewListModal();
@@ -630,7 +645,7 @@
                 "🗑️",
                 () => {
                     userLists = userLists.filter(l => l.id !== activeListId);
-                    localStorage.setItem(`userLists_v3_${currentUser.uid}`, JSON.stringify(userLists));
+                    salvaUserListsSuFirebase();
                     switchList(userLists[0].id);
                 }
             );
