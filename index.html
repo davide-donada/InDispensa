@@ -45,15 +45,15 @@
 
     <!-- Schermata di Login Obbligatoria -->
     <div id="loginScreen" class="hidden fixed inset-0 bg-indigo-600 z-40 flex items-center justify-center p-6 text-white text-center">
-        <div class="max-w-sm w-full bg-white text-gray-800 p-8 rounded-2xl shadow-2xl space-y-6">
+        <div class="max-w-sm w-full bg-white text-gray-800 p-8 rounded-3xl shadow-2xl space-y-6">
             <div class="text-5xl">🛒</div>
             <div>
                 <h1 class="text-2xl font-extrabold text-indigo-900">InDispensa</h1>
                 <p class="text-xs text-gray-500 mt-1">La tua spesa e la tua casa in sintonia</p>
             </div>
-            <p class="text-xs text-gray-600">Accedi con il tuo account Google per gestire le tue liste private ed eventi condivisi.</p>
+            <p class="text-xs text-gray-600 leading-relaxed">Accedi con il tuo account Google per gestire le tue liste private ed eventi condivisi.</p>
             
-            <button type="button" onclick="loginGoogle()" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 px-4 rounded-xl flex items-center justify-center gap-3 transition active:scale-95 shadow-md">
+            <button type="button" onclick="loginGoogle()" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3.5 px-4 rounded-2xl flex items-center justify-center gap-3 transition active:scale-95 shadow-md">
                 <svg class="w-5 h-5 bg-white rounded-full p-0.5" viewBox="0 0 24 24">
                     <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
                     <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
@@ -89,16 +89,16 @@
         <div class="max-w-md mx-auto p-4 space-y-4 w-full box-border">
 
             <!-- Banner Lista / Selettore Multi-Lista -->
-            <div class="bg-indigo-50 border border-indigo-100 rounded-xl p-3 flex flex-wrap justify-between items-center gap-2 text-xs text-indigo-900 shadow-sm">
+            <div class="bg-indigo-50 border border-indigo-100 rounded-2xl p-3 flex flex-wrap justify-between items-center gap-2 text-xs text-indigo-900 shadow-sm">
                 <div class="flex items-center gap-1.5 flex-1 min-w-[180px]">
                     <span id="houseIcon" class="text-base">🔒</span>
                     <span class="font-medium">Lista:</span>
-                    <select id="houseSelect" onchange="onHouseSelectChange(this.value)" class="bg-white border border-indigo-200 text-indigo-900 font-bold rounded-lg px-2 py-1 text-xs focus:outline-none focus:ring-2 focus:ring-indigo-500 flex-1 max-w-[200px] truncate">
+                    <select id="houseSelect" onchange="onHouseSelectChange(this.value)" class="bg-white border border-indigo-200 text-indigo-900 font-bold rounded-xl px-2.5 py-1.5 text-xs focus:outline-none focus:ring-2 focus:ring-indigo-500 flex-1 max-w-[200px] truncate shadow-sm">
                     </select>
                 </div>
                 <div class="flex items-center gap-2">
-                    <button id="deleteHouseBtn" onclick="eliminaListaCorrente()" title="Rimuovi lista salvata" class="text-gray-400 hover:text-red-500 p-1 text-xs">🗑️</button>
-                    <button id="shareBtn" onclick="openShareModal()" class="bg-indigo-600 text-white px-2.5 py-1 rounded-lg font-medium hover:bg-indigo-700 active:scale-95 transition shadow-sm flex items-center gap-1">
+                    <button id="deleteHouseBtn" onclick="eliminaListaCorrente()" title="Rimuovi lista salvata" class="text-gray-400 hover:text-red-500 p-1.5 text-xs transition">🗑️</button>
+                    <button id="shareBtn" onclick="openShareModal()" class="bg-indigo-600 text-white px-3 py-1.5 rounded-xl font-medium hover:bg-indigo-700 active:scale-95 transition shadow-sm flex items-center gap-1">
                         <span>🔗</span> Condividi
                     </button>
                 </div>
@@ -106,22 +106,22 @@
 
             <!-- Barra Strumenti: Ricerca + Filtro "Da Comprare" -->
             <div class="flex gap-2">
-                <div class="bg-white p-2 rounded-xl shadow-sm border border-gray-100 flex items-center px-3 gap-2 flex-1">
+                <div class="bg-white p-2 rounded-2xl shadow-sm border border-gray-100 flex items-center px-3 gap-2 flex-1">
                     <span class="text-gray-400 text-sm">🔍</span>
                     <input type="text" id="searchInput" oninput="filterList()" placeholder="Cerca prodotto..." class="w-full bg-transparent text-sm focus:outline-none py-1">
                     <button onclick="clearSearch()" id="clearSearchBtn" class="text-gray-400 text-xs hidden hover:text-gray-600">✕</button>
                 </div>
 
-                <button id="hideCheckedBtn" onclick="toggleHideChecked()" class="bg-white border border-gray-200 text-gray-700 text-xs px-3 py-2 rounded-xl font-medium shadow-sm flex items-center gap-1.5 active:scale-95 transition">
+                <button id="hideCheckedBtn" onclick="toggleHideChecked()" class="bg-white border border-gray-200 text-gray-700 text-xs px-3 py-2 rounded-2xl font-medium shadow-sm flex items-center gap-1.5 active:scale-95 transition">
                     <span>👁️</span> <span id="hideCheckedLabel">Solo da prendere</span>
                 </button>
             </div>
 
             <!-- Form Aggiunta Rapida -->
-            <div class="bg-white p-3 rounded-xl shadow-sm space-y-2 border border-gray-100">
-                <input type="text" id="newItemText" placeholder="Aggiungi nuovo prodotto..." class="w-full bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
+            <div class="bg-white p-3.5 rounded-2xl shadow-sm space-y-2.5 border border-gray-100">
+                <input type="text" id="newItemText" placeholder="Aggiungi nuovo prodotto..." class="w-full bg-gray-50 border border-gray-200 rounded-xl px-3.5 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
                 <div class="flex gap-2">
-                    <select id="newItemDept" class="flex-1 bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 text-xs focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                    <select id="newItemDept" class="flex-1 bg-gray-50 border border-gray-200 rounded-xl px-3 py-2 text-xs focus:outline-none focus:ring-2 focus:ring-indigo-500">
                         <option value="Ortofrutta">🥬 Ortofrutta</option>
                         <option value="Carne e Pesce">🥩 Carne/Pesce</option>
                         <option value="Latticini e Uova">🧀 Latticini</option>
@@ -132,7 +132,7 @@
                         <option value="Igiene Personale">🧴 Igiene Personale</option>
                         <option value="Sfizi e Dolci">🍫 Sfizi e Dolci</option>
                     </select>
-                    <button onclick="addItem()" class="bg-indigo-600 text-white font-bold px-4 py-2 rounded-lg text-base hover:bg-indigo-700 active:scale-95 transition min-w-[48px] flex items-center justify-center">+</button>
+                    <button onclick="addItem()" class="bg-indigo-600 text-white font-bold px-4 py-2 rounded-xl text-base hover:bg-indigo-700 active:scale-95 transition min-w-[48px] flex items-center justify-center shadow-sm">+</button>
                 </div>
             </div>
 
@@ -146,15 +146,15 @@
 
             <!-- Bottoni Azioni In Blocco -->
             <div class="flex justify-between items-center pt-4 border-t border-gray-200">
-                <button onclick="deselezionaTutti()" class="text-xs text-gray-500 hover:text-indigo-600 underline">Deseleziona tutti</button>
-                <button onclick="eliminaComprati()" class="text-xs text-red-500 hover:text-red-700 underline">Elimina elementi presi</button>
+                <button onclick="deselezionaTutti()" class="text-xs text-gray-500 hover:text-indigo-600 underline transition">Deseleziona tutti</button>
+                <button onclick="eliminaComprati()" class="text-xs text-red-500 hover:text-red-700 underline transition">Elimina elementi presi</button>
             </div>
         </div>
     </div>
 
     <!-- Modale Grafica: Nuova Lista -->
-    <div id="newListModal" class="hidden fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-        <div class="bg-white rounded-2xl max-w-sm w-full p-6 shadow-2xl border border-gray-100 space-y-5">
+    <div id="newListModal" class="hidden fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+        <div class="bg-white rounded-3xl max-w-sm w-full p-6 shadow-2xl border border-slate-100 space-y-5">
             <div class="flex justify-between items-center border-b border-gray-100 pb-3">
                 <h3 class="font-extrabold text-base text-indigo-950 flex items-center gap-2">
                     <span>✨</span> Nuova Lista / Spazio
@@ -173,7 +173,7 @@
                     <div class="grid grid-cols-2 gap-2.5">
                         <label class="cursor-pointer">
                             <input type="radio" name="modalListType" value="private" class="peer hidden">
-                            <div class="border-2 border-gray-200 peer-checked:border-indigo-600 peer-checked:bg-indigo-50/50 rounded-xl p-3 text-center transition">
+                            <div class="border-2 border-gray-200 peer-checked:border-indigo-600 peer-checked:bg-indigo-50/50 rounded-2xl p-3 text-center transition">
                                 <div class="text-xl mb-1">🔒</div>
                                 <div class="font-bold text-xs text-gray-800">Privata</div>
                                 <div class="text-[10px] text-gray-500 mt-0.5">Solo per te</div>
@@ -181,7 +181,7 @@
                         </label>
                         <label class="cursor-pointer">
                             <input type="radio" name="modalListType" value="shared" class="peer hidden" checked>
-                            <div class="border-2 border-gray-200 peer-checked:border-indigo-600 peer-checked:bg-indigo-50/50 rounded-xl p-3 text-center transition">
+                            <div class="border-2 border-gray-200 peer-checked:border-indigo-600 peer-checked:bg-indigo-50/50 rounded-2xl p-3 text-center transition">
                                 <div class="text-xl mb-1">👥</div>
                                 <div class="font-bold text-xs text-gray-800">Condivisa</div>
                                 <div class="text-[10px] text-gray-500 mt-0.5">Con link/invito</div>
@@ -199,8 +199,8 @@
     </div>
 
     <!-- Modale Grafica: Condivisione Universale -->
-    <div id="shareModal" class="hidden fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-        <div class="bg-white rounded-2xl max-w-sm w-full p-6 shadow-2xl border border-gray-100 space-y-5">
+    <div id="shareModal" class="hidden fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+        <div class="bg-white rounded-3xl max-w-sm w-full p-6 shadow-2xl border border-slate-100 space-y-5">
             <div class="flex justify-between items-center border-b border-gray-100 pb-3">
                 <h3 class="font-extrabold text-base text-indigo-950 flex items-center gap-2">
                     <span>🔗</span> Condividi Lista
@@ -223,6 +223,43 @@
                 <button id="copyShareUrlBtn" onclick="copyShareUrl()" class="w-full bg-gray-100 hover:bg-gray-200 text-gray-800 font-bold py-2.5 px-4 rounded-xl text-xs flex items-center justify-center gap-2 transition active:scale-95">
                     <span>📋</span> Copia Link negli Appunti
                 </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modale Grafica: Conferma Azione / Cancellazione -->
+    <div id="confirmModal" class="hidden fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+        <div class="bg-white rounded-3xl max-w-sm w-full p-6 shadow-2xl border border-slate-100 space-y-4 text-center">
+            <div id="confirmModalBadge" class="w-12 h-12 rounded-2xl bg-red-50 text-red-600 flex items-center justify-center mx-auto text-2xl">
+                🗑️
+            </div>
+            
+            <div class="space-y-1">
+                <h3 id="confirmModalTitle" class="font-extrabold text-base text-gray-900">Conferma azione</h3>
+                <p id="confirmModalMsg" class="text-xs text-gray-600 leading-relaxed">Sei sicuro di voler procedere?</p>
+            </div>
+
+            <div class="flex gap-2.5 pt-3">
+                <button onclick="closeConfirmModal()" class="flex-1 bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold py-2.5 rounded-xl text-xs transition">Annulla</button>
+                <button id="confirmModalActionBtn" onclick="handleConfirmModalAction()" class="flex-1 bg-red-600 hover:bg-red-700 text-white font-bold py-2.5 rounded-xl text-xs transition shadow-md active:scale-95">Elimina</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modale Grafica: Avviso / Notifica -->
+    <div id="alertModal" class="hidden fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+        <div class="bg-white rounded-3xl max-w-sm w-full p-6 shadow-2xl border border-slate-100 space-y-4 text-center">
+            <div id="alertModalBadge" class="w-12 h-12 rounded-2xl bg-indigo-50 text-indigo-600 flex items-center justify-center mx-auto text-2xl">
+                ℹ️
+            </div>
+            
+            <div class="space-y-1">
+                <h3 id="alertModalTitle" class="font-extrabold text-base text-gray-900">Avviso</h3>
+                <p id="alertModalMsg" class="text-xs text-gray-600 leading-relaxed">Messaggio di informazione.</p>
+            </div>
+
+            <div class="pt-2">
+                <button onclick="closeAlertModal()" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2.5 rounded-xl text-xs transition shadow-md active:scale-95">Ho capito</button>
             </div>
         </div>
     </div>
@@ -259,6 +296,7 @@
         let userLists = [];
         let currentItemsData = [];
         let hideChecked = false;
+        let onConfirmCallback = null;
 
         auth.onAuthStateChanged((user) => {
             const loadingScreen = document.getElementById('loadingScreen');
@@ -288,7 +326,7 @@
             }
         }).catch((error) => {
             if (error && error.code) {
-                alert("Errore Autenticazione: " + error.message);
+                showAlertModal("Errore Autenticazione", error.message);
             }
         });
 
@@ -299,7 +337,7 @@
                 if (error.code === 'auth/popup-blocked' || error.code === 'auth/popup-closed-by-user') {
                     await auth.signInWithRedirect(provider);
                 } else {
-                    alert("Errore Login: " + error.message);
+                    showAlertModal("Errore Login", error.message);
                 }
             }
         }
@@ -321,7 +359,6 @@
             if (urlHouse) {
                 urlHouse = urlHouse.trim().toLowerCase().replace(/[^a-z0-9_-]/g, '');
                 if (urlHouse && !userLists.some(l => l.id === urlHouse)) {
-                    // Formatta lo slug in Title Case con spazi per la visualizzazione
                     const formattedTitle = urlHouse.split('-')
                         .map(w => w.charAt(0).toUpperCase() + w.slice(1))
                         .join(' ');
@@ -385,7 +422,48 @@
             }
         }
 
-        // --- Gestione Modale Nuova Lista ---
+        // --- Gestione Modali UI ---
+        function showConfirmModal(title, message, confirmBtnText = 'Elimina', isDanger = true, badgeIcon = '🗑️', onConfirm) {
+            document.getElementById('confirmModalTitle').textContent = title;
+            document.getElementById('confirmModalMsg').textContent = message;
+            document.getElementById('confirmModalBadge').textContent = badgeIcon;
+            
+            const confirmBtn = document.getElementById('confirmModalActionBtn');
+            confirmBtn.textContent = confirmBtnText;
+            
+            if (isDanger) {
+                confirmBtn.className = "flex-1 bg-red-600 hover:bg-red-700 text-white font-bold py-2.5 rounded-xl text-xs transition shadow-md active:scale-95";
+                document.getElementById('confirmModalBadge').className = "w-12 h-12 rounded-2xl bg-red-50 text-red-600 flex items-center justify-center mx-auto text-2xl";
+            } else {
+                confirmBtn.className = "flex-1 bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2.5 rounded-xl text-xs transition shadow-md active:scale-95";
+                document.getElementById('confirmModalBadge').className = "w-12 h-12 rounded-2xl bg-indigo-50 text-indigo-600 flex items-center justify-center mx-auto text-2xl";
+            }
+
+            onConfirmCallback = onConfirm;
+            document.getElementById('confirmModal').classList.remove('hidden');
+        }
+
+        function closeConfirmModal() {
+            document.getElementById('confirmModal').classList.add('hidden');
+            onConfirmCallback = null;
+        }
+
+        function handleConfirmModalAction() {
+            if (onConfirmCallback) onConfirmCallback();
+            closeConfirmModal();
+        }
+
+        function showAlertModal(title, message, badgeIcon = 'ℹ️') {
+            document.getElementById('alertModalTitle').textContent = title;
+            document.getElementById('alertModalMsg').textContent = message;
+            document.getElementById('alertModalBadge').textContent = badgeIcon;
+            document.getElementById('alertModal').classList.remove('hidden');
+        }
+
+        function closeAlertModal() {
+            document.getElementById('alertModal').classList.add('hidden');
+        }
+
         function openNewListModal() {
             document.getElementById('modalListName').value = '';
             document.getElementById('newListModal').classList.remove('hidden');
@@ -401,7 +479,7 @@
             const input = document.getElementById('modalListName');
             const rawName = input.value.trim();
             if (!rawName) {
-                alert("Inserisci un nome per la lista.");
+                showAlertModal("Campo Obbligatorio", "Inserisci un nome per la tua nuova lista.", "⚠️");
                 return;
             }
 
@@ -409,7 +487,6 @@
             const type = typeRadio ? typeRadio.value : 'shared';
 
             let listId;
-            // Mantiene il nome inserito con maiuscole e spazi
             const displayName = rawName;
 
             if (type === 'shared') {
@@ -439,14 +516,13 @@
             switchList(listId);
         }
 
-        // --- Gestione Modale Condividi ---
         function openShareModal() {
             const currentObj = userLists.find(l => l.id === activeListId);
             const subhead = document.getElementById('shareModalSubhead');
             const urlInput = document.getElementById('shareUrlInput');
 
             if (currentObj.type === 'private') {
-                subhead.textContent = "Attenzione: Questa è una Lista Privata. Per condividerla con altre persone, crea una nuova lista Condivisa.";
+                subhead.textContent = "Questa è una Lista Privata visibile solo a te. Crea una nuova lista Condivisa per poterla inviare agli amici.";
                 urlInput.value = "Lista Privata (non condivisibile)";
             } else {
                 subhead.textContent = `Condividi la lista "${currentObj.name}". Chiunque apra questo link potrà collaborare in tempo reale.`;
@@ -464,7 +540,7 @@
         async function nativeShare() {
             const currentObj = userLists.find(l => l.id === activeListId);
             if (currentObj.type === 'private') {
-                alert("Crea una lista Condivisa per poterla inviare agli amici.");
+                showAlertModal("Lista Privata", "Crea o seleziona una lista Condivisa per poterla inviare agli amici.", "🔒");
                 return;
             }
 
@@ -482,7 +558,6 @@
                     console.log("Condivisione annullata");
                 }
             } else {
-                // Fallback diretto per WhatsApp se navigator.share non è supportato da desktop
                 const waUrl = `https://api.whatsapp.com/send?text=${encodeURIComponent(shareData.text + "\n" + inviteUrl)}`;
                 window.open(waUrl, '_blank');
             }
@@ -491,7 +566,7 @@
         function copyShareUrl() {
             const currentObj = userLists.find(l => l.id === activeListId);
             if (currentObj.type === 'private') {
-                alert("Crea una lista Condivisa per poterla inviare agli amici.");
+                showAlertModal("Lista Privata", "Crea o seleziona una lista Condivisa per poterla inviare agli amici.", "🔒");
                 return;
             }
 
@@ -507,7 +582,7 @@
                 const input = document.getElementById('shareUrlInput');
                 input.select();
                 document.execCommand('copy');
-                alert("Link copiato!");
+                showAlertModal("Successo", "Link copiato negli appunti!", "✅");
             });
         }
 
@@ -529,16 +604,23 @@
 
         function eliminaListaCorrente() {
             if (userLists.length <= 1) {
-                alert("Devi mantenere almeno una lista salvata.");
+                showAlertModal("Impossibile eliminare", "Devi mantenere almeno una lista salvata nell'elenco.", "⚠️");
                 return;
             }
 
             const currentObj = userLists.find(l => l.id === activeListId);
-            if (confirm(`Rimuovere la lista "${currentObj.name}" dal tuo elenco?`)) {
-                userLists = userLists.filter(l => l.id !== activeListId);
-                localStorage.setItem(`userLists_v3_${currentUser.uid}`, JSON.stringify(userLists));
-                switchList(userLists[0].id);
-            }
+            showConfirmModal(
+                "Elimina Lista",
+                `Sei sicuro di voler rimuovere la lista "${currentObj.name}" dal tuo elenco?`,
+                "Elimina Lista",
+                true,
+                "🗑️",
+                () => {
+                    userLists = userLists.filter(l => l.id !== activeListId);
+                    localStorage.setItem(`userLists_v3_${currentUser.uid}`, JSON.stringify(userLists));
+                    switchList(userLists[0].id);
+                }
+            );
         }
 
         const deptOrder = [
@@ -646,7 +728,7 @@
             for (const dept of sortedDepts) {
                 const deptItems = grouped[dept];
                 const deptCard = document.createElement('div');
-                deptCard.className = 'bg-white rounded-xl p-4 shadow-sm border border-gray-100 overflow-hidden';
+                deptCard.className = 'bg-white rounded-2xl p-4 shadow-sm border border-gray-100 overflow-hidden';
 
                 const icon = deptIcons[dept] || '🛒';
                 let itemsHtml = deptItems.map(item => `
@@ -753,13 +835,20 @@
         }
 
         function eliminaComprati() {
-            if (confirm("Vuoi eliminare definitivamente tutti gli elementi già presi/spuntati?")) {
-                listRef.once('value', snapshot => {
-                    const currentList = snapshot.val() || [];
-                    const updatedList = currentList.filter(item => !item.checked);
-                    listRef.set(updatedList);
-                });
-            }
+            showConfirmModal(
+                "Elimina elementi presi",
+                "Vuoi eliminare definitivamente tutti gli elementi spuntati da questa lista?",
+                "Elimina tutti",
+                true,
+                "🧹",
+                () => {
+                    listRef.once('value', snapshot => {
+                        const currentList = snapshot.val() || [];
+                        const updatedList = currentList.filter(item => !item.checked);
+                        listRef.set(updatedList);
+                    });
+                }
+            );
         }
     </script>
 </body>
