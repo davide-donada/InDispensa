@@ -38,7 +38,7 @@
                 <h1 class="text-2xl font-extrabold text-indigo-900">InDispensa</h1>
                 <p class="text-xs text-gray-500 mt-1">La tua spesa e la tua casa in sintonia</p>
             </div>
-            <p class="text-xs text-gray-600">Accedi con il tuo account Google per visualizzare e sincronizzare le liste di casa in tempo reale.</p>
+            <p class="text-xs text-gray-600">Accedi con il tuo account Google per visualizzare la tua lista privata e le liste di casa condivise.</p>
             
             <button type="button" onclick="loginGoogle()" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 px-4 rounded-xl flex items-center justify-center gap-3 transition active:scale-95 shadow-md">
                 <svg class="w-5 h-5 bg-white rounded-full p-0.5" viewBox="0 0 24 24">
@@ -78,15 +78,15 @@
             <!-- Banner Casa / Selettore Multi-Casa -->
             <div class="bg-indigo-50 border border-indigo-100 rounded-xl p-3 flex flex-wrap justify-between items-center gap-2 text-xs text-indigo-900 shadow-sm">
                 <div class="flex items-center gap-1.5 flex-1 min-w-[180px]">
-                    <span class="text-base">🏠</span>
-                    <span class="font-medium">Casa:</span>
-                    <select id="houseSelect" onchange="onHouseSelectChange(this.value)" class="bg-white border border-indigo-200 text-indigo-900 font-bold rounded-lg px-2 py-1 text-xs focus:outline-none focus:ring-2 focus:ring-indigo-500 flex-1 max-w-[180px] truncate">
+                    <span id="houseIcon" class="text-base">👤</span>
+                    <span class="font-medium">Spazio:</span>
+                    <select id="houseSelect" onchange="onHouseSelectChange(this.value)" class="bg-white border border-indigo-200 text-indigo-900 font-bold rounded-lg px-2 py-1 text-xs focus:outline-none focus:ring-2 focus:ring-indigo-500 flex-1 max-w-[200px] truncate">
                     </select>
                 </div>
                 <div class="flex items-center gap-2">
-                    <button onclick="eliminaCasaCorrente()" title="Rimuovi casa salvata" class="text-gray-400 hover:text-red-500 p-1 text-xs">🗑️</button>
+                    <button id="deleteHouseBtn" onclick="eliminaCasaCorrente()" title="Rimuovi casa salvata" class="text-gray-400 hover:text-red-500 p-1 text-xs hidden">🗑️</button>
                     <button onclick="copiaLink()" class="bg-indigo-600 text-white px-2.5 py-1 rounded-lg font-medium hover:bg-indigo-700 active:scale-95 transition shadow-sm flex items-center gap-1">
-                        <span>🔗</span> Invita
+                        <span>🔗</span> Condividi
                     </button>
                 </div>
             </div>
@@ -165,74 +165,51 @@
         const auth = firebase.auth();
         const provider = new firebase.auth.GoogleAuthProvider();
 
-        let savedHouses = JSON.parse(localStorage.getItem('savedHouses')) || ['casa'];
-        const urlParams = new URLSearchParams(window.location.search);
-        let urlHouse = urlParams.get('house');
-
-        if (urlHouse) {
-            urlHouse = urlHouse.trim().toLowerCase().replace(/[^a-z0-9_-]/g, '');
-            if (urlHouse && !savedHouses.includes(urlHouse)) {
-                savedHouses.push(urlHouse);
-            }
-        }
-
-        let householdId = urlHouse || localStorage.getItem('householdId') || savedHouses[0] || 'casa';
-        if (!savedHouses.includes(householdId)) {
-            savedHouses.push(householdId);
-        }
-
-        localStorage.setItem('savedHouses', JSON.stringify(savedHouses));
-        localStorage.setItem('householdId', householdId);
-
-        let listRef = db.ref(`liste/${householdId}`);
+        let currentUser = null;
+        let activeHouseId = null;
+        let listRef = null;
+        let userHouses = [];
         let currentItemsData = [];
         let hideChecked = false;
 
-        // Gestione Auth Obbligatoria
+        // Gestione Auth con isolamento utente
         auth.onAuthStateChanged((user) => {
             const loginScreen = document.getElementById('loginScreen');
             const appContent = document.getElementById('appContent');
             
             if (user) {
+                currentUser = user;
                 loginScreen.classList.add('hidden');
                 appContent.classList.remove('hidden');
                 document.getElementById('userName').textContent = user.displayName ? user.displayName.split(' ')[0] : 'Utente';
                 document.getElementById('userAvatar').src = user.photoURL || 'https://cdn-icons-png.flaticon.com/512/847/847969.png';
                 
-                renderHouseSelect();
-                attachDatabaseListener();
+                initUserHouses();
             } else {
+                currentUser = null;
                 loginScreen.classList.remove('hidden');
                 appContent.classList.add('hidden');
             }
         });
 
-        // Controlla il risultato di un eventuale reindirizzamento precedente
         auth.getRedirectResult().then((result) => {
             if (result && result.user) {
                 console.log("Login riuscito via redirect");
             }
         }).catch((error) => {
             if (error && error.code) {
-                alert("Errore Autenticazione: " + error.message + " (" + error.code + ")");
+                alert("Errore Autenticazione: " + error.message);
             }
         });
 
         async function loginGoogle() {
             try {
-                // Primo tentativo: Pop-up
                 await auth.signInWithPopup(provider);
             } catch (error) {
-                console.warn("Tentativo Pop-up fallito o bloccato, provo Redirect...", error);
-                if (error.code === 'auth/popup-blocked' || error.code === 'auth/popup-closed-by-user' || error.code === 'auth/cancelled-popup-request') {
-                    try {
-                        // Secondo tentativo: Reindirizzamento
-                        await auth.signInWithRedirect(provider);
-                    } catch (redirErr) {
-                        alert("Errore Login: " + redirErr.message + " [" + redirErr.code + "]");
-                    }
+                if (error.code === 'auth/popup-blocked' || error.code === 'auth/popup-closed-by-user') {
+                    await auth.signInWithRedirect(provider);
                 } else {
-                    alert("Errore Login Google:\n" + error.message + "\n\nCodice: " + error.code);
+                    alert("Errore Login: " + error.message);
                 }
             }
         }
@@ -241,33 +218,78 @@
             auth.signOut();
         }
 
+        // Inizializza elenco case specifico per l'utente loggato
+        function initUserHouses() {
+            const privateId = `private_${currentUser.uid}`;
+            const storageKey = `userHouses_${currentUser.uid}`;
+            
+            userHouses = JSON.parse(localStorage.getItem(storageKey)) || [
+                { id: privateId, name: '👤 Lista Privata (Solo tua)', isPrivate: true }
+            ];
+
+            // Controlla se l'utente ha aperto un link di invito ?house=...
+            const urlParams = new URLSearchParams(window.location.search);
+            let urlHouse = urlParams.get('house');
+
+            if (urlHouse) {
+                urlHouse = urlHouse.trim().toLowerCase().replace(/[^a-z0-9_-]/g, '');
+                if (urlHouse && !userHouses.some(h => h.id === urlHouse)) {
+                    userHouses.push({ id: urlHouse, name: `🏠 Casa: ${urlHouse}`, isPrivate: false });
+                }
+            }
+
+            localStorage.setItem(storageKey, JSON.stringify(userHouses));
+            
+            // Imposta la casa attiva (quella dal link, oppure l'ultima usata, oppure la lista privata)
+            const lastActive = localStorage.getItem(`lastActiveHouse_${currentUser.uid}`);
+            activeHouseId = urlHouse || lastActive || privateId;
+
+            if (!userHouses.some(h => h.id === activeHouseId)) {
+                activeHouseId = privateId;
+            }
+
+            switchHouse(activeHouseId);
+        }
+
         function renderHouseSelect() {
             const select = document.getElementById('houseSelect');
+            const deleteBtn = document.getElementById('deleteHouseBtn');
+            const houseIcon = document.getElementById('houseIcon');
             select.innerHTML = '';
             
-            savedHouses.forEach(h => {
+            const currentHouseObj = userHouses.find(h => h.id === activeHouseId) || userHouses[0];
+            
+            if (currentHouseObj.isPrivate) {
+                houseIcon.textContent = '👤';
+                deleteBtn.classList.add('hidden'); // Impossibile eliminare la lista privata
+            } else {
+                houseIcon.textContent = '🏠';
+                deleteBtn.classList.remove('hidden');
+            }
+
+            userHouses.forEach(h => {
                 const option = document.createElement('option');
-                option.value = h;
-                option.textContent = h === 'casa' ? 'Casa Mia' : h;
-                if (h === householdId) option.selected = true;
+                option.value = h.id;
+                option.textContent = h.name;
+                if (h.id === activeHouseId) option.selected = true;
                 select.appendChild(option);
             });
 
             const addOption = document.createElement('option');
             addOption.value = '__ADD_NEW__';
-            addOption.textContent = '➕ Nuova casa...';
+            addOption.textContent = '➕ Nuova Casa Condivisa...';
             select.appendChild(addOption);
         }
 
         function onHouseSelectChange(value) {
             if (value === '__ADD_NEW__') {
-                const nuovaCasa = prompt("Inserisci il nome identificativo della nuova casa (es. casa-suocera):");
+                const nuovaCasa = prompt("Inserisci un nome univoco per la Casa Condivisa (es. famiglia-donada, casa-suocera):");
                 if (nuovaCasa && nuovaCasa.trim() !== "") {
                     const clean = nuovaCasa.trim().toLowerCase().replace(/[^a-z0-9_-]/g, '');
                     if (clean) {
-                        if (!savedHouses.includes(clean)) {
-                            savedHouses.push(clean);
-                            localStorage.setItem('savedHouses', JSON.stringify(savedHouses));
+                        if (!userHouses.some(h => h.id === clean)) {
+                            userHouses.push({ id: clean, name: `🏠 Casa: ${clean}`, isPrivate: false });
+                            localStorage.setItem(`userHouses_${currentUser.uid}`, JSON.stringify(userHouses));
                         }
                         switchHouse(clean);
                         return;
@@ -279,23 +301,30 @@
             }
         }
 
-        function switchHouse(newHouseId) {
-            householdId = newHouseId;
-            localStorage.setItem('householdId', householdId);
+        function switchHouse(houseId) {
+            activeHouseId = houseId;
+            localStorage.setItem(`lastActiveHouse_${currentUser.uid}`, activeHouseId);
             renderHouseSelect();
-            listRef = db.ref(`liste/${householdId}`);
+
+            const isPrivate = activeHouseId.startsWith('private_');
+            if (isPrivate) {
+                // Percorso privato isolato per singolo utente su Firebase
+                listRef = db.ref(`utenti/${currentUser.uid}/lista`);
+            } else {
+                // Percorso condiviso per case condivise
+                listRef = db.ref(`shared_liste/${activeHouseId}`);
+            }
+
             attachDatabaseListener();
         }
 
         function eliminaCasaCorrente() {
-            if (savedHouses.length <= 1) {
-                alert("Devi mantenere almeno una casa salvata nell'elenco.");
-                return;
-            }
-            if (confirm(`Rimuovere "${householdId}" dalle tue case salvate?`)) {
-                savedHouses = savedHouses.filter(h => h !== householdId);
-                localStorage.setItem('savedHouses', JSON.stringify(savedHouses));
-                switchHouse(savedHouses[0]);
+            if (activeHouseId.startsWith('private_')) return;
+
+            if (confirm(`Rimuovere la casa condivisa "${activeHouseId}" dal tuo menu? (La lista rimarrà disponibile per gli altri membri)`)) {
+                userHouses = userHouses.filter(h => h.id !== activeHouseId);
+                localStorage.setItem(`userHouses_${currentUser.uid}`, JSON.stringify(userHouses));
+                switchHouse(`private_${currentUser.uid}`);
             }
         }
 
@@ -349,6 +378,7 @@
         ];
 
         function attachDatabaseListener() {
+            if (!listRef) return;
             listRef.off();
             listRef.on('value', (snapshot) => {
                 const data = snapshot.val();
@@ -520,12 +550,31 @@
         }
 
         function copiaLink() {
-            const inviteUrl = `${window.location.origin}${window.location.pathname}?house=${householdId}`;
-            navigator.clipboard.writeText(inviteUrl).then(() => {
-                alert(`Link d'invito copiato per "${householdId}"!\n\nInvia questo link via WhatsApp per far accedere subito chi vuoi a questa lista.`);
-            }).catch(() => {
-                prompt("Copia e invia questo link d'invito:", inviteUrl);
-            });
+            if (activeHouseId.startsWith('private_')) {
+                const risposta = prompt("La 'Lista Privata' è visibile solo a te. Per condividerla con tua moglie o con altri, inserisci un nome per la tua nuova Casa Condivisa (es. famiglia-donada):");
+                if (risposta && risposta.trim() !== "") {
+                    const clean = risposta.trim().toLowerCase().replace(/[^a-z0-9_-]/g, '');
+                    if (clean) {
+                        if (!userHouses.some(h => h.id === clean)) {
+                            userHouses.push({ id: clean, name: `🏠 Casa: ${clean}`, isPrivate: false });
+                            localStorage.setItem(`userHouses_${currentUser.uid}`, JSON.stringify(userHouses));
+                        }
+                        switchHouse(clean);
+                        
+                        const inviteUrl = `${window.location.origin}${window.location.pathname}?house=${clean}`;
+                        navigator.clipboard.writeText(inviteUrl).then(() => {
+                            alert(`Casa creata e Link d'invito copiato per "${clean}"!\n\nInvia questo link via WhatsApp.`);
+                        });
+                    }
+                }
+            } else {
+                const inviteUrl = `${window.location.origin}${window.location.pathname}?house=${activeHouseId}`;
+                navigator.clipboard.writeText(inviteUrl).then(() => {
+                    alert(`Link d'invito copiato per la casa "${activeHouseId}"!\n\nInvia questo link via WhatsApp per far accedere subito chi vuoi a questa lista.`);
+                }).catch(() => {
+                    prompt("Copia e invia questo link d'invito:", inviteUrl);
+                });
+            }
         }
     </script>
 </body>
