@@ -56,15 +56,19 @@
 
     <div class="max-w-md mx-auto p-4 space-y-4 w-full box-border">
 
-        <!-- Banner Casa / Condivisione -->
-        <div class="bg-indigo-50 border border-indigo-100 rounded-xl p-3 flex justify-between items-center text-xs text-indigo-900 shadow-sm">
-            <div class="flex items-center gap-1.5">
-                <span>🏠</span>
-                <span>Casa: <strong id="householdLabel" class="font-bold">casa</strong></span>
+        <!-- Banner Casa / Selettore Multi-Casa -->
+        <div class="bg-indigo-50 border border-indigo-100 rounded-xl p-3 flex flex-wrap justify-between items-center gap-2 text-xs text-indigo-900 shadow-sm">
+            <div class="flex items-center gap-1.5 flex-1 min-w-[180px]">
+                <span class="text-base">🏠</span>
+                <span class="font-medium">Casa:</span>
+                <select id="houseSelect" onchange="onHouseSelectChange(this.value)" class="bg-white border border-indigo-200 text-indigo-900 font-bold rounded-lg px-2 py-1 text-xs focus:outline-none focus:ring-2 focus:ring-indigo-500 flex-1 max-w-[180px] truncate">
+                </select>
             </div>
-            <div class="flex gap-2">
-                <button onclick="cambiaCasa()" class="text-indigo-600 hover:underline">Cambia</button>
-                <button onclick="copiaLink()" class="bg-indigo-600 text-white px-2.5 py-1 rounded-lg font-medium hover:bg-indigo-700 active:scale-95 transition shadow-sm">🔗 Invita</button>
+            <div class="flex items-center gap-2">
+                <button onclick="eliminaCasaCorrente()" title="Rimuovi casa salvata" class="text-gray-400 hover:text-red-500 p-1 text-xs">🗑️</button>
+                <button onclick="copiaLink()" class="bg-indigo-600 text-white px-2.5 py-1 rounded-lg font-medium hover:bg-indigo-700 active:scale-95 transition shadow-sm flex items-center gap-1">
+                    <span>🔗</span> Invita
+                </button>
             </div>
         </div>
 
@@ -116,7 +120,7 @@
     </div>
 
     <script>
-        // Registrazione Service Worker per PWA e uso Offline
+        // Service Worker PWA
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
                 navigator.serviceWorker.register('./sw.js')
@@ -136,15 +140,87 @@
         const auth = firebase.auth();
         const provider = new firebase.auth.GoogleAuthProvider();
 
-        // Gestione ID Casa / Household
+        // Gestione Elenco Case Salvate
+        let savedHouses = JSON.parse(localStorage.getItem('savedHouses')) || ['casa'];
         const urlParams = new URLSearchParams(window.location.search);
-        let householdId = urlParams.get('house') || localStorage.getItem('householdId') || 'casa';
+        let urlHouse = urlParams.get('house');
+
+        if (urlHouse) {
+            urlHouse = urlHouse.trim().toLowerCase().replace(/[^a-z0-9_-]/g, '');
+            if (urlHouse && !savedHouses.includes(urlHouse)) {
+                savedHouses.push(urlHouse);
+            }
+        }
+
+        let householdId = urlHouse || localStorage.getItem('householdId') || savedHouses[0] || 'casa';
+        if (!savedHouses.includes(householdId)) {
+            savedHouses.push(householdId);
+        }
+
+        localStorage.setItem('savedHouses', JSON.stringify(savedHouses));
         localStorage.setItem('householdId', householdId);
-        document.getElementById('householdLabel').textContent = householdId;
 
         let listRef = db.ref(`liste/${householdId}`);
         let currentItemsData = [];
         let hideChecked = false;
+
+        function renderHouseSelect() {
+            const select = document.getElementById('houseSelect');
+            select.innerHTML = '';
+            
+            savedHouses.forEach(h => {
+                const option = document.createElement('option');
+                option.value = h;
+                option.textContent = h === 'casa' ? 'Casa Mia' : h;
+                if (h === householdId) option.selected = true;
+                select.appendChild(option);
+            });
+
+            const addOption = document.createElement('option');
+            addOption.value = '__ADD_NEW__';
+            addOption.textContent = '➕ Nuova casa...';
+            select.appendChild(addOption);
+        }
+
+        function onHouseSelectChange(value) {
+            if (value === '__ADD_NEW__') {
+                const nuovaCasa = prompt("Inserisci il nome identificativo della nuova casa (es. casa-suocera):");
+                if (nuovaCasa && nuovaCasa.trim() !== "") {
+                    const clean = nuovaCasa.trim().toLowerCase().replace(/[^a-z0-9_-]/g, '');
+                    if (clean) {
+                        if (!savedHouses.includes(clean)) {
+                            savedHouses.push(clean);
+                            localStorage.setItem('savedHouses', JSON.stringify(savedHouses));
+                        }
+                        switchHouse(clean);
+                        return;
+                    }
+                }
+                renderHouseSelect();
+            } else {
+                switchHouse(value);
+            }
+        }
+
+        function switchHouse(newHouseId) {
+            householdId = newHouseId;
+            localStorage.setItem('householdId', householdId);
+            renderHouseSelect();
+            listRef = db.ref(`liste/${householdId}`);
+            attachDatabaseListener();
+        }
+
+        function eliminaCasaCorrente() {
+            if (savedHouses.length <= 1) {
+                alert("Devi mantenere almeno una casa salvata nell'elenco.");
+                return;
+            }
+            if (confirm(`Rimuovere "${householdId}" dalle tue case salvate? (I dati su Firebase rimarranno intatti)`)) {
+                savedHouses = savedHouses.filter(h => h !== householdId);
+                localStorage.setItem('savedHouses', JSON.stringify(savedHouses));
+                switchHouse(savedHouses[0]);
+            }
+        }
 
         const deptOrder = [
             "Ortofrutta", "Dispensa", "Carne e Pesce", "Latticini e Uova", 
@@ -236,18 +312,8 @@
             });
         }
 
+        renderHouseSelect();
         attachDatabaseListener();
-
-        function cambiaCasa() {
-            const nuovaCasa = prompt("Inserisci il nome identificativo della tua casa (es. famiglia-donada):", householdId);
-            if (nuovaCasa && nuovaCasa.trim() !== "") {
-                householdId = nuovaCasa.trim().toLowerCase().replace(/[^a-z0-9_-]/g, '');
-                localStorage.setItem('householdId', householdId);
-                document.getElementById('householdLabel').textContent = householdId;
-                listRef = db.ref(`liste/${householdId}`);
-                attachDatabaseListener();
-            }
-        }
 
         const deptIcons = {
             "Ortofrutta": "🥬", "Carne e Pesce": "🥩", "Latticini e Uova": "🧀",
@@ -270,150 +336,4 @@
                 noResults.classList.remove('hidden');
                 return;
             } else {
-                noResults.classList.add('hidden');
-            }
-
-            const grouped = {};
-            items.forEach((item) => {
-                if (!grouped[item.dept]) grouped[item.dept] = [];
-                grouped[item.dept].push(item);
-            });
-
-            const sortedDepts = Object.keys(grouped).sort((a, b) => {
-                let indexA = deptOrder.indexOf(a);
-                let indexB = deptOrder.indexOf(b);
-                if (indexA === -1) indexA = 99;
-                if (indexB === -1) indexB = 99;
-                return indexA - indexB;
-            });
-
-            for (const dept of sortedDepts) {
-                const deptItems = grouped[dept];
-                const deptCard = document.createElement('div');
-                deptCard.className = 'bg-white rounded-xl p-4 shadow-sm border border-gray-100 overflow-hidden';
-
-                const icon = deptIcons[dept] || '🛒';
-                let itemsHtml = deptItems.map(item => `
-                    <li class="flex items-center justify-between py-2.5 border-b border-gray-50 last:border-0 gap-2">
-                        <label class="flex items-center gap-3 flex-1 cursor-pointer select-none min-w-0">
-                            <input type="checkbox" 
-                                   ${item.checked ? 'checked' : ''} 
-                                   onchange="toggleCheck(${item.originalIndex})" 
-                                   class="w-5 h-5 rounded text-indigo-600 focus:ring-indigo-500 border-gray-300 flex-shrink-0">
-                            <span class="text-sm ${item.checked ? 'item-checked' : 'text-gray-800'} break-words min-w-0">${item.name}</span>
-                        </label>
-                        <button onclick="deleteItem(${item.originalIndex})" class="text-gray-300 hover:text-red-500 text-xs p-1 flex-shrink-0">✕</button>
-                    </li>
-                `).join('');
-
-                deptCard.innerHTML = `
-                    <h2 class="font-bold text-sm text-indigo-900 border-b pb-2 mb-2 flex items-center gap-2">
-                        <span>${icon}</span> Reparto ${dept}
-                    </h2>
-                    <ul>${itemsHtml}</ul>
-                `;
-                container.appendChild(deptCard);
-            }
-        }
-
-        function filterList() {
-            const query = document.getElementById('searchInput').value.toLowerCase().trim();
-            const clearBtn = document.getElementById('clearSearchBtn');
-
-            if (query.length > 0) {
-                clearBtn.classList.remove('hidden');
-            } else {
-                clearBtn.classList.add('hidden');
-            }
-
-            let indexedItems = currentItemsData.map((item, index) => ({ ...item, originalIndex: index }));
-            
-            if (hideChecked) {
-                indexedItems = indexedItems.filter(item => !item.checked);
-            }
-
-            const filtered = indexedItems.filter(item => 
-                item.name.toLowerCase().includes(query) || 
-                item.dept.toLowerCase().includes(query)
-            );
-
-            renderList(filtered);
-        }
-
-        function toggleHideChecked() {
-            hideChecked = !hideChecked;
-            const btn = document.getElementById('hideCheckedBtn');
-            const label = document.getElementById('hideCheckedLabel');
-
-            if (hideChecked) {
-                btn.classList.add('bg-indigo-50', 'border-indigo-300', 'text-indigo-700');
-                label.textContent = "Mostra tutti";
-            } else {
-                btn.classList.remove('bg-indigo-50', 'border-indigo-300', 'text-indigo-700');
-                label.textContent = "Solo da prendere";
-            }
-            filterList();
-        }
-
-        function clearSearch() {
-            document.getElementById('searchInput').value = '';
-            filterList();
-        }
-
-        function toggleCheck(index) {
-            listRef.child(index).child('checked').transaction(checked => !checked);
-        }
-
-        function addItem() {
-            const nameInput = document.getElementById('newItemText');
-            const deptInput = document.getElementById('newItemDept');
-            const name = nameInput.value.trim();
-            const dept = deptInput.value;
-
-            if (name) {
-                listRef.once('value', snapshot => {
-                    const currentList = snapshot.val() || [];
-                    currentList.push({ name, dept, checked: false });
-                    listRef.set(currentList);
-                    nameInput.value = '';
-                });
-            }
-        }
-
-        function deleteItem(index) {
-            listRef.once('value', snapshot => {
-                const currentList = snapshot.val() || [];
-                currentList.splice(index, 1);
-                listRef.set(currentList);
-            });
-        }
-
-        function deselezionaTutti() {
-            listRef.once('value', snapshot => {
-                const currentList = snapshot.val() || [];
-                const updatedList = currentList.map(item => ({ ...item, checked: false }));
-                listRef.set(updatedList);
-            });
-        }
-
-        function eliminaComprati() {
-            if (confirm("Vuoi eliminare definitivamente tutti gli elementi già presi/spuntati?")) {
-                listRef.once('value', snapshot => {
-                    const currentList = snapshot.val() || [];
-                    const updatedList = currentList.filter(item => !item.checked);
-                    listRef.set(updatedList);
-                });
-            }
-        }
-
-        function copiaLink() {
-            const inviteUrl = `${window.location.origin}${window.location.pathname}?house=${householdId}`;
-            navigator.clipboard.writeText(inviteUrl).then(() => {
-                alert(`Link d'invito InDispensa copiato per la casa "${householdId}"!\n\nInvia questo link via WhatsApp per connettere subito tua moglie alla stessa lista.`);
-            }).catch(() => {
-                prompt("Copia e invia questo link d'invito InDispensa:", inviteUrl);
-            });
-        }
-    </script>
-</body>
-</html>
+                no
