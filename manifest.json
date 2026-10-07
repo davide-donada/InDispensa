@@ -1,6 +1,6 @@
 {
-  "name": "Lista Spesa Condivisa",
-  "short_name": "Spesa",
+  "name": "InDispensa - Spesa & Casa",
+  "short_name": "InDispensa",
   "start_url": "./index.html",
   "display": "standalone",
   "background_color": "#ffffff",
