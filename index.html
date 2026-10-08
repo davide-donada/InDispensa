@@ -27,8 +27,13 @@
     <meta property="og:image:width" content="1200">
     <meta property="og:image:height" content="630">
 
-    <!-- Tailwind CSS -->
+    <!-- Tailwind CSS con Configurazione Dark Mode -->
     <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class'
+        }
+    </script>
     
     <!-- Firebase SDK -->
     <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
@@ -40,18 +45,21 @@
             text-decoration: line-through;
             color: #9ca3af;
         }
+        .dark .item-checked {
+            color: #64748b;
+        }
         .dept-card {
             transition: all 0.2s ease-in-out;
         }
     </style>
 </head>
-<body class="bg-gray-100 min-h-screen pb-20 overflow-x-hidden text-gray-800">
+<body class="bg-gray-100 dark:bg-slate-900 min-h-screen pb-20 overflow-x-hidden text-gray-800 dark:text-slate-100 transition-colors duration-200">
 
     <!-- Splash / Loading Screen -->
-    <div id="loadingScreen" class="fixed inset-0 bg-indigo-600 z-50 flex flex-col items-center justify-center p-6 text-white text-center">
+    <div id="loadingScreen" class="fixed inset-0 bg-indigo-600 dark:bg-slate-900 z-50 flex flex-col items-center justify-center p-6 text-white text-center">
         <img src="./icon-192.png" alt="InDispensa Logo" class="w-20 h-20 animate-bounce mb-4 rounded-2xl shadow-lg">
         <h1 class="text-2xl font-extrabold tracking-tight">InDispensa</h1>
-        <p class="text-xs text-indigo-200 mt-2 flex items-center gap-2">
+        <p class="text-xs text-indigo-200 dark:text-indigo-400 mt-2 flex items-center gap-2">
             <svg class="animate-spin h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                 <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
                 <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
@@ -61,14 +69,14 @@
     </div>
 
     <!-- Schermata di Login Obbligatoria -->
-    <div id="loginScreen" class="hidden fixed inset-0 bg-indigo-600 z-40 flex items-center justify-center p-6 text-white text-center">
-        <div class="max-w-sm w-full bg-white text-gray-800 p-8 rounded-3xl shadow-2xl space-y-6">
+    <div id="loginScreen" class="hidden fixed inset-0 bg-indigo-600 dark:bg-slate-950 z-40 flex items-center justify-center p-6 text-white text-center">
+        <div class="max-w-sm w-full bg-white dark:bg-slate-800 text-gray-800 dark:text-slate-100 p-8 rounded-3xl shadow-2xl space-y-6 border border-transparent dark:border-slate-700">
             <img src="./icon-192.png" alt="InDispensa Logo" class="w-16 h-16 mx-auto rounded-2xl shadow-md">
             <div>
-                <h1 class="text-2xl font-extrabold text-indigo-900">InDispensa</h1>
-                <p class="text-xs text-gray-500 mt-1">La tua spesa e la tua casa in sintonia</p>
+                <h1 class="text-2xl font-extrabold text-indigo-900 dark:text-indigo-400">InDispensa</h1>
+                <p class="text-xs text-gray-500 dark:text-slate-400 mt-1">La tua spesa e la tua casa in sintonia</p>
             </div>
-            <p class="text-xs text-gray-600 leading-relaxed">Accedi con il tuo account Google per gestire le tue liste private ed eventi condivisi.</p>
+            <p class="text-xs text-gray-600 dark:text-slate-300 leading-relaxed">Accedi con il tuo account Google per gestire le tue liste private ed eventi condivisi.</p>
             
             <button type="button" onclick="loginGoogle()" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3.5 px-4 rounded-2xl flex items-center justify-center gap-3 transition active:scale-95 shadow-md">
                 <svg class="w-5 h-5 bg-white rounded-full p-0.5" viewBox="0 0 24 24">
@@ -85,7 +93,7 @@
     <!-- Main App Content -->
     <div id="appContent" class="hidden">
         <!-- Header Responsive -->
-        <div class="bg-indigo-600 text-white p-4 shadow-md sticky top-0 z-20">
+        <div class="bg-indigo-600 dark:bg-slate-800 text-white p-4 shadow-md sticky top-0 z-20 transition-colors">
             <div class="max-w-md md:max-w-5xl lg:max-w-7xl mx-auto flex justify-between items-center">
                 <div>
                     <h1 class="text-xl font-extrabold tracking-tight flex items-center gap-2">
@@ -93,14 +101,17 @@
                         <span>InDispensa</span>
                         <span id="networkBadge" class="hidden text-[10px] bg-rose-500 text-white font-bold px-2 py-0.5 rounded-full shadow-sm animate-pulse">Offline</span>
                     </h1>
-                    <p id="progressCounter" class="text-xs text-indigo-200 mt-0.5">Caricamento...</p>
+                    <p id="progressCounter" class="text-xs text-indigo-200 dark:text-slate-300 mt-0.5">Caricamento...</p>
                 </div>
                 
-                <!-- Profile Header -->
+                <!-- Profile & Theme Toggle Header -->
                 <div id="userProfile" class="flex items-center gap-2">
-                    <img id="userAvatar" src="" alt="User" class="w-8 h-8 rounded-full border-2 border-indigo-300 shadow-sm">
+                    <button onclick="toggleDarkMode()" id="themeToggleBtn" title="Cambia tema" class="bg-indigo-700 hover:bg-indigo-800 dark:bg-slate-700 dark:hover:bg-slate-600 text-xs p-2 rounded-xl transition border border-indigo-500 dark:border-slate-600 flex items-center justify-center">
+                        🌙
+                    </button>
+                    <img id="userAvatar" src="" alt="User" class="w-8 h-8 rounded-full border-2 border-indigo-300 dark:border-slate-600 shadow-sm">
                     <span id="userName" class="text-xs font-semibold hidden sm:inline"></span>
-                    <button onclick="logoutGoogle()" class="bg-indigo-700 hover:bg-indigo-800 text-[11px] py-1 px-2.5 rounded-lg text-indigo-100 hover:text-white border border-indigo-500 transition">Esci</button>
+                    <button onclick="logoutGoogle()" class="bg-indigo-700 hover:bg-indigo-800 dark:bg-slate-700 dark:hover:bg-slate-600 text-[11px] py-1.5 px-2.5 rounded-xl text-indigo-100 dark:text-slate-200 hover:text-white border border-indigo-500 dark:border-slate-600 transition">Esci</button>
                 </div>
             </div>
         </div>
@@ -109,16 +120,16 @@
         <div class="max-w-md md:max-w-5xl lg:max-w-7xl mx-auto p-4 space-y-4 w-full box-border">
 
             <!-- Banner Lista / Selettore Multi-Lista -->
-            <div class="bg-white border border-indigo-100 rounded-2xl p-3.5 flex flex-wrap justify-between items-center gap-3 text-xs text-indigo-900 shadow-sm">
+            <div class="bg-white dark:bg-slate-800 border border-indigo-100 dark:border-slate-700 rounded-2xl p-3.5 flex flex-wrap justify-between items-center gap-3 text-xs text-indigo-900 dark:text-slate-200 shadow-sm transition-colors">
                 <div class="flex items-center gap-2 flex-1 min-w-[200px]">
                     <span id="houseIcon" class="text-base">🔒</span>
-                    <span class="font-bold text-gray-700">Lista attiva:</span>
-                    <select id="houseSelect" onchange="onHouseSelectChange(this.value)" class="bg-indigo-50 border border-indigo-200 text-indigo-900 font-bold rounded-xl px-3 py-1.5 text-xs focus:outline-none focus:ring-2 focus:ring-indigo-500 flex-1 max-w-[240px] truncate shadow-sm cursor-pointer">
+                    <span class="font-bold text-gray-700 dark:text-slate-300">Lista attiva:</span>
+                    <select id="houseSelect" onchange="onHouseSelectChange(this.value)" class="bg-indigo-50 dark:bg-slate-700 border border-indigo-200 dark:border-slate-600 text-indigo-900 dark:text-slate-100 font-bold rounded-xl px-3 py-1.5 text-xs focus:outline-none focus:ring-2 focus:ring-indigo-500 flex-1 max-w-[240px] truncate shadow-sm cursor-pointer">
                     </select>
                 </div>
                 <div class="flex items-center gap-2">
-                    <button id="deleteHouseBtn" onclick="eliminaListaCorrente()" title="Rimuovi lista salvata" class="text-gray-400 hover:text-red-500 p-2 text-xs transition rounded-xl hover:bg-red-50">🗑️</button>
-                    <button id="shareBtn" onclick="openShareModal()" class="bg-indigo-600 text-white px-3.5 py-2 rounded-xl font-medium hover:bg-indigo-700 active:scale-95 transition shadow-sm flex items-center gap-1.5">
+                    <button id="deleteHouseBtn" onclick="eliminaListaCorrente()" title="Rimuovi lista salvata" class="text-gray-400 dark:text-slate-500 hover:text-red-500 p-2 text-xs transition rounded-xl hover:bg-red-50 dark:hover:bg-slate-700">🗑️</button>
+                    <button id="shareBtn" onclick="openShareModal()" class="bg-indigo-600 dark:bg-indigo-600 text-white px-3.5 py-2 rounded-xl font-medium hover:bg-indigo-700 active:scale-95 transition shadow-sm flex items-center gap-1.5">
                         <span>🔗</span> Condividi
                     </button>
                 </div>
@@ -127,19 +138,18 @@
             <!-- Griglia Comandi: Aggiunta Rapida + Barra Strumenti -->
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                 
-                <!-- Form Aggiunta Rapida con Autocomplete & Invio -->
-                <form id="quickAddForm" onsubmit="handleQuickAdd(event)" class="bg-white p-3.5 rounded-2xl shadow-sm space-y-2.5 border border-gray-100 flex flex-col justify-between">
-                    <div class="text-xs font-bold text-gray-700 flex justify-between items-center">
+                <!-- Form Aggiunta Rapida -->
+                <form id="quickAddForm" onsubmit="handleQuickAdd(event)" class="bg-white dark:bg-slate-800 p-3.5 rounded-2xl shadow-sm space-y-2.5 border border-gray-100 dark:border-slate-700 flex flex-col justify-between transition-colors">
+                    <div class="text-xs font-bold text-gray-700 dark:text-slate-300 flex justify-between items-center">
                         <span>➕ Aggiungi prodotto rapido</span>
-                        <span id="autoCatBadge" class="text-[10px] text-indigo-600 bg-indigo-50 px-2 py-0.5 rounded-md hidden font-semibold">Cat. rilevata</span>
+                        <span id="autoCatBadge" class="text-[10px] text-indigo-600 dark:text-indigo-400 bg-indigo-50 dark:bg-slate-700 px-2 py-0.5 rounded-md hidden font-semibold">Cat. rilevata</span>
                     </div>
                     
-                    <input type="text" id="newItemText" list="productsList" oninput="onProductInput(this.value)" placeholder="es. Latte, Mele, Scottex..." class="w-full bg-gray-50 border border-gray-200 rounded-xl px-3.5 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white transition">
-                    <!-- Suggerimenti Autocomplete -->
+                    <input type="text" id="newItemText" list="productsList" oninput="onProductInput(this.value)" placeholder="es. Latte, Mele, Scottex..." class="w-full bg-gray-50 dark:bg-slate-900/60 border border-gray-200 dark:border-slate-700 text-gray-800 dark:text-slate-100 rounded-xl px-3.5 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 transition">
                     <datalist id="productsList"></datalist>
 
                     <div class="flex gap-2">
-                        <select id="newItemDept" class="flex-1 bg-gray-50 border border-gray-200 rounded-xl px-3 py-2 text-xs focus:outline-none focus:ring-2 focus:ring-indigo-500 font-medium">
+                        <select id="newItemDept" class="flex-1 bg-gray-50 dark:bg-slate-900/60 border border-gray-200 dark:border-slate-700 text-gray-800 dark:text-slate-100 rounded-xl px-3 py-2 text-xs focus:outline-none focus:ring-2 focus:ring-indigo-500 font-medium">
                             <option value="Frutta">🍎 Frutta</option>
                             <option value="Verdura">🥬 Verdura</option>
                             <option value="Carne e Pesce">🥩 Carne/Pesce</option>
@@ -151,32 +161,32 @@
                             <option value="Igiene Personale">🧴 Igiene Personale</option>
                             <option value="Sfizi e Dolci">🍫 Sfizi e Dolci</option>
                         </select>
-                        <button type="submit" class="bg-indigo-600 text-white font-bold px-5 py-2 rounded-xl text-base hover:bg-indigo-700 active:scale-95 transition min-w-[52px] flex items-center justify-center shadow-sm">
+                        <button type="submit" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold px-5 py-2 rounded-xl text-base active:scale-95 transition min-w-[52px] flex items-center justify-center shadow-sm">
                             +
                         </button>
                     </div>
                 </form>
 
                 <!-- Barra Strumenti: Ricerca + Filtro "Da Comprare" -->
-                <div class="bg-white p-3.5 rounded-2xl shadow-sm border border-gray-100 flex flex-col justify-between space-y-2.5">
-                    <div class="text-xs font-bold text-gray-700 flex justify-between items-center">
+                <div class="bg-white dark:bg-slate-800 p-3.5 rounded-2xl shadow-sm border border-gray-100 dark:border-slate-700 flex flex-col justify-between space-y-2.5 transition-colors">
+                    <div class="text-xs font-bold text-gray-700 dark:text-slate-300 flex justify-between items-center">
                         <span>🔍 Filtri e Ricerca</span>
-                        <span class="text-[10px] text-gray-400 hidden lg:inline">Premi <kbd class="px-1 bg-gray-100 border rounded font-mono">/</kbd> per cercare</span>
+                        <span class="text-[10px] text-gray-400 dark:text-slate-500 hidden lg:inline">Premi <kbd class="px-1 bg-gray-100 dark:bg-slate-700 border border-gray-200 dark:border-slate-600 rounded font-mono">/</kbd> per cercare</span>
                     </div>
-                    <div class="bg-gray-50 p-2 rounded-xl border border-gray-200 flex items-center px-3 gap-2">
-                        <span class="text-gray-400 text-sm">🔍</span>
-                        <input type="text" id="searchInput" oninput="filterList()" placeholder="Cerca prodotto..." class="w-full bg-transparent text-sm focus:outline-none py-0.5">
-                        <button type="button" onclick="clearSearch()" id="clearSearchBtn" class="text-gray-400 text-xs hidden hover:text-gray-600 font-bold p-1">✕</button>
+                    <div class="bg-gray-50 dark:bg-slate-900/60 p-2 rounded-xl border border-gray-200 dark:border-slate-700 flex items-center px-3 gap-2">
+                        <span class="text-gray-400 dark:text-slate-500 text-sm">🔍</span>
+                        <input type="text" id="searchInput" oninput="filterList()" placeholder="Cerca prodotto..." class="w-full bg-transparent text-sm text-gray-800 dark:text-slate-100 focus:outline-none py-0.5">
+                        <button type="button" onclick="clearSearch()" id="clearSearchBtn" class="text-gray-400 dark:text-slate-500 text-xs hidden hover:text-gray-600 dark:hover:text-slate-300 font-bold p-1">✕</button>
                     </div>
 
                     <div class="flex justify-between items-center">
-                        <button id="hideCheckedBtn" onclick="toggleHideChecked()" class="bg-gray-50 border border-gray-200 text-gray-700 text-xs px-3.5 py-2 rounded-xl font-medium shadow-sm flex items-center gap-2 active:scale-95 transition hover:bg-gray-100">
+                        <button id="hideCheckedBtn" onclick="toggleHideChecked()" class="bg-gray-50 dark:bg-slate-700/50 border border-gray-200 dark:border-slate-600 text-gray-700 dark:text-slate-200 text-xs px-3.5 py-2 rounded-xl font-medium shadow-sm flex items-center gap-2 active:scale-95 transition hover:bg-gray-100 dark:hover:bg-slate-700">
                             <span>👁️</span> <span id="hideCheckedLabel">Solo da prendere</span>
                         </button>
 
                         <div class="flex gap-3 text-xs">
-                            <button onclick="deselezionaTutti()" class="text-gray-500 hover:text-indigo-600 underline transition">Deseleziona</button>
-                            <button onclick="eliminaComprati()" class="text-red-500 hover:text-red-700 font-medium underline transition">Pulisci presi</button>
+                            <button onclick="deselezionaTutti()" class="text-gray-500 dark:text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 underline transition">Deseleziona</button>
+                            <button onclick="eliminaComprati()" class="text-red-500 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300 font-medium underline transition">Pulisci presi</button>
                         </div>
                     </div>
                 </div>
@@ -187,7 +197,7 @@
             <div id="listContainer" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 items-start pt-2"></div>
 
             <!-- Messaggio Nessun Risultato Trovato -->
-            <div id="noResults" class="hidden text-center text-gray-500 py-12 text-sm bg-white rounded-2xl border border-gray-100 shadow-sm">
+            <div id="noResults" class="hidden text-center text-gray-500 dark:text-slate-400 py-12 text-sm bg-white dark:bg-slate-800 rounded-2xl border border-gray-100 dark:border-slate-700 shadow-sm">
                 Nessun prodotto trovato.
             </div>
 
@@ -196,37 +206,37 @@
 
     <!-- Modale Grafica: Nuova Lista -->
     <div id="newListModal" class="hidden fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-        <div class="bg-white rounded-3xl max-w-sm w-full p-6 shadow-2xl border border-slate-100 space-y-5">
-            <div class="flex justify-between items-center border-b border-gray-100 pb-3">
-                <h3 class="font-extrabold text-base text-indigo-950 flex items-center gap-2">
+        <div class="bg-white dark:bg-slate-800 rounded-3xl max-w-sm w-full p-6 shadow-2xl border border-slate-100 dark:border-slate-700 space-y-5 text-gray-800 dark:text-slate-100">
+            <div class="flex justify-between items-center border-b border-gray-100 dark:border-slate-700 pb-3">
+                <h3 class="font-extrabold text-base text-indigo-950 dark:text-indigo-400 flex items-center gap-2">
                     <span>✨</span> Nuova Lista / Spazio
                 </h3>
-                <button onclick="closeNewListModal()" class="text-gray-400 hover:text-gray-600 text-lg font-bold p-1">✕</button>
+                <button onclick="closeNewListModal()" class="text-gray-400 hover:text-gray-600 dark:hover:text-slate-200 text-lg font-bold p-1">✕</button>
             </div>
 
             <div class="space-y-4">
                 <div>
-                    <label class="block text-xs font-bold text-gray-700 mb-1.5">Nome della lista</label>
-                    <input type="text" id="modalListName" placeholder="es. Festa Compleanno, Grigliata, Fai da te..." class="w-full bg-gray-50 border border-gray-300 rounded-xl px-3.5 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white transition">
+                    <label class="block text-xs font-bold text-gray-700 dark:text-slate-300 mb-1.5">Nome della lista</label>
+                    <input type="text" id="modalListName" placeholder="es. Festa Compleanno, Grigliata, Fai da te..." class="w-full bg-gray-50 dark:bg-slate-900/60 border border-gray-300 dark:border-slate-600 text-gray-800 dark:text-slate-100 rounded-xl px-3.5 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 transition">
                 </div>
 
                 <div>
-                    <label class="block text-xs font-bold text-gray-700 mb-2">Tipologia di accesso</label>
+                    <label class="block text-xs font-bold text-gray-700 dark:text-slate-300 mb-2">Tipologia di accesso</label>
                     <div class="grid grid-cols-2 gap-2.5">
                         <label class="cursor-pointer">
                             <input type="radio" name="modalListType" value="private" class="peer hidden">
-                            <div class="border-2 border-gray-200 peer-checked:border-indigo-600 peer-checked:bg-indigo-50/50 rounded-2xl p-3 text-center transition">
+                            <div class="border-2 border-gray-200 dark:border-slate-700 peer-checked:border-indigo-600 dark:peer-checked:border-indigo-500 peer-checked:bg-indigo-50/50 dark:peer-checked:bg-indigo-950/40 rounded-2xl p-3 text-center transition">
                                 <div class="text-xl mb-1">🔒</div>
-                                <div class="font-bold text-xs text-gray-800">Privata</div>
-                                <div class="text-[10px] text-gray-500 mt-0.5">Solo per te</div>
+                                <div class="font-bold text-xs text-gray-800 dark:text-slate-200">Privata</div>
+                                <div class="text-[10px] text-gray-500 dark:text-slate-400 mt-0.5">Solo per te</div>
                             </div>
                         </label>
                         <label class="cursor-pointer">
                             <input type="radio" name="modalListType" value="shared" class="peer hidden" checked>
-                            <div class="border-2 border-gray-200 peer-checked:border-indigo-600 peer-checked:bg-indigo-50/50 rounded-2xl p-3 text-center transition">
+                            <div class="border-2 border-gray-200 dark:border-slate-700 peer-checked:border-indigo-600 dark:peer-checked:border-indigo-500 peer-checked:bg-indigo-50/50 dark:peer-checked:bg-indigo-950/40 rounded-2xl p-3 text-center transition">
                                 <div class="text-xl mb-1">👥</div>
-                                <div class="font-bold text-xs text-gray-800">Condivisa</div>
-                                <div class="text-[10px] text-gray-500 mt-0.5">Con link/invito</div>
+                                <div class="font-bold text-xs text-gray-800 dark:text-slate-200">Condivisa</div>
+                                <div class="text-[10px] text-gray-500 dark:text-slate-400 mt-0.5">Con link/invito</div>
                             </div>
                         </label>
                     </div>
@@ -234,7 +244,7 @@
             </div>
 
             <div class="flex gap-2 pt-2">
-                <button onclick="closeNewListModal()" class="flex-1 bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold py-2.5 rounded-xl text-xs transition">Annulla</button>
+                <button onclick="closeNewListModal()" class="flex-1 bg-gray-100 dark:bg-slate-700 hover:bg-gray-200 dark:hover:bg-slate-600 text-gray-700 dark:text-slate-200 font-bold py-2.5 rounded-xl text-xs transition">Annulla</button>
                 <button onclick="confermaCreaLista()" class="flex-1 bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2.5 rounded-xl text-xs transition shadow-md active:scale-95">Crea Lista</button>
             </div>
         </div>
@@ -242,19 +252,19 @@
 
     <!-- Modale Grafica: Condivisione Universale -->
     <div id="shareModal" class="hidden fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-        <div class="bg-white rounded-3xl max-w-sm w-full p-6 shadow-2xl border border-slate-100 space-y-5">
-            <div class="flex justify-between items-center border-b border-gray-100 pb-3">
-                <h3 class="font-extrabold text-base text-indigo-950 flex items-center gap-2">
+        <div class="bg-white dark:bg-slate-800 rounded-3xl max-w-sm w-full p-6 shadow-2xl border border-slate-100 dark:border-slate-700 space-y-5 text-gray-800 dark:text-slate-100">
+            <div class="flex justify-between items-center border-b border-gray-100 dark:border-slate-700 pb-3">
+                <h3 class="font-extrabold text-base text-indigo-950 dark:text-indigo-400 flex items-center gap-2">
                     <span>🔗</span> Condividi Lista
                 </h3>
-                <button onclick="closeShareModal()" class="text-gray-400 hover:text-gray-600 text-lg font-bold p-1">✕</button>
+                <button onclick="closeShareModal()" class="text-gray-400 hover:text-gray-600 dark:hover:text-slate-200 text-lg font-bold p-1">✕</button>
             </div>
 
             <div class="space-y-3">
-                <p id="shareModalSubhead" class="text-xs text-gray-600 leading-relaxed">Invia questo link d'invito. Chiunque lo apra potrà visualizzare e spuntare i prodotti in tempo reale.</p>
+                <p id="shareModalSubhead" class="text-xs text-gray-600 dark:text-slate-300 leading-relaxed">Invia questo link d'invito. Chiunque lo apra potrà visualizzare e spuntare i prodotti in tempo reale.</p>
                 
                 <div class="relative">
-                    <input type="text" id="shareUrlInput" readonly onclick="this.select()" class="w-full bg-gray-50 border border-gray-300 text-gray-700 rounded-xl px-3.5 py-2.5 text-xs font-mono pr-10 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                    <input type="text" id="shareUrlInput" readonly onclick="this.select()" class="w-full bg-gray-50 dark:bg-slate-900/60 border border-gray-300 dark:border-slate-700 text-gray-700 dark:text-slate-200 rounded-xl px-3.5 py-2.5 text-xs font-mono pr-10 focus:outline-none focus:ring-2 focus:ring-indigo-500">
                 </div>
             </div>
 
@@ -262,7 +272,7 @@
                 <button id="nativeShareBtn" onclick="nativeShare()" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2.5 px-4 rounded-xl text-xs flex items-center justify-center gap-2 transition shadow-md active:scale-95">
                     <span>📲</span> Condividi via App (WhatsApp...)
                 </button>
-                <button id="copyShareUrlBtn" onclick="copyShareUrl()" class="w-full bg-gray-100 hover:bg-gray-200 text-gray-800 font-bold py-2.5 px-4 rounded-xl text-xs flex items-center justify-center gap-2 transition active:scale-95">
+                <button id="copyShareUrlBtn" onclick="copyShareUrl()" class="w-full bg-gray-100 dark:bg-slate-700 hover:bg-gray-200 dark:hover:bg-slate-600 text-gray-800 dark:text-slate-100 font-bold py-2.5 px-4 rounded-xl text-xs flex items-center justify-center gap-2 transition active:scale-95">
                     <span>📋</span> Copia Link negli Appunti
                 </button>
             </div>
@@ -271,18 +281,18 @@
 
     <!-- Modale Grafica: Conferma Azione / Cancellazione -->
     <div id="confirmModal" class="hidden fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-        <div class="bg-white rounded-3xl max-w-sm w-full p-6 shadow-2xl border border-slate-100 space-y-4 text-center">
-            <div id="confirmModalBadge" class="w-12 h-12 rounded-2xl bg-red-50 text-red-600 flex items-center justify-center mx-auto text-2xl">
+        <div class="bg-white dark:bg-slate-800 rounded-3xl max-w-sm w-full p-6 shadow-2xl border border-slate-100 dark:border-slate-700 space-y-4 text-center">
+            <div id="confirmModalBadge" class="w-12 h-12 rounded-2xl bg-red-50 dark:bg-red-950/50 text-red-600 dark:text-red-400 flex items-center justify-center mx-auto text-2xl">
                 🗑️
             </div>
             
             <div class="space-y-1">
-                <h3 id="confirmModalTitle" class="font-extrabold text-base text-gray-900">Conferma azione</h3>
-                <p id="confirmModalMsg" class="text-xs text-gray-600 leading-relaxed">Sei sicuro di voler procedere?</p>
+                <h3 id="confirmModalTitle" class="font-extrabold text-base text-gray-900 dark:text-slate-100">Conferma azione</h3>
+                <p id="confirmModalMsg" class="text-xs text-gray-600 dark:text-slate-300 leading-relaxed">Sei sicuro di voler procedere?</p>
             </div>
 
             <div class="flex gap-2.5 pt-3">
-                <button onclick="closeConfirmModal()" class="flex-1 bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold py-2.5 rounded-xl text-xs transition">Annulla</button>
+                <button onclick="closeConfirmModal()" class="flex-1 bg-gray-100 dark:bg-slate-700 hover:bg-gray-200 dark:hover:bg-slate-600 text-gray-700 dark:text-slate-200 font-bold py-2.5 rounded-xl text-xs transition">Annulla</button>
                 <button id="confirmModalActionBtn" onclick="handleConfirmModalAction()" class="flex-1 bg-red-600 hover:bg-red-700 text-white font-bold py-2.5 rounded-xl text-xs transition shadow-md active:scale-95">Elimina</button>
             </div>
         </div>
@@ -290,14 +300,14 @@
 
     <!-- Modale Grafica: Avviso / Notifica -->
     <div id="alertModal" class="hidden fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-        <div class="bg-white rounded-3xl max-w-sm w-full p-6 shadow-2xl border border-slate-100 space-y-4 text-center">
-            <div id="alertModalBadge" class="w-12 h-12 rounded-2xl bg-indigo-50 text-indigo-600 flex items-center justify-center mx-auto text-2xl">
+        <div class="bg-white dark:bg-slate-800 rounded-3xl max-w-sm w-full p-6 shadow-2xl border border-slate-100 dark:border-slate-700 space-y-4 text-center">
+            <div id="alertModalBadge" class="w-12 h-12 rounded-2xl bg-indigo-50 dark:bg-indigo-950/50 text-indigo-600 dark:text-indigo-400 flex items-center justify-center mx-auto text-2xl">
                 ℹ️
             </div>
             
             <div class="space-y-1">
-                <h3 id="alertModalTitle" class="font-extrabold text-base text-gray-900">Avviso</h3>
-                <p id="alertModalMsg" class="text-xs text-gray-600 leading-relaxed">Messaggio di informazione.</p>
+                <h3 id="alertModalTitle" class="font-extrabold text-base text-gray-900 dark:text-slate-100">Avviso</h3>
+                <p id="alertModalMsg" class="text-xs text-gray-600 dark:text-slate-300 leading-relaxed">Messaggio di informazione.</p>
             </div>
 
             <div class="pt-2">
@@ -314,6 +324,33 @@
                     .catch(err => console.log('Errore Service Worker:', err));
             });
         }
+
+        // --- Gestione Tema Dark Mode ---
+        function initDarkMode() {
+            const isDark = localStorage.getItem('theme') === 'dark' || 
+                (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches);
+            
+            if (isDark) {
+                document.documentElement.classList.add('dark');
+                updateDarkIcon(true);
+            } else {
+                document.documentElement.classList.remove('dark');
+                updateDarkIcon(false);
+            }
+        }
+
+        function toggleDarkMode() {
+            const isDark = document.documentElement.classList.toggle('dark');
+            localStorage.setItem('theme', isDark ? 'dark' : 'light');
+            updateDarkIcon(isDark);
+        }
+
+        function updateDarkIcon(isDark) {
+            const btn = document.getElementById('themeToggleBtn');
+            if (btn) btn.textContent = isDark ? '☀️' : '🌙';
+        }
+
+        initDarkMode();
 
         // --- Monitoraggio Stato Connessione Network ---
         function updateNetworkStatus() {
@@ -562,10 +599,10 @@
             
             if (isDanger) {
                 confirmBtn.className = "flex-1 bg-red-600 hover:bg-red-700 text-white font-bold py-2.5 rounded-xl text-xs transition shadow-md active:scale-95";
-                document.getElementById('confirmModalBadge').className = "w-12 h-12 rounded-2xl bg-red-50 text-red-600 flex items-center justify-center mx-auto text-2xl";
+                document.getElementById('confirmModalBadge').className = "w-12 h-12 rounded-2xl bg-red-50 dark:bg-red-950/50 text-red-600 dark:text-red-400 flex items-center justify-center mx-auto text-2xl";
             } else {
                 confirmBtn.className = "flex-1 bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2.5 rounded-xl text-xs transition shadow-md active:scale-95";
-                document.getElementById('confirmModalBadge').className = "w-12 h-12 rounded-2xl bg-indigo-50 text-indigo-600 flex items-center justify-center mx-auto text-2xl";
+                document.getElementById('confirmModalBadge').className = "w-12 h-12 rounded-2xl bg-indigo-50 dark:bg-indigo-950/50 text-indigo-600 dark:text-indigo-400 flex items-center justify-center mx-auto text-2xl";
             }
 
             onConfirmCallback = onConfirm;
@@ -654,7 +691,7 @@
                 subhead.textContent = "Questa è una Lista Privata visibile solo a te. Crea una nuova lista Condivisa per poterla inviare agli amici.";
                 urlInput.value = "Lista Privata (non condivisibile)";
             } else {
-                subhead.textContent = `Condividi la lista "${currentObj.name}". Chiunque apra questo link potrà visualizzare e spuntare i prodotti in tempo reale.`;
+                subhead.textContent = `Condividi la lista "${currentObj.name}". Chiunque lo apra potrà visualizzare e spuntare i prodotti in tempo reale.`;
                 const inviteUrl = `${window.location.origin}${window.location.pathname}?house=${activeListId}`;
                 urlInput.value = inviteUrl;
             }
@@ -878,26 +915,26 @@
             for (const dept of sortedDepts) {
                 const deptItems = grouped[dept];
                 const deptCard = document.createElement('div');
-                deptCard.className = 'dept-card bg-white rounded-2xl p-4 shadow-sm border border-gray-100 overflow-hidden';
+                deptCard.className = 'dept-card bg-white dark:bg-slate-800 rounded-2xl p-4 shadow-sm border border-gray-100 dark:border-slate-700/80 overflow-hidden transition-colors';
 
                 const icon = deptIcons[dept] || '🛒';
                 let itemsHtml = deptItems.map(item => `
-                    <li class="flex items-center justify-between py-2.5 border-b border-gray-50 last:border-0 gap-2 hover:bg-gray-50/60 rounded-lg px-1 transition">
+                    <li class="flex items-center justify-between py-2.5 border-b border-gray-50 dark:border-slate-700/50 last:border-0 gap-2 hover:bg-gray-50/60 dark:hover:bg-slate-700/40 rounded-lg px-1 transition">
                         <label class="flex items-center gap-3 flex-1 cursor-pointer select-none min-w-0 py-0.5">
                             <input type="checkbox" 
                                    ${item.checked ? 'checked' : ''} 
                                    onchange="toggleCheck(${item.originalIndex})" 
-                                   class="w-5 h-5 rounded text-indigo-600 focus:ring-indigo-500 border-gray-300 flex-shrink-0 cursor-pointer">
-                            <span class="text-sm ${item.checked ? 'item-checked' : 'text-gray-800 font-medium'} break-words min-w-0">${item.name}</span>
+                                   class="w-5 h-5 rounded text-indigo-600 focus:ring-indigo-500 border-gray-300 dark:border-slate-600 dark:bg-slate-700 flex-shrink-0 cursor-pointer">
+                            <span class="text-sm ${item.checked ? 'item-checked' : 'text-gray-800 dark:text-slate-100 font-medium'} break-words min-w-0">${item.name}</span>
                         </label>
-                        <button onclick="deleteItem(${item.originalIndex})" class="text-gray-300 hover:text-red-500 text-sm p-1.5 flex-shrink-0 transition hover:bg-red-50 rounded-lg" title="Elimina elemento">✕</button>
+                        <button onclick="deleteItem(${item.originalIndex})" class="text-gray-300 dark:text-slate-500 hover:text-red-500 dark:hover:text-red-400 text-sm p-1.5 flex-shrink-0 transition hover:bg-red-50 dark:hover:bg-slate-700 rounded-lg" title="Elimina elemento">✕</button>
                     </li>
                 `).join('');
 
                 deptCard.innerHTML = `
-                    <h2 class="font-bold text-sm text-indigo-900 border-b border-gray-100 pb-2.5 mb-2 flex items-center gap-2">
+                    <h2 class="font-bold text-sm text-indigo-900 dark:text-indigo-400 border-b border-gray-100 dark:border-slate-700 pb-2.5 mb-2 flex items-center gap-2">
                         <span>${icon}</span> Reparto ${dept}
-                        <span class="text-[10px] bg-indigo-50 text-indigo-600 font-semibold px-2 py-0.5 rounded-full ml-auto">${deptItems.length}</span>
+                        <span class="text-[10px] bg-indigo-50 dark:bg-slate-700 text-indigo-600 dark:text-indigo-300 font-semibold px-2 py-0.5 rounded-full ml-auto">${deptItems.length}</span>
                     </h2>
                     <ul>${itemsHtml}</ul>
                 `;
@@ -935,10 +972,10 @@
             const label = document.getElementById('hideCheckedLabel');
 
             if (hideChecked) {
-                btn.classList.add('bg-indigo-50', 'border-indigo-300', 'text-indigo-700');
+                btn.classList.add('bg-indigo-50', 'dark:bg-slate-700', 'border-indigo-300', 'dark:border-indigo-500', 'text-indigo-700', 'dark:text-indigo-300');
                 label.textContent = "Mostra tutti";
             } else {
-                btn.classList.remove('bg-indigo-50', 'border-indigo-300', 'text-indigo-700');
+                btn.classList.remove('bg-indigo-50', 'dark:bg-slate-700', 'border-indigo-300', 'dark:border-indigo-500', 'text-indigo-700', 'dark:text-indigo-300');
                 label.textContent = "Solo da prendere";
             }
             filterList();
