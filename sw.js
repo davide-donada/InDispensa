@@ -72,3 +72,30 @@ self.addEventListener('fetch', (e) => {
     })
   );
 });
+
+importScripts('https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js');
+importScripts('https://www.gstatic.com/firebasejs/9.22.1/firebase-messaging-compat.js');
+
+firebase.initializeApp({
+    apiKey: "AIzaSyBWi3L4DFxAPowky7N9bwgLck_gEcmnywY",
+    authDomain: "lista-spesa-10e72.firebaseapp.com",
+    databaseURL: "https://lista-spesa-10e72-default-rtdb.europe-west1.firebasedatabase.app",
+    projectId: "lista-spesa-10e72",
+    storageBucket: "lista-spesa-10e72.firebasestorage.app",
+    messagingSenderId: "628445802272",
+    appId: "1:628445802272:web:74ae840b2a0b53c4ed7145"
+});
+
+const messaging = firebase.messaging();
+
+messaging.onBackgroundMessage((payload) => {
+    const notificationTitle = payload.notification.title || 'InDispensa';
+    const notificationOptions = {
+        body: payload.notification.body,
+        icon: './icon-192.png',
+        badge: './icon-192.png',
+        data: payload.data
+    };
+
+    self.registration.showNotification(notificationTitle, notificationOptions);
+});
