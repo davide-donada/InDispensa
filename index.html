@@ -106,11 +106,8 @@
                     <p id="progressCounter" class="text-xs text-indigo-200 dark:text-slate-300 mt-0.5">Caricamento...</p>
                 </div>
                 
-                <!-- Profile & Theme Toggle & Notification Header -->
+                <!-- Profile & Theme Toggle -->
                 <div id="userProfile" class="flex items-center gap-2">
-                    <button onclick="requestNotificationPermission()" id="notifToggleBtn" title="Attiva Notifiche Push" class="bg-indigo-700 hover:bg-indigo-800 dark:bg-slate-700 dark:hover:bg-slate-600 text-xs p-2 rounded-xl transition border border-indigo-500 dark:border-slate-600 flex items-center justify-center">
-                        🔔
-                    </button>
                     <button onclick="toggleDarkMode()" id="themeToggleBtn" title="Cambia tema" class="bg-indigo-700 hover:bg-indigo-800 dark:bg-slate-700 dark:hover:bg-slate-600 text-xs p-2 rounded-xl transition border border-indigo-500 dark:border-slate-600 flex items-center justify-center">
                         🌙
                     </button>
@@ -403,13 +400,6 @@
         try {
             if (firebase.messaging.isSupported()) {
                 messaging = firebase.messaging();
-                // Listener per ricevere notifiche in Foreground (quando l'app è aperta a schermo)
-                messaging.onMessage((payload) => {
-                    console.log("Notifica ricevuta in foreground:", payload);
-                    const title = payload.notification?.title || payload.data?.title || "InDispensa";
-                    const body = payload.notification?.body || payload.data?.body || "Nuovo aggiornamento nella lista";
-                    showAlertModal(title, body, "🔔");
-                });
             }
         } catch (e) {
             console.log("Messaging non supportato su questo browser/dispositivo", e);
@@ -447,7 +437,6 @@
 
                 initUserLists();
                 initAutocomplete();
-                checkNotificationPermissionStatus();
             } else {
                 currentUser = null;
                 loginScreen.classList.remove('hidden');
@@ -479,64 +468,6 @@
 
         function logoutGoogle() {
             auth.signOut();
-        }
-
-        // --- Gestione Notifiche Push (FCM con Service Worker PWA attivo) ---
-        function checkNotificationPermissionStatus() {
-            const notifBtn = document.getElementById('notifToggleBtn');
-            if (!("Notification" in window) || !messaging) {
-                if (notifBtn) notifBtn.classList.add('hidden');
-                return;
-            }
-
-            if (Notification.permission === 'granted') {
-                notifBtn.textContent = '🔔';
-                notifBtn.title = "Notifiche Attive";
-                notifBtn.classList.add('text-green-400');
-                registerFcmToken();
-            } else if (Notification.permission === 'denied') {
-                notifBtn.textContent = '🔕';
-                notifBtn.title = "Notifiche Bloccate nelle impostazioni";
-            } else {
-                notifBtn.textContent = '🔔';
-                notifBtn.title = "Clicca per attivare le notifiche";
-            }
-        }
-
-        async function requestNotificationPermission() {
-            if (!("Notification" in window) || !messaging) {
-                showAlertModal("Notifiche non supportate", "Il tuo browser non supporta le notifiche push.", "⚠️");
-                return;
-            }
-
-            try {
-                const permission = await Notification.requestPermission();
-                if (permission === 'granted') {
-                    showAlertModal("Notifiche Attivate!", "Riceverai una notifica quando qualcuno aggiunge un prodotto alla tua lista condivisa.", "🔔");
-                    checkNotificationPermissionStatus();
-                } else {
-                    showAlertModal("Permesso Negato", "Hai rifiutato l'invio delle notifiche. Puoi riattivarle dalle impostazioni del browser.", "🔕");
-                }
-            } catch (err) {
-                console.error("Errore richiesta notifiche:", err);
-            }
-        }
-
-        async function registerFcmToken() {
-            if (!messaging || !currentUser) return;
-            try {
-                const registration = await navigator.serviceWorker.ready;
-                const token = await messaging.getToken({
-                    vapidKey: "BFttKVTvW62IxOS_4CArSIR4_I7XEwu_2V-EhR9CHn5pMCzwjERawYN0NI_k2I6aVZwbWe80PfkPmQzC8rXpc9k",
-                    serviceWorkerRegistration: registration
-                });
-                if (token) {
-                    await db.ref(`utenti/${currentUser.uid}/fcmToken`).set(token);
-                    console.log("Token FCM salvato con successo:", token);
-                }
-            } catch (err) {
-                console.log("Errore recupero Token FCM:", err);
-            }
         }
 
         // --- Dizionario Smart per Rilevamento Categoria Automatico ---
@@ -1084,18 +1015,27 @@
                 deptCard.className = 'dept-card bg-white dark:bg-slate-800 rounded-2xl p-4 shadow-sm border border-gray-100 dark:border-slate-700/80 overflow-hidden transition-colors';
 
                 const icon = deptIcons[dept] || '🛒';
-                let itemsHtml = deptItems.map(item => `
-                    <li class="flex items-center justify-between py-2.5 border-b border-gray-50 dark:border-slate-700/50 last:border-0 gap-2 hover:bg-gray-50/60 dark:hover:bg-slate-700/40 rounded-lg px-1 transition">
-                        <label class="flex items-center gap-3 flex-1 cursor-pointer select-none min-w-0 py-0.5">
-                            <input type="checkbox" 
-                                   ${item.checked ? 'checked' : ''} 
-                                   onchange="toggleCheck(${item.originalIndex})" 
-                                   class="w-5 h-5 rounded text-indigo-600 focus:ring-indigo-500 border-gray-300 dark:border-slate-600 dark:bg-slate-700 flex-shrink-0 cursor-pointer">
-                            <span class="text-sm ${item.checked ? 'item-checked' : 'text-gray-800 dark:text-slate-100 font-medium'} break-words min-w-0">${item.name}</span>
-                        </label>
-                        <button onclick="deleteItem(${item.originalIndex})" class="text-gray-300 dark:text-slate-500 hover:text-red-500 dark:hover:text-red-400 text-sm p-1.5 flex-shrink-0 transition hover:bg-red-50 dark:hover:bg-slate-700 rounded-lg" title="Elimina elemento">✕</button>
-                    </li>
-                `).join('');
+                let itemsHtml = deptItems.map(item => {
+                    let authorBadge = '';
+                    if (item.addedByName) {
+                        const firstName = item.addedByName.split(' ')[0];
+                        authorBadge = `<span class="text-[10px] bg-indigo-50 dark:bg-slate-700/60 text-indigo-600 dark:text-indigo-400 font-medium px-1.5 py-0.5 rounded ml-2 flex-shrink-0">da ${firstName}</span>`;
+                    }
+
+                    return `
+                        <li class="flex items-center justify-between py-2.5 border-b border-gray-50 dark:border-slate-700/50 last:border-0 gap-2 hover:bg-gray-50/60 dark:hover:bg-slate-700/40 rounded-lg px-1 transition">
+                            <label class="flex items-center gap-3 flex-1 cursor-pointer select-none min-w-0 py-0.5">
+                                <input type="checkbox" 
+                                       ${item.checked ? 'checked' : ''} 
+                                       onchange="toggleCheck(${item.originalIndex})" 
+                                       class="w-5 h-5 rounded text-indigo-600 focus:ring-indigo-500 border-gray-300 dark:border-slate-600 dark:bg-slate-700 flex-shrink-0 cursor-pointer">
+                                <span class="text-sm ${item.checked ? 'item-checked' : 'text-gray-800 dark:text-slate-100 font-medium'} break-words min-w-0">${item.name}</span>
+                                ${authorBadge}
+                            </label>
+                            <button onclick="deleteItem(${item.originalIndex})" class="text-gray-300 dark:text-slate-500 hover:text-red-500 dark:hover:text-red-400 text-sm p-1.5 flex-shrink-0 transition hover:bg-red-50 dark:hover:bg-slate-700 rounded-lg" title="Elimina elemento">✕</button>
+                        </li>
+                    `;
+                }).join('');
 
                 deptCard.innerHTML = `
                     <h2 class="font-bold text-sm text-indigo-900 dark:text-indigo-400 border-b border-gray-100 dark:border-slate-700 pb-2.5 mb-2 flex items-center gap-2">
@@ -1182,29 +1122,11 @@
                     };
                     currentList.push(newItemObj);
                     listRef.set(currentList);
-                    
-                    triggerNotificationToOwner(name);
 
                     nameInput.value = '';
                     document.getElementById('autoCatBadge').classList.add('hidden');
                 });
             }
-        }
-
-        function triggerNotificationToOwner(itemName) {
-            const currentObj = userLists.find(l => l.id === activeListId);
-            if (!currentObj || currentObj.type === 'private') return;
-
-            const ownerUid = currentListOwnerInfo.ownerUid;
-            if (!ownerUid || ownerUid === currentUser.uid) return;
-
-            db.ref('notifiche_queue').push({
-                targetUid: ownerUid,
-                title: `InDispensa - ${currentObj.name}`,
-                body: `${currentUser.displayName || 'Qualcuno'} ha aggiunto "${itemName}" alla lista.`,
-                listId: activeListId,
-                createdAt: firebase.database.ServerValue.TIMESTAMP
-            });
         }
 
         function deleteItem(index) {
