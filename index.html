@@ -403,6 +403,13 @@
         try {
             if (firebase.messaging.isSupported()) {
                 messaging = firebase.messaging();
+                // Listener per ricevere notifiche in Foreground (quando l'app è aperta a schermo)
+                messaging.onMessage((payload) => {
+                    console.log("Notifica ricevuta in foreground:", payload);
+                    const title = payload.notification?.title || payload.data?.title || "InDispensa";
+                    const body = payload.notification?.body || payload.data?.body || "Nuovo aggiornamento nella lista";
+                    showAlertModal(title, body, "🔔");
+                });
             }
         } catch (e) {
             console.log("Messaging non supportato su questo browser/dispositivo", e);
