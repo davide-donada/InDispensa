@@ -1,4 +1,4 @@
-const CACHE_NAME = 'indispensa-pwa-v6';
+const CACHE_NAME = 'indispensa-pwa-v7';
 
 // Asset locali da salvare in cache per il funzionamento offline
 const ASSETS = [
@@ -88,20 +88,34 @@ firebase.initializeApp({
 
 const messaging = firebase.messaging();
 
+// Gestione dei messaggi FCM ricevuti in Background
 messaging.onBackgroundMessage((payload) => {
-  const notificationTitle = payload.notification ? payload.notification.title : 'InDispensa';
+  console.log('[sw.js] Messaggio FCM ricevuto in background:', payload);
+
+  const title = payload.notification?.title || payload.data?.title || 'InDispensa';
+  const body = payload.notification?.body || payload.data?.body || 'Nuovo aggiornamento nella lista';
+
   const notificationOptions = {
-    body: payload.notification ? payload.notification.body : '',
+    body: body,
     icon: './icon-192.png',
     badge: './icon-192.png',
     data: payload.data
   };
-  self.registration.showNotification(notificationTitle, notificationOptions);
+
+  return self.registration.showNotification(title, notificationOptions);
 });
 
-// Listener Push generico per intercettare i test manuali da DevTools
+// Listener Push di fallback per DevTools (evita duplicati da FCM)
 self.addEventListener('push', (event) => {
   if (!event.data) return;
+
+  // Se il messaggio proviene da FCM, verrà gestito da onBackgroundMessage
+  try {
+    const json = event.data.json();
+    if (json.fcmMessageId || json.from) return; 
+  } catch (e) {
+    // Non è JSON di FCM, prosegui come Push semplice
+  }
 
   let title = "InDispensa Test";
   let body = event.data.text();
@@ -112,15 +126,29 @@ self.addEventListener('push', (event) => {
       title = json.notification.title || title;
       body = json.notification.body || body;
     }
-  } catch (e) {
-    // Se è testo semplice mantieni il body così com'è
-  }
+  } catch (e) {}
 
   event.waitUntil(
     self.registration.showNotification(title, {
       body: body,
       icon: './icon-192.png',
       badge: './icon-192.png'
+    })
+  );
+});
+
+// Gestione click sulla notifica: apre o porta in primo piano la PWA
+self.addEventListener('notificationclick', (event) => {
+  event.notification.close();
+
+  event.waitUntil(
+    clients.matchAll({ type: 'window', includeUncontrolled: true }).then((clientList) => {
+      for (const client of clientList) {
+        if (client.url.includes('index.html') || client.url === self.location.origin + '/') {
+          return client.focus();
+        }
+      }
+      return clients.openWindow('./index.html');
     })
   );
 });
