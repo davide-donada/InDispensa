@@ -129,24 +129,26 @@
         <!-- Layout Principale Streamlined -->
         <div class="max-w-md md:max-w-5xl lg:max-w-7xl mx-auto p-3.5 space-y-3 w-full box-border">
 
-            <!-- Pannello di Controllo Lista Unificato -->
+            <!-- Pannello di Controllo Lista Unificato (Responsive Fix) -->
             <div class="bg-white dark:bg-slate-900 border border-gray-200/80 dark:border-slate-800 rounded-2xl p-3 shadow-sm space-y-2.5 transition-colors">
-                <div class="flex items-center gap-2">
-                    <span id="houseIcon" class="text-base">🔒</span>
-                    <select id="houseSelect" onchange="onHouseSelectChange(this.value)" class="bg-gray-50 dark:bg-slate-800/80 border border-gray-200 dark:border-slate-700 text-indigo-950 dark:text-slate-100 font-bold rounded-xl px-3 py-2 text-xs focus:outline-none focus:ring-2 focus:ring-indigo-500 flex-1 truncate shadow-sm cursor-pointer">
-                    </select>
-                    <button id="deleteHouseBtn" onclick="eliminaListaCorrente()" title="Rimuovi lista" class="text-gray-400 hover:text-rose-500 p-2 text-xs transition rounded-xl hover:bg-rose-50 dark:hover:bg-slate-800 active:scale-95">🗑️</button>
+                <div class="flex flex-wrap items-center justify-between gap-2">
+                    <div class="flex items-center gap-2 flex-1 min-w-[180px]">
+                        <span id="houseIcon" class="text-base flex-shrink-0">🔒</span>
+                        <select id="houseSelect" onchange="onHouseSelectChange(this.value)" class="bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-700 text-indigo-950 dark:text-slate-100 font-bold rounded-xl px-3 py-2 text-xs focus:outline-none focus:ring-2 focus:ring-indigo-500 flex-1 min-w-0 truncate shadow-sm cursor-pointer">
+                        </select>
+                        <button id="deleteHouseBtn" onclick="eliminaListaCorrente()" title="Rimuovi lista" class="text-gray-400 hover:text-rose-500 p-2 text-xs transition rounded-xl hover:bg-rose-50 dark:hover:bg-slate-800 active:scale-95 flex-shrink-0">🗑️</button>
+                    </div>
                     <button id="shareBtn" onclick="openShareModal()" class="bg-indigo-600 text-white px-3 py-2 rounded-xl font-bold hover:bg-indigo-700 active:scale-95 transition shadow-sm flex items-center gap-1 text-xs flex-shrink-0">
                         <span>🔗</span> Condividi
                     </button>
                 </div>
 
                 <div id="ownerBadgeContainer" class="flex items-center justify-between text-[11px] pt-2 border-t border-gray-100 dark:border-slate-800 text-gray-500 dark:text-slate-400 px-0.5">
-                    <span class="flex items-center gap-1">
+                    <span class="flex items-center gap-1 truncate">
                         <span>👑</span> <span class="text-gray-600 dark:text-slate-400">Admin:</span>
-                        <span id="ownerNameDisplay" class="font-extrabold text-indigo-600 dark:text-indigo-400">Sconosciuto</span>
+                        <span id="ownerNameDisplay" class="font-extrabold text-indigo-600 dark:text-indigo-400 truncate">Sconosciuto</span>
                     </span>
-                    <span id="listTypeBadge" class="bg-indigo-50 dark:bg-slate-800 text-indigo-700 dark:text-indigo-300 font-bold px-2 py-0.5 rounded-lg text-[10px]">Condivisa</span>
+                    <span id="listTypeBadge" class="bg-indigo-50 dark:bg-slate-800 text-indigo-700 dark:text-indigo-300 font-bold px-2 py-0.5 rounded-lg text-[10px] flex-shrink-0">Condivisa</span>
                 </div>
             </div>
 
@@ -157,26 +159,28 @@
                     <span id="autoCatBadge" class="text-[10px] text-indigo-600 dark:text-indigo-400 bg-indigo-50 dark:bg-slate-800 px-2 py-0.5 rounded-md hidden font-bold">Cat. rilevata</span>
                 </div>
                 
-                <div class="flex gap-2">
-                    <div class="relative flex-1">
+                <div class="flex flex-wrap sm:flex-nowrap gap-2">
+                    <div class="relative flex-1 min-w-[140px]">
                         <input type="text" id="newItemText" list="productsList" oninput="onProductInput(this.value)" placeholder="es. Latte, Mele, Scottex..." class="w-full bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-700 text-gray-800 dark:text-slate-100 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 transition shadow-inner">
                         <datalist id="productsList"></datalist>
                     </div>
-                    <select id="newItemDept" class="w-32 bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-700 text-gray-800 dark:text-slate-100 rounded-xl px-2.5 py-2.5 text-xs focus:outline-none focus:ring-2 focus:ring-indigo-500 font-semibold shadow-inner cursor-pointer">
-                        <option value="Frutta">🍎 Frutta</option>
-                        <option value="Verdura">🥬 Verdura</option>
-                        <option value="Carne e Pesce">🥩 Carne/Pesce</option>
-                        <option value="Latticini e Uova">🧀 Latticini</option>
-                        <option value="Dispensa">📦 Dispensa</option>
-                        <option value="Surgelati">❄️ Surgelati</option>
-                        <option value="Casa e Pulizia">🧹 Pulizia</option>
-                        <option value="Bucato">🧺 Bucato</option>
-                        <option value="Igiene Personale">🧴 Igiene</option>
-                        <option value="Sfizi e Dolci">🍫 Dolci</option>
-                    </select>
-                    <button type="submit" class="bg-indigo-600 hover:bg-indigo-700 text-white font-extrabold px-4 py-2.5 rounded-xl text-base active:scale-95 transition flex items-center justify-center shadow-md flex-shrink-0">
-                        +
-                    </button>
+                    <div class="flex gap-2 flex-1 sm:flex-initial">
+                        <select id="newItemDept" class="flex-1 sm:w-32 bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-700 text-gray-800 dark:text-slate-100 rounded-xl px-2.5 py-2.5 text-xs focus:outline-none focus:ring-2 focus:ring-indigo-500 font-semibold shadow-inner cursor-pointer">
+                            <option value="Frutta">🍎 Frutta</option>
+                            <option value="Verdura">🥬 Verdura</option>
+                            <option value="Carne e Pesce">🥩 Carne/Pesce</option>
+                            <option value="Latticini e Uova">🧀 Latticini</option>
+                            <option value="Dispensa">📦 Dispensa</option>
+                            <option value="Surgelati">❄️ Surgelati</option>
+                            <option value="Casa e Pulizia">🧹 Pulizia</option>
+                            <option value="Bucato">🧺 Bucato</option>
+                            <option value="Igiene Personale">🧴 Igiene</option>
+                            <option value="Sfizi e Dolci">🍫 Dolci</option>
+                        </select>
+                        <button type="submit" class="bg-indigo-600 hover:bg-indigo-700 text-white font-extrabold px-4 py-2.5 rounded-xl text-base active:scale-95 transition flex items-center justify-center shadow-md flex-shrink-0">
+                            +
+                        </button>
+                    </div>
                 </div>
             </form>
 
@@ -818,11 +822,11 @@
                 listRef = db.ref(`utenti/${currentUser.uid}/liste/${activeListId}`);
                 currentListOwnerInfo = { ownerUid: currentUser.uid, ownerName: currentUser.displayName || 'Tu' };
                 typeBadge.textContent = "Privata";
-                typeBadge.className = "bg-amber-50 dark:bg-amber-950/40 text-amber-700 dark:text-amber-400 font-bold px-2 py-0.5 rounded-lg text-[10px]";
+                typeBadge.className = "bg-amber-50 dark:bg-amber-950/40 text-amber-700 dark:text-amber-400 font-bold px-2 py-0.5 rounded-lg text-[10px] flex-shrink-0";
             } else {
                 listRef = db.ref(`shared_liste/${activeListId}`);
                 typeBadge.textContent = "Condivisa";
-                typeBadge.className = "bg-indigo-50 dark:bg-slate-800 text-indigo-700 dark:text-indigo-300 font-bold px-2 py-0.5 rounded-lg text-[10px]";
+                typeBadge.className = "bg-indigo-50 dark:bg-slate-800 text-indigo-700 dark:text-indigo-300 font-bold px-2 py-0.5 rounded-lg text-[10px] flex-shrink-0";
                 
                 db.ref(`shared_liste_meta/${activeListId}`).once('value').then((snap) => {
                     const meta = snap.val();
@@ -1160,10 +1164,10 @@
             const label = document.getElementById('hideCheckedLabel');
 
             if (hideChecked) {
-                btn.classList.add('bg-indigo-50', 'dark:bg-slate-800', 'border-indigo-300', 'text-indigo-700', 'dark:text-indigo-300');
+                btn.className = "bg-indigo-50 dark:bg-indigo-950/80 border border-indigo-300 dark:border-indigo-600 text-indigo-700 dark:text-indigo-300 px-3 py-2 rounded-xl font-bold shadow-sm flex items-center gap-1.5 active:scale-95 transition";
                 label.textContent = "Mostra tutti";
             } else {
-                btn.classList.remove('bg-indigo-50', 'dark:bg-slate-800', 'border-indigo-300', 'text-indigo-700', 'dark:text-indigo-300');
+                btn.className = "bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-700 text-gray-700 dark:text-slate-300 px-3 py-2 rounded-xl font-bold shadow-sm flex items-center gap-1.5 active:scale-95 transition";
                 label.textContent = "Solo da prendere";
             }
             filterList();
