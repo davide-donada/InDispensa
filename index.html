@@ -144,7 +144,7 @@
                 <div id="ownerBadgeContainer" class="flex items-center justify-between text-[11px] pt-1.5 border-t border-gray-100 dark:border-slate-700/60 text-gray-500 dark:text-slate-400">
                     <span class="flex items-center gap-1.5">
                         <span>👑</span> <span class="font-semibold text-gray-700 dark:text-slate-300">Proprietario:</span>
-                        <span id="ownerNameDisplay" class="font-bold text-indigo-600 dark:text-indigo-400">Caricamento...</span>
+                        <span id="ownerNameDisplay" class="font-bold text-indigo-600 dark:text-indigo-400">Sconosciuto</span>
                     </span>
                     <span id="listTypeBadge" class="bg-indigo-50 dark:bg-slate-700 text-indigo-700 dark:text-indigo-300 font-medium px-2 py-0.5 rounded-md text-[10px]">Condivisa</span>
                 </div>
@@ -431,7 +431,6 @@
                 document.getElementById('userName').textContent = user.displayName ? user.displayName.split(' ')[0] : 'Utente';
                 document.getElementById('userAvatar').src = user.photoURL || 'https://cdn-icons-png.flaticon.com/512/847/847969.png';
                 
-                // Salva il profilo dell'utente su Firebase
                 db.ref(`utenti/${user.uid}/profile`).set({
                     displayName: user.displayName,
                     email: user.email,
@@ -518,9 +517,7 @@
         async function registerFcmToken() {
             if (!messaging || !currentUser) return;
             try {
-                const token = await messaging.getToken({
-                    // VAPID key pubblica opzionale se configurata su Firebase Console
-                });
+                const token = await messaging.getToken();
                 if (token) {
                     await db.ref(`utenti/${currentUser.uid}/fcmToken`).set(token);
                 }
@@ -615,13 +612,25 @@
                         ownerName: 'Lista Condivisa' 
                     });
                     userListsRef.set(listsFromDb);
+
+                    if (window.history.replaceState) {
+                        window.history.replaceState({}, document.title, window.location.pathname);
+                    }
+                    urlHouse = null;
                     return;
+                }
+
+                if (urlHouse) {
+                    if (window.history.replaceState) {
+                        window.history.replaceState({}, document.title, window.location.pathname);
+                    }
+                    urlHouse = null;
                 }
 
                 userLists = listsFromDb;
                 
                 const lastActive = localStorage.getItem(`lastActiveList_${currentUser.uid}`);
-                activeListId = urlHouse || lastActive || userLists[0].id;
+                activeListId = lastActive || userLists[0].id;
 
                 if (!userLists.some(l => l.id === activeListId)) {
                     activeListId = userLists[0].id;
@@ -768,7 +777,6 @@
                 ownerName: currentUser.displayName || 'Utente'
             };
 
-            // Salva metadati della lista condivisa su Firebase
             if (type === 'shared') {
                 db.ref(`shared_liste_meta/${listId}`).set({
                     ownerUid: currentUser.uid,
@@ -866,10 +874,13 @@
             const ownerDisplay = document.getElementById('ownerNameDisplay');
             const typeBadge = document.getElementById('listTypeBadge');
 
+            const fallbackName = currentObj.ownerName || (currentObj.type === 'private' ? (currentUser.displayName || 'Tu') : 'In attesa...');
+            const isInitiallyMe = currentObj.ownerUid === currentUser.uid || currentObj.type === 'private';
+            ownerDisplay.textContent = (isInitiallyMe && fallbackName !== 'Tu') ? `${fallbackName} (Tu)` : fallbackName;
+
             if (currentObj.type === 'private') {
                 listRef = db.ref(`utenti/${currentUser.uid}/liste/${activeListId}`);
                 currentListOwnerInfo = { ownerUid: currentUser.uid, ownerName: currentUser.displayName || 'Tu' };
-                ownerDisplay.textContent = `${currentUser.displayName || 'Tu'} (Tu)`;
                 typeBadge.textContent = "Privata";
                 typeBadge.className = "bg-amber-50 dark:bg-amber-950/40 text-amber-700 dark:text-amber-400 font-medium px-2 py-0.5 rounded-md text-[10px]";
             } else {
@@ -877,23 +888,29 @@
                 typeBadge.textContent = "Condivisa";
                 typeBadge.className = "bg-indigo-50 dark:bg-slate-700 text-indigo-700 dark:text-indigo-300 font-medium px-2 py-0.5 rounded-md text-[10px]";
                 
-                // Recupera metadati proprietario lista condivisa
-                db.ref(`shared_liste_meta/${activeListId}`).once('value', (snap) => {
+                db.ref(`shared_liste_meta/${activeListId}`).once('value').then((snap) => {
                     const meta = snap.val();
                     if (meta && meta.ownerUid) {
                         currentListOwnerInfo = { ownerUid: meta.ownerUid, ownerName: meta.ownerName };
                         const isMe = meta.ownerUid === currentUser.uid;
                         ownerDisplay.textContent = isMe ? `${meta.ownerName} (Tu)` : meta.ownerName;
+                        
+                        currentObj.ownerUid = meta.ownerUid;
+                        currentObj.ownerName = meta.ownerName;
+                        salvaUserListsSuFirebase();
                     } else {
-                        // Se non presente, assegna il primo utente che vi accede
-                        currentListOwnerInfo = { ownerUid: currentUser.uid, ownerName: currentUser.displayName || 'Utente' };
+                        const myName = currentUser.displayName || 'Utente';
+                        currentListOwnerInfo = { ownerUid: currentUser.uid, ownerName: myName };
                         db.ref(`shared_liste_meta/${activeListId}`).set({
                             ownerUid: currentUser.uid,
-                            ownerName: currentUser.displayName || 'Utente',
+                            ownerName: myName,
                             name: currentObj.name
                         });
-                        ownerDisplay.textContent = `${currentUser.displayName || 'Utente'} (Tu)`;
+                        ownerDisplay.textContent = `${myName} (Tu)`;
                     }
+                }).catch((err) => {
+                    console.warn("Impossibile leggere shared_liste_meta:", err);
+                    ownerDisplay.textContent = currentObj.ownerName || currentUser.displayName || 'Condivisa';
                 });
             }
 
@@ -914,6 +931,10 @@
                 true,
                 "🗑️",
                 () => {
+                    if (window.history.replaceState) {
+                        window.history.replaceState({}, document.title, window.location.pathname);
+                    }
+
                     userLists = userLists.filter(l => l.id !== activeListId);
                     salvaUserListsSuFirebase();
                     switchList(userLists[0].id);
@@ -1149,7 +1170,6 @@
                     currentList.push(newItemObj);
                     listRef.set(currentList);
                     
-                    // Invia notifica al proprietario se l'autore non è il proprietario stesso
                     triggerNotificationToOwner(name);
 
                     nameInput.value = '';
@@ -1163,11 +1183,8 @@
             if (!currentObj || currentObj.type === 'private') return;
 
             const ownerUid = currentListOwnerInfo.ownerUid;
-            
-            // Se chi aggiunge è già il proprietario, non serve inviare notifica
             if (!ownerUid || ownerUid === currentUser.uid) return;
 
-            // Scrivi la richiesta di notifica nel DB (letta dalla Cloud Function)
             db.ref('notifiche_queue').push({
                 targetUid: ownerUid,
                 title: `InDispensa - ${currentObj.name}`,
