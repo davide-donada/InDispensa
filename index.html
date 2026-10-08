@@ -65,7 +65,6 @@
             -ms-overflow-style: none;
             scrollbar-width: none;
         }
-        /* Stili avanzati Focus Mode In Negozio */
         .focus-mode-active .item-checked {
             opacity: 0.4;
         }
@@ -205,7 +204,7 @@
                 </div>
             </form>
 
-            <!-- Sezione 4: Prodotti Frequenti (1-Tap) -->
+            <!-- Sezione: Prodotti Frequenti (1-Tap Anti-Duplicato) -->
             <div class="bg-white dark:bg-slate-900 p-2.5 rounded-2xl shadow-sm border border-gray-200/80 dark:border-slate-800 transition-colors">
                 <div class="text-[10px] font-bold text-gray-400 dark:text-slate-500 uppercase tracking-wider mb-1.5 px-1 flex items-center justify-between">
                     <span>⚡ Aggiunta rapida frequenti (1-Tap)</span>
@@ -236,12 +235,10 @@
                             <span>👁️</span> <span id="hideCheckedLabel">Solo da prendere</span>
                         </button>
                         
-                        <!-- Sezione 2: Focus Mode Toggle -->
                         <button id="focusModeBtn" onclick="toggleFocusMode()" class="bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-700 text-gray-700 dark:text-slate-300 px-3 py-1.5 rounded-xl font-bold shadow-sm flex items-center gap-1.5 active:scale-95 transition">
                             <span>🛒</span> <span id="focusModeLabel">Focus Mode</span>
                         </button>
 
-                        <!-- Sezione 3: Riordino Reparti Supermercato -->
                         <button onclick="openDeptOrderModal()" class="bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-700 text-gray-700 dark:text-slate-300 px-3 py-1.5 rounded-xl font-bold shadow-sm flex items-center gap-1.5 active:scale-95 transition" title="Personalizza l'ordine delle corsie">
                             <span>⚙️</span> Percorso
                         </button>
@@ -882,7 +879,7 @@
             });
         }
 
-        // --- Sezione 3: Riordino Reparti Supermercato (JS) ---
+        // --- Riordino Reparti Supermercato ---
         function openDeptOrderModal() {
             renderDeptOrderList();
             document.getElementById('deptOrderModal').classList.remove('hidden');
@@ -943,7 +940,7 @@
             }
         }
 
-        // --- Sezione 2: Focus Mode Toggle (JS) ---
+        // --- Focus Mode Toggle ---
         function toggleFocusMode() {
             focusMode = !focusMode;
             const btn = document.getElementById('focusModeBtn');
@@ -1168,10 +1165,9 @@
             for (const dept of sortedDepts) {
                 const deptItems = grouped[dept];
 
-                // Auto-nascondimento reparti completati in Focus Mode
                 const isDeptCompleted = deptItems.every(i => i.checked);
                 if (focusMode && isDeptCompleted) {
-                    continue; // Salta la resa del reparto se tutti gli elementi sono spuntati
+                    continue;
                 }
 
                 const deptCard = document.createElement('div');
@@ -1185,13 +1181,11 @@
                         authorBadge = `<span class="text-[9px] bg-indigo-50 dark:bg-slate-800 text-indigo-600 dark:text-indigo-400 font-bold px-1.5 py-0.5 rounded ml-1 flex-shrink-0">da ${firstName}</span>`;
                     }
 
-                    // Pillola quantità
                     let qtyBadge = '';
                     if (item.qty) {
                         qtyBadge = `<span class="bg-indigo-100 dark:bg-slate-800 text-indigo-900 dark:text-indigo-300 font-extrabold text-[11px] px-1.5 py-0.5 rounded-md mr-1.5 flex-shrink-0">${item.qty}</span>`;
                     }
 
-                    // Micro-testo note opzionali
                     let noteHtml = '';
                     if (item.note) {
                         noteHtml = `<p class="text-[11px] text-gray-500 dark:text-slate-400 italic font-normal leading-tight mt-0.5">📝 ${item.note}</p>`;
@@ -1296,26 +1290,70 @@
             addItem();
         }
 
-        // --- Sezione 1: Aggiunta Prodotto con Quantità e Note ---
-        function addItem() {
-            const nameInput = document.getElementById('newItemText');
-            const qtyInput = document.getElementById('newItemQty');
-            const noteInput = document.getElementById('newItemNote');
-            const deptInput = document.getElementById('newItemDept');
-            
-            const name = nameInput.value.trim();
-            const qty = qtyInput.value.trim();
-            const note = noteInput.value.trim();
-            const dept = deptInput.value;
+        // --- Logica Unificata Aggiunta Prodotto + Controllo Anti-Duplicato ---
+        function addNewItemToList({ name, dept, qty = '', note = '' }) {
+            if (!name || !name.trim()) return;
 
-            if (name) {
-                listRef.once('value', snapshot => {
-                    const currentList = snapshot.val() || [];
-                    const isOwner = isCurrentuserAdmin();
+            const cleanName = name.trim();
+            const lowerName = cleanName.toLowerCase();
 
+            listRef.once('value', snapshot => {
+                const currentList = snapshot.val() || [];
+                const isOwner = isCurrentuserAdmin();
+
+                // Cerca se esiste già un elemento con lo stesso nome (case-insensitive)
+                const existingIndex = currentList.findIndex(item => item.name && item.name.trim().toLowerCase() === lowerName);
+
+                if (existingIndex !== -1) {
+                    // IL PRODOTTO ESISTE GIÀ: Aggiorniamo l'elemento esistente
+                    const existingItem = currentList[existingIndex];
+
+                    // 1. Lo riporta in stato "da prendere"
+                    existingItem.checked = false;
+
+                    // 2. Se l'admin ri-aggiunge un elemento non approvato, lo approva
+                    if (isOwner) existingItem.approved = true;
+
+                    // 3. Incremento / Gestione Quantità
+                    if (qty) {
+                        if (!existingItem.qty) {
+                            existingItem.qty = qty;
+                        } else {
+                            const matchExisting = existingItem.qty.match(/^(\d+)\s*(.*)$/);
+                            const matchNew = qty.match(/^(\d+)\s*(.*)$/);
+
+                            if (matchExisting && matchNew && (matchExisting[2] === matchNew[2] || !matchExisting[2] || !matchNew[2])) {
+                                const totalNum = parseInt(matchExisting[1]) + parseInt(matchNew[1]);
+                                const unit = matchExisting[2] || matchNew[2] || 'x';
+                                existingItem.qty = `${totalNum}${unit}`;
+                            } else {
+                                existingItem.qty = qty;
+                            }
+                        }
+                    } else if (!existingItem.qty) {
+                        existingItem.qty = '2x';
+                    } else {
+                        const match = existingItem.qty.match(/^(\d+)\s*(.*)$/);
+                        if (match) {
+                            const totalNum = parseInt(match[1]) + 1;
+                            existingItem.qty = `${totalNum}${match[2] || 'x'}`;
+                        }
+                    }
+
+                    // 4. Aggiunta nota se fornita
+                    if (note) {
+                        existingItem.note = existingItem.note ? `${existingItem.note} | ${note}` : note;
+                    }
+
+                    existingItem.addedByUid = currentUser.uid;
+                    existingItem.addedByName = currentUser.displayName || 'Qualcuno';
+
+                    currentList[existingIndex] = existingItem;
+                } else {
+                    // IL PRODOTTO NON ESISTE: Creazione nuova voce
                     const newItemObj = { 
-                        name, 
-                        dept, 
+                        name: cleanName, 
+                        dept: dept || 'Dispensa', 
                         qty: qty || '',
                         note: note || '',
                         checked: false, 
@@ -1324,17 +1362,31 @@
                         addedByName: currentUser.displayName || 'Qualcuno' 
                     };
                     currentList.push(newItemObj);
-                    listRef.set(currentList);
+                }
 
-                    nameInput.value = '';
-                    qtyInput.value = '';
-                    noteInput.value = '';
-                    document.getElementById('autoCatBadge').classList.add('hidden');
-                });
-            }
+                listRef.set(currentList);
+
+                // Reset campi modulo
+                const nameInput = document.getElementById('newItemText');
+                const qtyInput = document.getElementById('newItemQty');
+                const noteInput = document.getElementById('newItemNote');
+                if (nameInput) nameInput.value = '';
+                if (qtyInput) qtyInput.value = '';
+                if (noteInput) noteInput.value = '';
+                const badge = document.getElementById('autoCatBadge');
+                if (badge) badge.classList.add('hidden');
+            });
         }
 
-        // --- Sezione 4: Inserimento Rapido 1-Tap ---
+        function addItem() {
+            const name = document.getElementById('newItemText').value;
+            const qty = document.getElementById('newItemQty').value;
+            const note = document.getElementById('newItemNote').value;
+            const dept = document.getElementById('newItemDept').value;
+            
+            addNewItemToList({ name, dept, qty, note });
+        }
+
         function addFrequentItem(itemName) {
             if ('vibrate' in navigator) navigator.vibrate(30);
 
@@ -1347,23 +1399,7 @@
                 }
             }
 
-            listRef.once('value', snapshot => {
-                const currentList = snapshot.val() || [];
-                const isOwner = isCurrentuserAdmin();
-
-                const newItemObj = { 
-                    name: itemName, 
-                    dept: foundDept, 
-                    qty: '1x',
-                    note: '',
-                    checked: false, 
-                    approved: isOwner, 
-                    addedByUid: currentUser.uid, 
-                    addedByName: currentUser.displayName || 'Qualcuno' 
-                };
-                currentList.push(newItemObj);
-                listRef.set(currentList);
-            });
+            addNewItemToList({ name: itemName, dept: foundDept, qty: '1x' });
         }
 
         function deleteItem(index) {
