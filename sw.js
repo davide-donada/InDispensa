@@ -1,4 +1,4 @@
-const CACHE_NAME = 'indispensa-pwa-v9';
+const CACHE_NAME = 'indispensa-pwa-v10';
 
 // Asset locali da salvare in cache per il funzionamento offline
 const ASSETS = [
@@ -88,11 +88,13 @@ firebase.initializeApp({
 
 const messaging = firebase.messaging();
 
-// Gestione dei messaggi FCM ricevuti in Background
+// Gestione unica ed esclusiva dei messaggi FCM in background (evita duplicati)
 messaging.onBackgroundMessage((payload) => {
   console.log('[sw.js] Messaggio FCM ricevuto in background:', payload);
+  
   const title = payload.notification?.title || payload.data?.title || 'InDispensa';
   const body = payload.notification?.body || payload.data?.body || 'Nuovo aggiornamento nella lista';
+
   return self.registration.showNotification(title, {
     body: body,
     icon: './icon-192.png',
@@ -101,35 +103,10 @@ messaging.onBackgroundMessage((payload) => {
   });
 });
 
-// Listener Push per forzare la notifica a schermo sia in foreground che in background
-self.addEventListener('push', (event) => {
-  if (!event.data) return;
-  let title = 'InDispensa';
-  let body = 'Nuova notifica ricevuta';
-  try {
-    const data = event.data.json();
-    if (data.notification) {
-      title = data.notification.title || title;
-      body = data.notification.body || body;
-    } else if (data.data) {
-      title = data.data.title || title;
-      body = data.data.body || body;
-    }
-  } catch (e) {
-    body = event.data.text();
-  }
-  event.waitUntil(
-    self.registration.showNotification(title, {
-      body: body,
-      icon: './icon-192.png',
-      badge: './icon-192.png'
-    })
-  );
-});
-
 // Gestione click sulla notifica: apre o porta in primo piano la PWA
 self.addEventListener('notificationclick', (event) => {
   event.notification.close();
+
   event.waitUntil(
     clients.matchAll({ type: 'window', includeUncontrolled: true }).then((clientList) => {
       for (const client of clientList) {
