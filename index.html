@@ -39,6 +39,7 @@
     <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-database-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-messaging-compat.js"></script>
 
     <style>
         .item-checked {
@@ -104,8 +105,11 @@
                     <p id="progressCounter" class="text-xs text-indigo-200 dark:text-slate-300 mt-0.5">Caricamento...</p>
                 </div>
                 
-                <!-- Profile & Theme Toggle Header -->
+                <!-- Profile & Theme Toggle & Notification Header -->
                 <div id="userProfile" class="flex items-center gap-2">
+                    <button onclick="requestNotificationPermission()" id="notifToggleBtn" title="Attiva Notifiche Push" class="bg-indigo-700 hover:bg-indigo-800 dark:bg-slate-700 dark:hover:bg-slate-600 text-xs p-2 rounded-xl transition border border-indigo-500 dark:border-slate-600 flex items-center justify-center">
+                        🔔
+                    </button>
                     <button onclick="toggleDarkMode()" id="themeToggleBtn" title="Cambia tema" class="bg-indigo-700 hover:bg-indigo-800 dark:bg-slate-700 dark:hover:bg-slate-600 text-xs p-2 rounded-xl transition border border-indigo-500 dark:border-slate-600 flex items-center justify-center">
                         🌙
                     </button>
@@ -119,19 +123,30 @@
         <!-- Layout Principale Responsive -->
         <div class="max-w-md md:max-w-5xl lg:max-w-7xl mx-auto p-4 space-y-4 w-full box-border">
 
-            <!-- Banner Lista / Selettore Multi-Lista -->
-            <div class="bg-white dark:bg-slate-800 border border-indigo-100 dark:border-slate-700 rounded-2xl p-3.5 flex flex-wrap justify-between items-center gap-3 text-xs text-indigo-900 dark:text-slate-200 shadow-sm transition-colors">
-                <div class="flex items-center gap-2 flex-1 min-w-[200px]">
-                    <span id="houseIcon" class="text-base">🔒</span>
-                    <span class="font-bold text-gray-700 dark:text-slate-300">Lista attiva:</span>
-                    <select id="houseSelect" onchange="onHouseSelectChange(this.value)" class="bg-indigo-50 dark:bg-slate-700 border border-indigo-200 dark:border-slate-600 text-indigo-900 dark:text-slate-100 font-bold rounded-xl px-3 py-1.5 text-xs focus:outline-none focus:ring-2 focus:ring-indigo-500 flex-1 max-w-[240px] truncate shadow-sm cursor-pointer">
-                    </select>
+            <!-- Banner Lista / Selettore Multi-Lista & Badge Proprietario -->
+            <div class="bg-white dark:bg-slate-800 border border-indigo-100 dark:border-slate-700 rounded-2xl p-3.5 space-y-2 shadow-sm transition-colors">
+                <div class="flex flex-wrap justify-between items-center gap-3 text-xs text-indigo-900 dark:text-slate-200">
+                    <div class="flex items-center gap-2 flex-1 min-w-[200px]">
+                        <span id="houseIcon" class="text-base">🔒</span>
+                        <span class="font-bold text-gray-700 dark:text-slate-300">Lista attiva:</span>
+                        <select id="houseSelect" onchange="onHouseSelectChange(this.value)" class="bg-indigo-50 dark:bg-slate-700 border border-indigo-200 dark:border-slate-600 text-indigo-900 dark:text-slate-100 font-bold rounded-xl px-3 py-1.5 text-xs focus:outline-none focus:ring-2 focus:ring-indigo-500 flex-1 max-w-[240px] truncate shadow-sm cursor-pointer">
+                        </select>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <button id="deleteHouseBtn" onclick="eliminaListaCorrente()" title="Rimuovi lista salvata" class="text-gray-400 dark:text-slate-500 hover:text-red-500 p-2 text-xs transition rounded-xl hover:bg-red-50 dark:hover:bg-slate-700">🗑️</button>
+                        <button id="shareBtn" onclick="openShareModal()" class="bg-indigo-600 dark:bg-indigo-600 text-white px-3.5 py-2 rounded-xl font-medium hover:bg-indigo-700 active:scale-95 transition shadow-sm flex items-center gap-1.5">
+                            <span>🔗</span> Condividi
+                        </button>
+                    </div>
                 </div>
-                <div class="flex items-center gap-2">
-                    <button id="deleteHouseBtn" onclick="eliminaListaCorrente()" title="Rimuovi lista salvata" class="text-gray-400 dark:text-slate-500 hover:text-red-500 p-2 text-xs transition rounded-xl hover:bg-red-50 dark:hover:bg-slate-700">🗑️</button>
-                    <button id="shareBtn" onclick="openShareModal()" class="bg-indigo-600 dark:bg-indigo-600 text-white px-3.5 py-2 rounded-xl font-medium hover:bg-indigo-700 active:scale-95 transition shadow-sm flex items-center gap-1.5">
-                        <span>🔗</span> Condividi
-                    </button>
+
+                <!-- Info Proprietario della Lista -->
+                <div id="ownerBadgeContainer" class="flex items-center justify-between text-[11px] pt-1.5 border-t border-gray-100 dark:border-slate-700/60 text-gray-500 dark:text-slate-400">
+                    <span class="flex items-center gap-1.5">
+                        <span>👑</span> <span class="font-semibold text-gray-700 dark:text-slate-300">Proprietario:</span>
+                        <span id="ownerNameDisplay" class="font-bold text-indigo-600 dark:text-indigo-400">Caricamento...</span>
+                    </span>
+                    <span id="listTypeBadge" class="bg-indigo-50 dark:bg-slate-700 text-indigo-700 dark:text-indigo-300 font-medium px-2 py-0.5 rounded-md text-[10px]">Condivisa</span>
                 </div>
             </div>
 
@@ -193,7 +208,7 @@
 
             </div>
 
-            <!-- Lista Reparti (Grid Responsive Desktop) -->
+            <!-- Lista Reparti -->
             <div id="listContainer" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 items-start pt-2"></div>
 
             <!-- Messaggio Nessun Risultato Trovato -->
@@ -382,12 +397,22 @@
         const db = firebase.database();
         const auth = firebase.auth();
         const provider = new firebase.auth.GoogleAuthProvider();
+        
+        let messaging = null;
+        try {
+            if (firebase.messaging.isSupported()) {
+                messaging = firebase.messaging();
+            }
+        } catch (e) {
+            console.log("Messaging non supportato su questo browser/dispositivo", e);
+        }
 
         let currentUser = null;
         let activeListId = null;
         let listRef = null;
         let userLists = [];
         let currentItemsData = [];
+        let currentListOwnerInfo = { ownerUid: null, ownerName: 'Sconosciuto' };
         let hideChecked = false;
         let onConfirmCallback = null;
 
@@ -406,8 +431,16 @@
                 document.getElementById('userName').textContent = user.displayName ? user.displayName.split(' ')[0] : 'Utente';
                 document.getElementById('userAvatar').src = user.photoURL || 'https://cdn-icons-png.flaticon.com/512/847/847969.png';
                 
+                // Salva il profilo dell'utente su Firebase
+                db.ref(`utenti/${user.uid}/profile`).set({
+                    displayName: user.displayName,
+                    email: user.email,
+                    photoURL: user.photoURL
+                });
+
                 initUserLists();
                 initAutocomplete();
+                checkNotificationPermissionStatus();
             } else {
                 currentUser = null;
                 loginScreen.classList.remove('hidden');
@@ -441,6 +474,61 @@
             auth.signOut();
         }
 
+        // --- Gestione Notifiche Push (FCM) ---
+        function checkNotificationPermissionStatus() {
+            const notifBtn = document.getElementById('notifToggleBtn');
+            if (!("Notification" in window) || !messaging) {
+                if (notifBtn) notifBtn.classList.add('hidden');
+                return;
+            }
+
+            if (Notification.permission === 'granted') {
+                notifBtn.textContent = '🔔';
+                notifBtn.title = "Notifiche Attive";
+                notifBtn.classList.add('text-green-400');
+                registerFcmToken();
+            } else if (Notification.permission === 'denied') {
+                notifBtn.textContent = '🔕';
+                notifBtn.title = "Notifiche Bloccate nelle impostazioni";
+            } else {
+                notifBtn.textContent = '🔔';
+                notifBtn.title = "Clicca per attivare le notifiche";
+            }
+        }
+
+        async function requestNotificationPermission() {
+            if (!("Notification" in window) || !messaging) {
+                showAlertModal("Notifiche non supportate", "Il tuo browser non supporta le notifiche push.", "⚠️");
+                return;
+            }
+
+            try {
+                const permission = await Notification.requestPermission();
+                if (permission === 'granted') {
+                    showAlertModal("Notifiche Attivate!", "Riceverai una notifica quando qualcuno aggiunge un prodotto alla tua lista condivisa.", "🔔");
+                    checkNotificationPermissionStatus();
+                } else {
+                    showAlertModal("Permesso Negato", "Hai rifiutato l'invio delle notifiche. Puoi riattivarle dalle impostazioni del browser.", "🔕");
+                }
+            } catch (err) {
+                console.error("Errore richiesta notifiche:", err);
+            }
+        }
+
+        async function registerFcmToken() {
+            if (!messaging || !currentUser) return;
+            try {
+                const token = await messaging.getToken({
+                    // VAPID key pubblica opzionale se configurata su Firebase Console
+                });
+                if (token) {
+                    await db.ref(`utenti/${currentUser.uid}/fcmToken`).set(token);
+                }
+            } catch (err) {
+                console.log("Errore recupero Token FCM:", err);
+            }
+        }
+
         // --- Dizionario Smart per Rilevamento Categoria Automatico ---
         const categoryDictionary = {
             "Frutta": ["mela", "mele", "banana", "banane", "limone", "limoni", "avocado", "mirtilli", "frutti rossi", "arancia", "arance", "pera", "pere", "pesca", "pesche", "uva", "kiwi", "fragola", "fragole"],
@@ -455,7 +543,6 @@
             "Sfizi e Dolci": ["biscotti", "cioccolato", "patatine", "snack", "nutella", "brioche", "caramelle"]
         };
 
-        // Popola l'Autocomplete tramite <datalist>
         function initAutocomplete() {
             const datalist = document.getElementById('productsList');
             if (!datalist) return;
@@ -512,7 +599,7 @@
                 
                 if (!listsFromDb || !Array.isArray(listsFromDb) || listsFromDb.length === 0) {
                     listsFromDb = [
-                        { id: 'p_main', name: 'Spesa Personale', type: 'private' }
+                        { id: 'p_main', name: 'Spesa Personale', type: 'private', ownerUid: currentUser.uid, ownerName: currentUser.displayName }
                     ];
                 }
 
@@ -520,7 +607,13 @@
                     const formattedTitle = urlHouse.split('-')
                         .map(w => w.charAt(0).toUpperCase() + w.slice(1))
                         .join(' ');
-                    listsFromDb.push({ id: urlHouse, name: formattedTitle, type: 'shared' });
+                    listsFromDb.push({ 
+                        id: urlHouse, 
+                        name: formattedTitle, 
+                        type: 'shared',
+                        ownerUid: null, 
+                        ownerName: 'Lista Condivisa' 
+                    });
                     userListsRef.set(listsFromDb);
                     return;
                 }
@@ -670,8 +763,19 @@
             const newListObj = {
                 id: listId,
                 name: displayName,
-                type: type
+                type: type,
+                ownerUid: currentUser.uid,
+                ownerName: currentUser.displayName || 'Utente'
             };
+
+            // Salva metadati della lista condivisa su Firebase
+            if (type === 'shared') {
+                db.ref(`shared_liste_meta/${listId}`).set({
+                    ownerUid: currentUser.uid,
+                    ownerName: currentUser.displayName || 'Utente',
+                    name: displayName
+                });
+            }
 
             if (!userLists.some(l => l.id === listId)) {
                 userLists.push(newListObj);
@@ -759,10 +863,38 @@
 
             const currentObj = userLists.find(l => l.id === activeListId) || userLists[0];
 
+            const ownerDisplay = document.getElementById('ownerNameDisplay');
+            const typeBadge = document.getElementById('listTypeBadge');
+
             if (currentObj.type === 'private') {
                 listRef = db.ref(`utenti/${currentUser.uid}/liste/${activeListId}`);
+                currentListOwnerInfo = { ownerUid: currentUser.uid, ownerName: currentUser.displayName || 'Tu' };
+                ownerDisplay.textContent = `${currentUser.displayName || 'Tu'} (Tu)`;
+                typeBadge.textContent = "Privata";
+                typeBadge.className = "bg-amber-50 dark:bg-amber-950/40 text-amber-700 dark:text-amber-400 font-medium px-2 py-0.5 rounded-md text-[10px]";
             } else {
                 listRef = db.ref(`shared_liste/${activeListId}`);
+                typeBadge.textContent = "Condivisa";
+                typeBadge.className = "bg-indigo-50 dark:bg-slate-700 text-indigo-700 dark:text-indigo-300 font-medium px-2 py-0.5 rounded-md text-[10px]";
+                
+                // Recupera metadati proprietario lista condivisa
+                db.ref(`shared_liste_meta/${activeListId}`).once('value', (snap) => {
+                    const meta = snap.val();
+                    if (meta && meta.ownerUid) {
+                        currentListOwnerInfo = { ownerUid: meta.ownerUid, ownerName: meta.ownerName };
+                        const isMe = meta.ownerUid === currentUser.uid;
+                        ownerDisplay.textContent = isMe ? `${meta.ownerName} (Tu)` : meta.ownerName;
+                    } else {
+                        // Se non presente, assegna il primo utente che vi accede
+                        currentListOwnerInfo = { ownerUid: currentUser.uid, ownerName: currentUser.displayName || 'Utente' };
+                        db.ref(`shared_liste_meta/${activeListId}`).set({
+                            ownerUid: currentUser.uid,
+                            ownerName: currentUser.displayName || 'Utente',
+                            name: currentObj.name
+                        });
+                        ownerDisplay.textContent = `${currentUser.displayName || 'Utente'} (Tu)`;
+                    }
+                });
             }
 
             attachDatabaseListener();
@@ -1007,12 +1139,42 @@
             if (name) {
                 listRef.once('value', snapshot => {
                     const currentList = snapshot.val() || [];
-                    currentList.push({ name, dept, checked: false });
+                    const newItemObj = { 
+                        name, 
+                        dept, 
+                        checked: false, 
+                        addedByUid: currentUser.uid, 
+                        addedByName: currentUser.displayName || 'Qualcuno' 
+                    };
+                    currentList.push(newItemObj);
                     listRef.set(currentList);
+                    
+                    // Invia notifica al proprietario se l'autore non è il proprietario stesso
+                    triggerNotificationToOwner(name);
+
                     nameInput.value = '';
                     document.getElementById('autoCatBadge').classList.add('hidden');
                 });
             }
+        }
+
+        function triggerNotificationToOwner(itemName) {
+            const currentObj = userLists.find(l => l.id === activeListId);
+            if (!currentObj || currentObj.type === 'private') return;
+
+            const ownerUid = currentListOwnerInfo.ownerUid;
+            
+            // Se chi aggiunge è già il proprietario, non serve inviare notifica
+            if (!ownerUid || ownerUid === currentUser.uid) return;
+
+            // Scrivi la richiesta di notifica nel DB (letta dalla Cloud Function)
+            db.ref('notifiche_queue').push({
+                targetUid: ownerUid,
+                title: `InDispensa - ${currentObj.name}`,
+                body: `${currentUser.displayName || 'Qualcuno'} ha aggiunto "${itemName}" alla lista.`,
+                listId: activeListId,
+                createdAt: firebase.database.ServerValue.TIMESTAMP
+            });
         }
 
         function deleteItem(index) {
