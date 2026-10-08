@@ -6,10 +6,12 @@
     <title>InDispensa - Lista Spesa & Eventi</title>
     
     <!-- Favicon e Icone PWA / iOS -->
-    <link rel="icon" type="image/x-icon" href="./favicon.ico">
-    <link rel="icon" type="image/svg+xml" href="./icon.svg">
-    <link rel="apple-touch-icon" href="./icon-192.png">
-    <link rel="manifest" href="./manifest.json">
+    <link rel="icon" type="image/x-icon" href="./favicon.ico">[cite: 2]
+    <link rel="icon" type="image/svg+xml" href="./icon.svg">[cite: 2]
+    <link rel="icon" type="image/png" sizes="192x192" href="./icon-192.png">[cite: 2]
+    <link rel="icon" type="image/png" sizes="512x512" href="./icon-512.png">[cite: 2]
+    <link rel="apple-touch-icon" sizes="192x192" href="./icon-192.png">[cite: 2]
+    <link rel="manifest" href="./manifest.json">[cite: 2]
 
     <!-- Meta PWA & Tema -->
     <meta name="theme-color" content="#4f46e5">
@@ -20,7 +22,7 @@
     <!-- Meta Open Graph per anteprime WhatsApp & Social -->
     <meta property="og:title" content="InDispensa - Lista Spesa Condivisa">
     <meta property="og:description" content="La tua spesa e la tua casa in sintonia">
-    <meta property="og:image" content="./og-image.png">
+    <meta property="og:image" content="./og-image.png">[cite: 2]
     <meta property="og:image:type" content="image/png">
     <meta property="og:image:width" content="1200">
     <meta property="og:image:height" content="630">
@@ -44,7 +46,7 @@
 
     <!-- Splash / Loading Screen -->
     <div id="loadingScreen" class="fixed inset-0 bg-indigo-600 z-50 flex flex-col items-center justify-center p-6 text-white text-center">
-        <div class="text-6xl animate-bounce mb-4">🛒</div>
+        <img src="./icon-192.png" alt="InDispensa Logo" class="w-20 h-20 animate-bounce mb-4 rounded-2xl shadow-lg">[cite: 2]
         <h1 class="text-2xl font-extrabold tracking-tight">InDispensa</h1>
         <p class="text-xs text-indigo-200 mt-2 flex items-center gap-2">
             <svg class="animate-spin h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
@@ -58,7 +60,7 @@
     <!-- Schermata di Login Obbligatoria -->
     <div id="loginScreen" class="hidden fixed inset-0 bg-indigo-600 z-40 flex items-center justify-center p-6 text-white text-center">
         <div class="max-w-sm w-full bg-white text-gray-800 p-8 rounded-3xl shadow-2xl space-y-6">
-            <div class="text-5xl">🛒</div>
+            <img src="./icon-192.png" alt="InDispensa Logo" class="w-16 h-16 mx-auto rounded-2xl shadow-md">[cite: 2]
             <div>
                 <h1 class="text-2xl font-extrabold text-indigo-900">InDispensa</h1>
                 <p class="text-xs text-gray-500 mt-1">La tua spesa e la tua casa in sintonia</p>
@@ -84,7 +86,8 @@
             <div class="max-w-md mx-auto flex justify-between items-center">
                 <div>
                     <h1 class="text-xl font-extrabold tracking-tight flex items-center gap-2">
-                        🛒 InDispensa
+                        <img src="./icon-192.png" alt="InDispensa Logo" class="w-7 h-7 rounded-lg shadow-sm">[cite: 2]
+                        <span>InDispensa</span>
                     </h1>
                     <p id="progressCounter" class="text-xs text-indigo-200 mt-0.5">Caricamento...</p>
                 </div>
