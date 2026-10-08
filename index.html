@@ -637,6 +637,15 @@
             }
         }
 
+        // --- Verifica se l'utente corrente è l'Admin (Proprietario) della lista attiva ---
+        function isCurrentuserAdmin() {
+            const currentObj = userLists.find(l => l.id === activeListId);
+            if (!currentObj) return true;
+            if (currentObj.type === 'private') return true;
+            const ownerUid = currentObj.ownerUid || currentListOwnerInfo.ownerUid;
+            return ownerUid === currentUser.uid;
+        }
+
         // --- Gestione Modali UI ---
         function showConfirmModal(title, message, confirmBtnText = 'Elimina', isDanger = true, badgeIcon = '🗑️', onConfirm) {
             document.getElementById('confirmModalTitle').textContent = title;
@@ -1022,42 +1031,60 @@
             container.innerHTML = '';
             pendingContainer.innerHTML = '';
 
-            // Separa gli elementi non approvati (in attesa) da quelli normali
             const pendingItems = items.filter(i => i.approved === false);
             const approvedItems = items.filter(i => i.approved !== false);
+            const isAdmin = isCurrentuserAdmin();
 
-            // 1. Renderizza la sezione in attesa di approvazione (se presente)
+            // 1. Gestione Sezione in Attesa (visibile solo se ci sono elementi pendenti)
             if (pendingItems.length > 0) {
                 pendingContainer.classList.remove('hidden');
                 
                 let pendingHtml = pendingItems.map(item => {
                     const firstName = item.addedByName ? item.addedByName.split(' ')[0] : 'Esterno';
-                    return `
-                        <li class="flex items-center justify-between py-2.5 px-3 bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-700/60 rounded-xl gap-2 mb-2">
-                            <div class="flex items-center gap-2 flex-1 min-w-0">
-                                <span class="text-base">⏳</span>
-                                <div class="min-w-0 flex-1">
-                                    <p class="text-sm font-bold text-amber-900 dark:text-amber-200 truncate">${item.name}</p>
-                                    <p class="text-[11px] text-amber-700 dark:text-amber-400">Reparto: ${item.dept} • da <span class="font-semibold">${firstName}</span></p>
+                    const isMyItem = item.addedByUid === currentUser.uid;
+
+                    if (isAdmin) {
+                        // L'ADMIN vede i pulsanti di approvazione / rifiuto
+                        return `
+                            <li class="flex items-center justify-between py-2.5 px-3 bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-700/60 rounded-xl gap-2 mb-2">
+                                <div class="flex items-center gap-2 flex-1 min-w-0">
+                                    <span class="text-base">⏳</span>
+                                    <div class="min-w-0 flex-1">
+                                        <p class="text-sm font-bold text-amber-900 dark:text-amber-200 truncate">${item.name}</p>
+                                        <p class="text-[11px] text-amber-700 dark:text-amber-400">Reparto: ${item.dept} • da <span class="font-semibold">${firstName}</span></p>
+                                    </div>
                                 </div>
-                            </div>
-                            <div class="flex items-center gap-1.5 flex-shrink-0">
-                                <button onclick="approveItem(${item.originalIndex})" title="Approva" class="bg-emerald-600 hover:bg-emerald-700 text-white font-bold px-3 py-1.5 rounded-lg text-xs transition shadow-sm flex items-center gap-1">
-                                    ✓ Approva
-                                </button>
-                                <button onclick="rejectItem(${item.originalIndex})" title="Rifiuta" class="bg-rose-600 hover:bg-rose-700 text-white font-bold px-3 py-1.5 rounded-lg text-xs transition shadow-sm flex items-center gap-1">
-                                    ✕ Rifiuta
-                                </button>
-                            </div>
-                        </li>
-                    `;
+                                <div class="flex items-center gap-1.5 flex-shrink-0">
+                                    <button onclick="approveItem(${item.originalIndex})" title="Approva" class="bg-emerald-600 hover:bg-emerald-700 text-white font-bold px-3 py-1.5 rounded-lg text-xs transition shadow-sm flex items-center gap-1">
+                                        ✓ Approva
+                                    </button>
+                                    <button onclick="rejectItem(${item.originalIndex})" title="Rifiuta" class="bg-rose-600 hover:bg-rose-700 text-white font-bold px-3 py-1.5 rounded-lg text-xs transition shadow-sm flex items-center gap-1">
+                                        ✕ Rifiuta
+                                    </button>
+                                </div>
+                            </li>
+                        `;
+                    } else {
+                        // L'OSPITE vede solo l'avviso che il prodotto è in attesa di approvazione dall'admin
+                        return `
+                            <li class="flex items-center justify-between py-2.5 px-3 bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-700/60 rounded-xl gap-2 mb-2">
+                                <div class="flex items-center gap-2 flex-1 min-w-0">
+                                    <span class="text-base">⏳</span>
+                                    <div class="min-w-0 flex-1">
+                                        <p class="text-sm font-bold text-amber-900 dark:text-amber-200 truncate">${item.name}</p>
+                                        <p class="text-[11px] text-amber-700 dark:text-amber-400">${isMyItem ? 'In attesa di approvazione dall\'amministratore' : `Aggiunto da ${firstName} (in attesa)`}</p>
+                                    </div>
+                                </div>
+                            </li>
+                        `;
+                    }
                 }).join('');
 
                 pendingContainer.innerHTML = `
                     <div class="bg-amber-100/70 dark:bg-amber-950/60 border-2 border-amber-300 dark:border-amber-600 rounded-2xl p-4 shadow-sm space-y-3">
                         <div class="flex items-center justify-between">
                             <h2 class="font-extrabold text-sm text-amber-900 dark:text-amber-300 flex items-center gap-2">
-                                <span>⚠️</span> Prodotti in attesa di approvazione
+                                <span>⚠️</span> ${isAdmin ? 'Prodotti in attesa di approvazione' : 'Prodotti in attesa di validazione'}
                             </h2>
                             <span class="text-[10px] bg-amber-200 dark:bg-amber-800 text-amber-900 dark:text-amber-100 font-bold px-2 py-0.5 rounded-full">${pendingItems.length}</span>
                         </div>
@@ -1181,10 +1208,12 @@
         }
 
         function approveItem(index) {
+            if (!isCurrentuserAdmin()) return;
             listRef.child(index).child('approved').set(true);
         }
 
         function rejectItem(index) {
+            if (!isCurrentuserAdmin()) return;
             deleteItem(index);
         }
 
@@ -1202,9 +1231,7 @@
             if (name) {
                 listRef.once('value', snapshot => {
                     const currentList = snapshot.val() || [];
-                    
-                    const currentObj = userLists.find(l => l.id === activeListId);
-                    const isOwner = (currentObj && currentObj.type === 'private') || (currentListOwnerInfo.ownerUid === currentUser.uid);
+                    const isOwner = isCurrentuserAdmin();
 
                     const newItemObj = { 
                         name, 
