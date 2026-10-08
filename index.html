@@ -40,9 +40,13 @@
             text-decoration: line-through;
             color: #9ca3af;
         }
+        /* Smooth transition per layout responsive */
+        .dept-card {
+            transition: all 0.2s ease-in-out;
+        }
     </style>
 </head>
-<body class="bg-gray-100 min-h-screen pb-16 overflow-x-hidden">
+<body class="bg-gray-100 min-h-screen pb-20 overflow-x-hidden text-gray-800">
 
     <!-- Splash / Loading Screen -->
     <div id="loadingScreen" class="fixed inset-0 bg-indigo-600 z-50 flex flex-col items-center justify-center p-6 text-white text-center">
@@ -81,90 +85,109 @@
 
     <!-- Main App Content -->
     <div id="appContent" class="hidden">
-        <!-- Header -->
-        <div class="bg-indigo-600 text-white p-4 shadow-md sticky top-0 z-10">
-            <div class="max-w-md mx-auto flex justify-between items-center">
+        <!-- Header Responsive -->
+        <div class="bg-indigo-600 text-white p-4 shadow-md sticky top-0 z-20">
+            <div class="max-w-md md:max-w-5xl lg:max-w-7xl mx-auto flex justify-between items-center">
                 <div>
                     <h1 class="text-xl font-extrabold tracking-tight flex items-center gap-2">
                         <img src="./icon-192.png" alt="InDispensa Logo" class="w-7 h-7 rounded-lg shadow-sm">
                         <span>InDispensa</span>
+                        <span id="networkBadge" class="hidden text-[10px] bg-rose-500 text-white font-bold px-2 py-0.5 rounded-full shadow-sm animate-pulse">Offline</span>
                     </h1>
                     <p id="progressCounter" class="text-xs text-indigo-200 mt-0.5">Caricamento...</p>
                 </div>
                 
                 <!-- Profile Header -->
                 <div id="userProfile" class="flex items-center gap-2">
-                    <img id="userAvatar" src="" alt="User" class="w-7 h-7 rounded-full border border-indigo-300">
+                    <img id="userAvatar" src="" alt="User" class="w-8 h-8 rounded-full border-2 border-indigo-300 shadow-sm">
                     <span id="userName" class="text-xs font-semibold hidden sm:inline"></span>
-                    <button onclick="logoutGoogle()" class="bg-indigo-700 hover:bg-indigo-800 text-[10px] py-1 px-2 rounded-md text-indigo-200 hover:text-white border border-indigo-500">Esci</button>
+                    <button onclick="logoutGoogle()" class="bg-indigo-700 hover:bg-indigo-800 text-[11px] py-1 px-2.5 rounded-lg text-indigo-100 hover:text-white border border-indigo-500 transition">Esci</button>
                 </div>
             </div>
         </div>
 
-        <div class="max-w-md mx-auto p-4 space-y-4 w-full box-border">
+        <!-- Layout Principale: Max Width Ampio per Desktop -->
+        <div class="max-w-md md:max-w-5xl lg:max-w-7xl mx-auto p-4 space-y-4 w-full box-border">
 
             <!-- Banner Lista / Selettore Multi-Lista -->
-            <div class="bg-indigo-50 border border-indigo-100 rounded-2xl p-3 flex flex-wrap justify-between items-center gap-2 text-xs text-indigo-900 shadow-sm">
-                <div class="flex items-center gap-1.5 flex-1 min-w-[180px]">
+            <div class="bg-white border border-indigo-100 rounded-2xl p-3.5 flex flex-wrap justify-between items-center gap-3 text-xs text-indigo-900 shadow-sm">
+                <div class="flex items-center gap-2 flex-1 min-w-[200px]">
                     <span id="houseIcon" class="text-base">🔒</span>
-                    <span class="font-medium">Lista:</span>
-                    <select id="houseSelect" onchange="onHouseSelectChange(this.value)" class="bg-white border border-indigo-200 text-indigo-900 font-bold rounded-xl px-2.5 py-1.5 text-xs focus:outline-none focus:ring-2 focus:ring-indigo-500 flex-1 max-w-[200px] truncate shadow-sm">
+                    <span class="font-bold text-gray-700">Lista attiva:</span>
+                    <select id="houseSelect" onchange="onHouseSelectChange(this.value)" class="bg-indigo-50 border border-indigo-200 text-indigo-900 font-bold rounded-xl px-3 py-1.5 text-xs focus:outline-none focus:ring-2 focus:ring-indigo-500 flex-1 max-w-[240px] truncate shadow-sm cursor-pointer">
                     </select>
                 </div>
                 <div class="flex items-center gap-2">
-                    <button id="deleteHouseBtn" onclick="eliminaListaCorrente()" title="Rimuovi lista salvata" class="text-gray-400 hover:text-red-500 p-1.5 text-xs transition">🗑️</button>
-                    <button id="shareBtn" onclick="openShareModal()" class="bg-indigo-600 text-white px-3 py-1.5 rounded-xl font-medium hover:bg-indigo-700 active:scale-95 transition shadow-sm flex items-center gap-1">
+                    <button id="deleteHouseBtn" onclick="eliminaListaCorrente()" title="Rimuovi lista salvata" class="text-gray-400 hover:text-red-500 p-2 text-xs transition rounded-xl hover:bg-red-50">🗑️</button>
+                    <button id="shareBtn" onclick="openShareModal()" class="bg-indigo-600 text-white px-3.5 py-2 rounded-xl font-medium hover:bg-indigo-700 active:scale-95 transition shadow-sm flex items-center gap-1.5">
                         <span>🔗</span> Condividi
                     </button>
                 </div>
             </div>
 
-            <!-- Barra Strumenti: Ricerca + Filtro "Da Comprare" -->
-            <div class="flex gap-2">
-                <div class="bg-white p-2 rounded-2xl shadow-sm border border-gray-100 flex items-center px-3 gap-2 flex-1">
-                    <span class="text-gray-400 text-sm">🔍</span>
-                    <input type="text" id="searchInput" oninput="filterList()" placeholder="Cerca prodotto..." class="w-full bg-transparent text-sm focus:outline-none py-1">
-                    <button onclick="clearSearch()" id="clearSearchBtn" class="text-gray-400 text-xs hidden hover:text-gray-600">✕</button>
+            <!-- Griglia Comandi: Aggiunta Rapida + Barra Strumenti -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                
+                <!-- Form Aggiunta Rapida (Supporta Invio) -->
+                <form id="quickAddForm" onsubmit="handleQuickAdd(event)" class="bg-white p-3.5 rounded-2xl shadow-sm space-y-2.5 border border-gray-100 flex flex-col justify-between">
+                    <div class="text-xs font-bold text-gray-700 flex justify-between items-center">
+                        <span>➕ Aggiungi prodotto rapido</span>
+                        <span id="autoCatBadge" class="text-[10px] text-indigo-600 bg-indigo-50 px-2 py-0.5 rounded-md hidden font-semibold">Cat. rilevata</span>
+                    </div>
+                    <input type="text" id="newItemText" oninput="onProductInput(this.value)" placeholder="es. Latte, Mele, Scottex..." class="w-full bg-gray-50 border border-gray-200 rounded-xl px-3.5 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white transition">
+                    <div class="flex gap-2">
+                        <select id="newItemDept" class="flex-1 bg-gray-50 border border-gray-200 rounded-xl px-3 py-2 text-xs focus:outline-none focus:ring-2 focus:ring-indigo-500 font-medium">
+                            <option value="Frutta">🍎 Frutta</option>
+                            <option value="Verdura">🥬 Verdura</option>
+                            <option value="Carne e Pesce">🥩 Carne/Pesce</option>
+                            <option value="Latticini e Uova">🧀 Latticini</option>
+                            <option value="Dispensa">📦 Dispensa</option>
+                            <option value="Surgelati">❄️ Surgelati</option>
+                            <option value="Casa e Pulizia">🧹 Casa e Pulizia</option>
+                            <option value="Bucato">🧺 Bucato</option>
+                            <option value="Igiene Personale">🧴 Igiene Personale</option>
+                            <option value="Sfizi e Dolci">🍫 Sfizi e Dolci</option>
+                        </select>
+                        <button type="submit" class="bg-indigo-600 text-white font-bold px-5 py-2 rounded-xl text-base hover:bg-indigo-700 active:scale-95 transition min-w-[52px] flex items-center justify-center shadow-sm">
+                            +
+                        </button>
+                    </div>
+                </form>
+
+                <!-- Barra Strumenti: Ricerca + Filtro "Da Comprare" -->
+                <div class="bg-white p-3.5 rounded-2xl shadow-sm border border-gray-100 flex flex-col justify-between space-y-2.5">
+                    <div class="text-xs font-bold text-gray-700 flex justify-between items-center">
+                        <span>🔍 Filtri e Ricerca</span>
+                        <span class="text-[10px] text-gray-400 hidden lg:inline">Premi <kbd class="px-1 bg-gray-100 border rounded font-mono">/</kbd> per cercare</span>
+                    </div>
+                    <div class="bg-gray-50 p-2 rounded-xl border border-gray-200 flex items-center px-3 gap-2">
+                        <span class="text-gray-400 text-sm">🔍</span>
+                        <input type="text" id="searchInput" oninput="filterList()" placeholder="Cerca prodotto..." class="w-full bg-transparent text-sm focus:outline-none py-0.5">
+                        <button type="button" onclick="clearSearch()" id="clearSearchBtn" class="text-gray-400 text-xs hidden hover:text-gray-600 font-bold p-1">✕</button>
+                    </div>
+
+                    <div class="flex justify-between items-center">
+                        <button id="hideCheckedBtn" onclick="toggleHideChecked()" class="bg-gray-50 border border-gray-200 text-gray-700 text-xs px-3.5 py-2 rounded-xl font-medium shadow-sm flex items-center gap-2 active:scale-95 transition hover:bg-gray-100">
+                            <span>👁️</span> <span id="hideCheckedLabel">Solo da prendere</span>
+                        </button>
+
+                        <div class="flex gap-3 text-xs">
+                            <button onclick="deselezionaTutti()" class="text-gray-500 hover:text-indigo-600 underline transition">Deseleziona</button>
+                            <button onclick="eliminaComprati()" class="text-red-500 hover:text-red-700 font-medium underline transition">Pulisci presi</button>
+                        </div>
+                    </div>
                 </div>
 
-                <button id="hideCheckedBtn" onclick="toggleHideChecked()" class="bg-white border border-gray-200 text-gray-700 text-xs px-3 py-2 rounded-2xl font-medium shadow-sm flex items-center gap-1.5 active:scale-95 transition">
-                    <span>👁️</span> <span id="hideCheckedLabel">Solo da prendere</span>
-                </button>
             </div>
 
-            <!-- Form Aggiunta Rapida -->
-            <div class="bg-white p-3.5 rounded-2xl shadow-sm space-y-2.5 border border-gray-100">
-                <input type="text" id="newItemText" placeholder="Aggiungi nuovo prodotto..." class="w-full bg-gray-50 border border-gray-200 rounded-xl px-3.5 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
-                <div class="flex gap-2">
-                    <select id="newItemDept" class="flex-1 bg-gray-50 border border-gray-200 rounded-xl px-3 py-2 text-xs focus:outline-none focus:ring-2 focus:ring-indigo-500">
-                        <option value="Frutta">🍎 Frutta</option>
-                        <option value="Verdura">🥬 Verdura</option>
-                        <option value="Carne e Pesce">🥩 Carne/Pesce</option>
-                        <option value="Latticini e Uova">🧀 Latticini</option>
-                        <option value="Dispensa">📦 Dispensa</option>
-                        <option value="Surgelati">❄️ Surgelati</option>
-                        <option value="Casa e Pulizia">🧹 Casa e Pulizia</option>
-                        <option value="Bucato">🧺 Bucato</option>
-                        <option value="Igiene Personale">🧴 Igiene Personale</option>
-                        <option value="Sfizi e Dolci">🍫 Sfizi e Dolci</option>
-                    </select>
-                    <button onclick="addItem()" class="bg-indigo-600 text-white font-bold px-4 py-2 rounded-xl text-base hover:bg-indigo-700 active:scale-95 transition min-w-[48px] flex items-center justify-center shadow-sm">+</button>
-                </div>
-            </div>
-
-            <!-- Lista Reparti -->
-            <div id="listContainer" class="space-y-4"></div>
+            <!-- Lista Reparti (Grid Responsive per Desktop) -->
+            <div id="listContainer" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 items-start pt-2"></div>
 
             <!-- Messaggio Nessun Risultato Trovato -->
-            <div id="noResults" class="hidden text-center text-gray-500 py-8 text-sm">
+            <div id="noResults" class="hidden text-center text-gray-500 py-12 text-sm bg-white rounded-2xl border border-gray-100 shadow-sm">
                 Nessun prodotto trovato.
             </div>
 
-            <!-- Bottoni Azioni In Blocco -->
-            <div class="flex justify-between items-center pt-4 border-t border-gray-200">
-                <button onclick="deselezionaTutti()" class="text-xs text-gray-500 hover:text-indigo-600 underline transition">Deseleziona tutti</button>
-                <button onclick="eliminaComprati()" class="text-xs text-red-500 hover:text-red-700 underline transition">Elimina elementi presi</button>
-            </div>
         </div>
     </div>
 
@@ -289,6 +312,20 @@
             });
         }
 
+        // --- Monitoraggio Stato Connessione Network ---
+        function updateNetworkStatus() {
+            const badge = document.getElementById('networkBadge');
+            if (badge) {
+                if (navigator.onLine) {
+                    badge.classList.add('hidden');
+                } else {
+                    badge.classList.remove('hidden');
+                }
+            }
+        }
+        window.addEventListener('online', updateNetworkStatus);
+        window.addEventListener('offline', updateNetworkStatus);
+
         const firebaseConfig = {
             apiKey: "AIzaSyBWi3L4DFxAPowky7N9bwgLck_gEcmnywY",
             authDomain: "lista-spesa-10e72.firebaseapp.com",
@@ -320,6 +357,7 @@
             const appContent = document.getElementById('appContent');
             
             if (loadingScreen) loadingScreen.classList.add('hidden');
+            updateNetworkStatus();
 
             if (user) {
                 currentUser = user;
@@ -362,7 +400,46 @@
             auth.signOut();
         }
 
-        // --- Inizializzazione e Sincronizzazione Liste dell'Utente su Firebase ---
+        // --- Dizionario Smart per Rilevamento Categoria Automatico ---
+        const categoryDictionary = {
+            "Frutta": ["mela", "mele", "banana", "banane", "limone", "limoni", "avocado", "mirtilli", "frutti rossi", "arancia", "arance", "pera", "pere", "pesca", "pesche", "uva", "kiwi", "fragola", "fragole"],
+            "Verdura": ["insalata", "pomodori", "pomodoro", "zucchina", "zucchine", "carota", "carote", "broccoli", "broccolo", "spinaci", "funghi", "porro", "porri", "cipolla", "cipolle", "zucca", "cavolo", "melanzana", "peperone"],
+            "Carne e Pesce": ["pollo", "tacchino", "manzo", "macinato", "pancetta", "speck", "salmone", "orata", "branzino", "tonno", "sgombro", "pesce", "carne", "salsiccia", "prosciutto", "fesa"],
+            "Latticini e Uova": ["latte", "uova", "uovo", "yogurt", "stracchino", "mozzarella", "grana", "parmigiano", "burro", "ricotta", "formaggio", "scamorza"],
+            "Dispensa": ["pasta", "riso", "olio", "farina", "zucchero", "sale", "pane", "legumi", "ceci", "fagioli", "lenticchie", "mandorle", "noci", "passata", "pelati", "caffe", "moka"],
+            "Surgelati": ["piselli", "merluzzo", "nasello", "minestrone", "gelato", "pizza surgelata", "bastoncini"],
+            "Casa e Pulizia": ["detersivo", "sgrassatore", "scottex", "carta casa", "sacchetti", "spugna", "candeggina", "lavastoviglie", "piatti"],
+            "Bucato": ["lavatrice", "ammorbidente", "pod", "profumatore bucato", "smacchiatore"],
+            "Igiene Personale": ["carta igienica", "bagnoschiuma", "sapone", "dentifricio", "shampoo", "balsamo", "assorbenti", "fazzoletti"],
+            "Sfizi e Dolci": ["biscotti", "cioccolato", "patatine", "snack", "nutella", "brioche", "caramelle"]
+        };
+
+        function onProductInput(val) {
+            const cleanVal = val.toLowerCase().trim();
+            const badge = document.getElementById('autoCatBadge');
+            if (!cleanVal) {
+                badge.classList.add('hidden');
+                return;
+            }
+
+            let foundDept = null;
+            for (const [dept, keywords] of Object.entries(categoryDictionary)) {
+                if (keywords.some(k => cleanVal.includes(k))) {
+                    foundDept = dept;
+                    break;
+                }
+            }
+
+            if (foundDept) {
+                document.getElementById('newItemDept').value = foundDept;
+                badge.textContent = `Cat: ${foundDept}`;
+                badge.classList.remove('hidden');
+            } else {
+                badge.classList.add('hidden');
+            }
+        }
+
+        // --- Inizializzazione e Sincronizzazione Liste ---
         function initUserLists() {
             const userListsRef = db.ref(`utenti/${currentUser.uid}/userLists`);
             
@@ -780,25 +857,26 @@
             for (const dept of sortedDepts) {
                 const deptItems = grouped[dept];
                 const deptCard = document.createElement('div');
-                deptCard.className = 'bg-white rounded-2xl p-4 shadow-sm border border-gray-100 overflow-hidden';
+                deptCard.className = 'dept-card bg-white rounded-2xl p-4 shadow-sm border border-gray-100 overflow-hidden';
 
                 const icon = deptIcons[dept] || '🛒';
                 let itemsHtml = deptItems.map(item => `
-                    <li class="flex items-center justify-between py-2.5 border-b border-gray-50 last:border-0 gap-2">
-                        <label class="flex items-center gap-3 flex-1 cursor-pointer select-none min-w-0">
+                    <li class="flex items-center justify-between py-2.5 border-b border-gray-50 last:border-0 gap-2 hover:bg-gray-50/60 rounded-lg px-1 transition">
+                        <label class="flex items-center gap-3 flex-1 cursor-pointer select-none min-w-0 py-0.5">
                             <input type="checkbox" 
                                    ${item.checked ? 'checked' : ''} 
                                    onchange="toggleCheck(${item.originalIndex})" 
-                                   class="w-5 h-5 rounded text-indigo-600 focus:ring-indigo-500 border-gray-300 flex-shrink-0">
-                            <span class="text-sm ${item.checked ? 'item-checked' : 'text-gray-800'} break-words min-w-0">${item.name}</span>
+                                   class="w-5 h-5 rounded text-indigo-600 focus:ring-indigo-500 border-gray-300 flex-shrink-0 cursor-pointer">
+                            <span class="text-sm ${item.checked ? 'item-checked' : 'text-gray-800 font-medium'} break-words min-w-0">${item.name}</span>
                         </label>
-                        <button onclick="deleteItem(${item.originalIndex})" class="text-gray-300 hover:text-red-500 text-xs p-1 flex-shrink-0">✕</button>
+                        <button onclick="deleteItem(${item.originalIndex})" class="text-gray-300 hover:text-red-500 text-sm p-1.5 flex-shrink-0 transition hover:bg-red-50 rounded-lg" title="Elimina elemento">✕</button>
                     </li>
                 `).join('');
 
                 deptCard.innerHTML = `
-                    <h2 class="font-bold text-sm text-indigo-900 border-b pb-2 mb-2 flex items-center gap-2">
+                    <h2 class="font-bold text-sm text-indigo-900 border-b border-gray-100 pb-2.5 mb-2 flex items-center gap-2">
                         <span>${icon}</span> Reparto ${dept}
+                        <span class="text-[10px] bg-indigo-50 text-indigo-600 font-semibold px-2 py-0.5 rounded-full ml-auto">${deptItems.length}</span>
                     </h2>
                     <ul>${itemsHtml}</ul>
                 `;
@@ -851,7 +929,16 @@
         }
 
         function toggleCheck(index) {
+            // Vibrazione Touch Haptic su Mobile
+            if ('vibrate' in navigator) {
+                navigator.vibrate(35);
+            }
             listRef.child(index).child('checked').transaction(checked => !checked);
+        }
+
+        function handleQuickAdd(e) {
+            e.preventDefault();
+            addItem();
         }
 
         function addItem() {
@@ -866,6 +953,7 @@
                     currentList.push({ name, dept, checked: false });
                     listRef.set(currentList);
                     nameInput.value = '';
+                    document.getElementById('autoCatBadge').classList.add('hidden');
                 });
             }
         }
@@ -902,6 +990,20 @@
                 }
             );
         }
+
+        // --- Scorciatoie da Tastiera per Desktop ---
+        document.addEventListener('keydown', (e) => {
+            if (e.key === '/' && document.activeElement.tagName !== 'INPUT' && document.activeElement.tagName !== 'SELECT') {
+                e.preventDefault();
+                document.getElementById('searchInput').focus();
+            } else if (e.key === 'Escape') {
+                if (!document.getElementById('newListModal').classList.contains('hidden')) closeNewListModal();
+                if (!document.getElementById('shareModal').classList.contains('hidden')) closeShareModal();
+                if (!document.getElementById('confirmModal').classList.contains('hidden')) closeConfirmModal();
+                if (!document.getElementById('alertModal').classList.contains('hidden')) closeAlertModal();
+                if (document.activeElement.id === 'searchInput') clearSearch();
+            }
+        });
     </script>
 </body>
 </html>
