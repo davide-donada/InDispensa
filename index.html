@@ -473,7 +473,7 @@
             auth.signOut();
         }
 
-        // --- Gestione Notifiche Push (FCM con VAPID Key) ---
+        // --- Gestione Notifiche Push (FCM con Service Worker PWA attivo) ---
         function checkNotificationPermissionStatus() {
             const notifBtn = document.getElementById('notifToggleBtn');
             if (!("Notification" in window) || !messaging) {
@@ -517,8 +517,10 @@
         async function registerFcmToken() {
             if (!messaging || !currentUser) return;
             try {
+                const registration = await navigator.serviceWorker.ready;
                 const token = await messaging.getToken({
-                    vapidKey: "BFttKVTvW62IxOS_4CArSIR4_I7XEwu_2V-EhR9CHn5pMCzwjERawYN0NI_k2I6aVZwbWe80PfkPmQzC8rXpc9k"
+                    vapidKey: "BFttKVTvW62IxOS_4CArSIR4_I7XEwu_2V-EhR9CHn5pMCzwjERawYN0NI_k2I6aVZwbWe80PfkPmQzC8rXpc9k",
+                    serviceWorkerRegistration: registration
                 });
                 if (token) {
                     await db.ref(`utenti/${currentUser.uid}/fcmToken`).set(token);
