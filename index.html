@@ -472,16 +472,16 @@
 
         // --- Dizionario Smart per Rilevamento Categoria Automatico ---
         const categoryDictionary = {
-            "Frutta": ["mela", "mele", "banana", "banane", "limone", "limoni", "avocado", "mirtilli", "frutti rossi", "arancia", "arance", "pera", "pere", "pesca", "pesche", "uva", "kiwi", "fragola", "fragole"],
-            "Verdura": ["insalata", "pomodori", "pomodoro", "zucchina", "zucchine", "carota", "carote", "broccoli", "broccolo", "spinaci", "funghi", "porro", "porri", "cipolla", "cipolle", "zucca", "cavolo", "melanzana", "peperone"],
-            "Carne e Pesce": ["pollo", "tacchino", "manzo", "macinato", "pancetta", "speck", "salmone", "orata", "branzino", "tonno", "sgombro", "pesce", "carne", "salsiccia", "prosciutto", "fesa"],
-            "Latticini e Uova": ["latte", "uova", "uovo", "yogurt", "stracchino", "mozzarella", "grana", "parmigiano", "burro", "ricotta", "formaggio", "scamorza"],
-            "Dispensa": ["pasta", "riso", "olio", "farina", "zucchero", "sale", "pane", "legumi", "ceci", "fagioli", "lenticchie", "mandorle", "noci", "passata", "pelati", "caffe", "moka"],
-            "Surgelati": ["piselli", "merluzzo", "nasello", "minestrone", "gelato", "pizza surgelata", "bastoncini"],
-            "Casa e Pulizia": ["detersivo", "sgrassatore", "scottex", "carta casa", "sacchetti", "spugna", "candeggina", "lavastoviglie", "piatti"],
-            "Bucato": ["lavatrice", "ammorbidente", "pod", "profumatore bucato", "smacchiatore"],
-            "Igiene Personale": ["carta igienica", "bagnoschiuma", "sapone", "dentifricio", "shampoo", "balsamo", "assorbenti", "fazzoletti"],
-            "Sfizi e Dolci": ["biscotti", "cioccolato", "patatine", "snack", "nutella", "brioche", "caramelle"]
+            "Frutta": ["mela", "mele", "pera", "pere", "banana", "banane", "limone", "limoni", "arancia", "arance", "avocado", "mirtilli", "kiwi", "uva", "fragola", "fragole"],
+            "Verdura": ["broccoli", "broccolo", "cavolfiore", "zucca", "carota", "carote", "spinaci", "zucchina", "zucchine", "insalata", "pomodoro", "pomodori", "funghi", "cipolla", "cipolle"],
+            "Carne e Pesce": ["pollo", "tacchino", "macinato", "manzo", "pancetta", "speck", "salmone", "orata", "branzino", "tonno", "salsiccia"],
+            "Latticini e Uova": ["uova", "yogurt", "fiocchi di latte", "stracchino", "mozzarella", "grana", "parmigiano", "latte", "burro", "ricotta"],
+            "Dispensa": ["pasta", "riso", "olio", "mandorle", "noci", "nocciole", "ceci", "fagioli", "lenticchie", "farina", "zucchero", "caffe", "passata"],
+            "Surgelati": ["piselli", "merluzzo", "minestrone", "gelato"],
+            "Casa e Pulizia": ["detersivo piatti", "lavastoviglie", "sgrassatore", "scottex", "sacchetti spazzatura"],
+            "Bucato": ["detersivo lavatrice", "ammorbidente"],
+            "Igiene Personale": ["carta igienica", "bagnoschiuma", "dentifricio", "shampoo"],
+            "Sfizi e Dolci": ["biscotti", "cioccolato", "snack"]
         };
 
         function initAutocomplete() {
@@ -891,69 +891,97 @@
             "Casa e Pulizia", "Bucato", "Igiene Personale", "Surgelati", "Sfizi e Dolci"
         ];
 
+        // --- Lista predefinita con elementi singoli, puliti e rigorosamente coerenti alle categorie ---
         const defaultItems = [
             // --- FRUTTA ---
-            { name: "Mele, pere o melograno", dept: "Frutta", checked: false },
+            { name: "Mele", dept: "Frutta", checked: false },
+            { name: "Pere", dept: "Frutta", checked: false },
             { name: "Banane", dept: "Frutta", checked: false },
-            { name: "Limoni e Agrumi", dept: "Frutta", checked: false },
+            { name: "Limoni", dept: "Frutta", checked: false },
+            { name: "Arance", dept: "Frutta", checked: false },
             { name: "Avocado", dept: "Frutta", checked: false },
-            { name: "Frutti rossi / Mirtilli", dept: "Frutta", checked: false },
+            { name: "Mirtilli", dept: "Frutta", checked: false },
+            { name: "Kiwi", dept: "Frutta", checked: false },
+            { name: "Uva", dept: "Frutta", checked: false },
 
             // --- VERDURA ---
-            { name: "Broccoli e Cavolfiore", dept: "Verdura", checked: false },
-            { name: "Zucca e Carote", dept: "Verdura", checked: false },
-            { name: "Spinaci, bieta o zucchine", dept: "Verdura", checked: false },
-            { name: "Insalata fresca e Pomodori", dept: "Verdura", checked: false },
-            { name: "Funghi (champignon o misti)", dept: "Verdura", checked: false },
-            { name: "Porri e Cipolle", dept: "Verdura", checked: false },
+            { name: "Broccoli", dept: "Verdura", checked: false },
+            { name: "Cavolfiore", dept: "Verdura", checked: false },
+            { name: "Zucca", dept: "Verdura", checked: false },
+            { name: "Carote", dept: "Verdura", checked: false },
+            { name: "Spinaci", dept: "Verdura", checked: false },
+            { name: "Zucchine", dept: "Verdura", checked: false },
+            { name: "Insalata fresca", dept: "Verdura", checked: false },
+            { name: "Pomodori", dept: "Verdura", checked: false },
+            { name: "Funghi", dept: "Verdura", checked: false },
+            { name: "Cipolle", dept: "Verdura", checked: false },
 
             // --- CARNE E PESCE ---
-            { name: "Petto di pollo o fesa di tacchino", dept: "Carne e Pesce", checked: false },
-            { name: "Macinato o fettine di manzo", dept: "Carne e Pesce", checked: false },
-            { name: "Pancetta a cubetti o speck", dept: "Carne e Pesce", checked: false },
-            { name: "Salmone (tranci o filetti)", dept: "Carne e Pesce", checked: false },
-            { name: "Orata o Branzino", dept: "Carne e Pesce", checked: false },
-            { name: "Tonno o sgombro in vetro/scatola", dept: "Carne e Pesce", checked: false },
+            { name: "Petto di pollo", dept: "Carne e Pesce", checked: false },
+            { name: "Fesa di tacchino", dept: "Carne e Pesce", checked: false },
+            { name: "Macinato di manzo", dept: "Carne e Pesce", checked: false },
+            { name: "Fettine di manzo", dept: "Carne e Pesce", checked: false },
+            { name: "Pancetta a cubetti", dept: "Carne e Pesce", checked: false },
+            { name: "Speck", dept: "Carne e Pesce", checked: false },
+            { name: "Tranci di salmone", dept: "Carne e Pesce", checked: false },
+            { name: "Orata", dept: "Carne e Pesce", checked: false },
+            { name: "Branzino", dept: "Carne e Pesce", checked: false },
+            { name: "Tonno in scatola", dept: "Carne e Pesce", checked: false },
+            { name: "Salsiccia", dept: "Carne e Pesce", checked: false },
 
             // --- LATTICINI E UOVA ---
             { name: "Uova fresche", dept: "Latticini e Uova", checked: false },
-            { name: "Yogurt Greco intero (5% di grassi)", dept: "Latticini e Uova", checked: false },
+            { name: "Yogurt greco", dept: "Latticini e Uova", checked: false },
             { name: "Fiocchi di latte", dept: "Latticini e Uova", checked: false },
-            { name: "Stracchino / Mozzarella", dept: "Latticini e Uova", checked: false },
-            { name: "Grana Padano o Parmigiano Reggiano", dept: "Latticini e Uova", checked: false },
+            { name: "Stracchino", dept: "Latticini e Uova", checked: false },
+            { name: "Mozzarella", dept: "Latticini e Uova", checked: false },
+            { name: "Grana Padano", dept: "Latticini e Uova", checked: false },
             { name: "Latte intero", dept: "Latticini e Uova", checked: false },
+            { name: "Burro", dept: "Latticini e Uova", checked: false },
+            { name: "Ricotta", dept: "Latticini e Uova", checked: false },
 
             // --- DISPENSA ---
-            { name: "Pasta (trafilata al bronzo o integrale)", dept: "Dispensa", checked: false },
-            { name: "Riso Basmati o Integrale", dept: "Dispensa", checked: false },
+            { name: "Pasta", dept: "Dispensa", checked: false },
+            { name: "Riso Basmati", dept: "Dispensa", checked: false },
             { name: "Olio Extravergine d'Oliva", dept: "Dispensa", checked: false },
-            { name: "Mandorle, noci o nocciole", dept: "Dispensa", checked: false },
-            { name: "Legumi (ceci, fagioli o lenticchie)", dept: "Dispensa", checked: false },
+            { name: "Mandorle", dept: "Dispensa", checked: false },
+            { name: "Noci", dept: "Dispensa", checked: false },
+            { name: "Nocciole", dept: "Dispensa", checked: false },
+            { name: "Ceci", dept: "Dispensa", checked: false },
+            { name: "Fagioli", dept: "Dispensa", checked: false },
+            { name: "Lenticchie", dept: "Dispensa", checked: false },
+            { name: "Farina", dept: "Dispensa", checked: false },
+            { name: "Zucchero", dept: "Dispensa", checked: false },
+            { name: "Caffè", dept: "Dispensa", checked: false },
+            { name: "Passata di pomodoro", dept: "Dispensa", checked: false },
 
             // --- SURGELATI ---
-            { name: "Piselli fini surgelati", dept: "Surgelati", checked: false },
-            { name: "Filetti di merluzzo / nasello surgelati", dept: "Surgelati", checked: false },
-            { name: "Verdure per minestrone surgelate", dept: "Surgelati", checked: false },
+            { name: "Piselli surgelati", dept: "Surgelati", checked: false },
+            { name: "Filetti di merluzzo surgelati", dept: "Surgelati", checked: false },
+            { name: "Minestrone surgelato", dept: "Surgelati", checked: false },
+            { name: "Gelato", dept: "Surgelati", checked: false },
 
             // --- CASA E PULIZIA ---
             { name: "Detersivo piatti", dept: "Casa e Pulizia", checked: false },
-            { name: "Pastiglie / Gel Lavastoviglie", dept: "Casa e Pulizia", checked: false },
-            { name: "Sgrassatore universale / Multiuso", dept: "Casa e Pulizia", checked: false },
-            { name: "Carta casa / Rotoloni asciugatutto", dept: "Casa e Pulizia", checked: false },
-            { name: "Sacchetti spazzatura (differenziata)", dept: "Casa e Pulizia", checked: false },
+            { name: "Pastiglie lavastoviglie", dept: "Casa e Pulizia", checked: false },
+            { name: "Sgrassatore universale", dept: "Casa e Pulizia", checked: false },
+            { name: "Carta casa (Scottex)", dept: "Casa e Pulizia", checked: false },
+            { name: "Sacchetti spazzatura", dept: "Casa e Pulizia", checked: false },
 
             // --- BUCATO ---
-            { name: "Detersivo lavatrice (liquido o pod)", dept: "Bucato", checked: false },
-            { name: "Ammorbidente / Profumatore bucato", dept: "Bucato", checked: false },
+            { name: "Detersivo lavatrice", dept: "Bucato", checked: false },
+            { name: "Ammorbidente", dept: "Bucato", checked: false },
 
             // --- IGIENE PERSONALE ---
             { name: "Carta igienica", dept: "Igiene Personale", checked: false },
-            { name: "Bagnoschiuma / Sapone liquido", dept: "Igiene Personale", checked: false },
+            { name: "Bagnoschiuma", dept: "Igiene Personale", checked: false },
             { name: "Dentifricio", dept: "Igiene Personale", checked: false },
+            { name: "Shampoo", dept: "Igiene Personale", checked: false },
 
             // --- SFIZI E DOLCI ---
-            { name: "Biscotti d'avena o cereali", dept: "Sfizi e Dolci", checked: false },
-            { name: "Cioccolato fondente (75%+)", dept: "Sfizi e Dolci", checked: false }
+            { name: "Biscotti", dept: "Sfizi e Dolci", checked: false },
+            { name: "Cioccolato fondente", dept: "Sfizi e Dolci", checked: false },
+            { name: "Snack", dept: "Sfizi e Dolci", checked: false }
         ];
 
         function attachDatabaseListener() {
