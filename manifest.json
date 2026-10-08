@@ -3,7 +3,7 @@
   "short_name": "InDispensa",
   "description": "La tua spesa e la tua casa in sintonia",
   "start_url": "./index.html",
-  "gcm_sender_id": "103953800507"
+  "gcm_sender_id": "103953800507",
   "display": "standalone",
   "background_color": "#4f46e5",
   "theme_color": "#4f46e5",
