@@ -1,0 +1,50 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <defs>
+    <!-- Sfondo Gradiente Indaco/Viola -->
+    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#4f46e5"/>
+      <stop offset="100%" stop-color="#7c3aed"/>
+    </linearGradient>
+
+    <!-- Riflesso Superiore -->
+    <linearGradient id="glowGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#ffffff" stop-opacity="0.18"/>
+      <stop offset="100%" stop-color="#ffffff" stop-opacity="0"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Sfondo Squircle App Icon -->
+  <rect width="512" height="512" rx="115" fill="url(#bgGrad)"/>
+  <rect width="512" height="256" rx="115" fill="url(#glowGrad)"/>
+
+  <!-- Ombra Vettoriale Compatibile -->
+  <g transform="translate(106, 98)" opacity="0.2">
+    <path d="M100 110 V 75 A 50 50 0 0 1 200 75 V 110" fill="none" stroke="#000000" stroke-width="22" stroke-linecap="round"/>
+    <path d="M50 120 H 250 A 20 20 0 0 1 270 140 L 255 315 A 32 32 0 0 1 223 335 H 77 A 32 32 0 0 1 45 315 L 30 140 A 20 20 0 0 1 50 120 Z" fill="#000000"/>
+  </g>
+
+  <!-- Icona Principale Busta + Dispensa -->
+  <g transform="translate(106, 90)">
+    <!-- Manico Busta -->
+    <path d="M100 110 V 75 A 50 50 0 0 1 200 75 V 110" fill="none" stroke="#ffffff" stroke-width="22" stroke-linecap="round"/>
+
+    <!-- Corpo Busta / Dispensa White -->
+    <path d="M50 120 H 250 A 20 20 0 0 1 270 140 L 255 315 A 32 32 0 0 1 223 335 H 77 A 32 32 0 0 1 45 315 L 30 140 A 20 20 0 0 1 50 120 Z" fill="#ffffff"/>
+
+    <!-- Scaffali / Ripiani Interni -->
+    <rect x="70" y="175" width="160" height="14" rx="7" fill="#818cf8"/>
+    <rect x="70" y="235" width="160" height="14" rx="7" fill="#818cf8"/>
+
+    <!-- Prodotti in Dispensa -->
+    <rect x="82" y="145" width="22" height="30" rx="5" fill="#4f46e5"/>
+    <circle cx="128" cy="158" r="14" fill="#10b981"/>
+    <rect x="156" y="140" width="26" height="35" rx="6" fill="#f59e0b"/>
+
+    <rect x="85" y="205" width="28" height="30" rx="6" fill="#3b82f6"/>
+    <rect x="125" y="210" width="20" height="25" rx="5" fill="#ec4899"/>
+
+    <!-- Badge Spunta Verde -->
+    <circle cx="230" cy="290" r="44" fill="#10b981" stroke="#ffffff" stroke-width="10"/>
+    <path d="M210 290 L224 304 L250 276" fill="none" stroke="#ffffff" stroke-width="9" stroke-linecap="round" stroke-linejoin="round"/>
+  </g>
+</svg>
