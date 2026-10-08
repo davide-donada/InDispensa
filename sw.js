@@ -1,11 +1,19 @@
-const CACHE_NAME = 'indispensa-pwa-v4';
+const CACHE_NAME = 'indispensa-pwa-v6';
+
+// Asset locali ed esterni da salvare in cache per il funzionamento offline
 const ASSETS = [
   './',
   './index.html',
   './manifest.json',
+  './icon.svg',
+  './icon-192.png',
+  './icon-512.png',
+  './favicon.ico',
+  './og-image.png',
   'https://cdn.tailwindcss.com'
 ];
 
+// Installazione Service Worker e salvataggio asset
 self.addEventListener('install', (e) => {
   e.waitUntil(
     caches.open(CACHE_NAME).then((cache) => cache.addAll(ASSETS))
@@ -13,6 +21,7 @@ self.addEventListener('install', (e) => {
   self.skipWaiting();
 });
 
+// Attivazione e pulizia automatica delle vecchie versioni della cache
 self.addEventListener('activate', (e) => {
   e.waitUntil(
     caches.keys().then((keys) => {
@@ -26,10 +35,11 @@ self.addEventListener('activate', (e) => {
   self.clients.claim();
 });
 
+// Gestione delle richieste di rete
 self.addEventListener('fetch', (e) => {
   const url = e.request.url;
-  
-  // Escludi completamente dall'intercettazione offline tutte le chiamate ad Auth e Firebase
+
+  // Escludi completamente chiamate ad Auth, Google e Firebase Realtime Database
   if (
     url.includes('firebasedatabase.app') ||
     url.includes('firebaseapp.com') ||
@@ -41,6 +51,21 @@ self.addEventListener('fetch', (e) => {
     return;
   }
 
+  // STRATEGIA NETWORK-FIRST per la pagina principale (index.html)
+  if (e.request.mode === 'navigate' || url.endsWith('index.html') || url === self.location.origin + '/') {
+    e.respondWith(
+      fetch(e.request)
+        .then((networkResponse) => {
+          const responseClone = networkResponse.clone();
+          caches.open(CACHE_NAME).then((cache) => cache.put(e.request, responseClone));
+          return networkResponse;
+        })
+        .catch(() => caches.match(e.request))
+    );
+    return;
+  }
+
+  // STRATEGIA CACHE-FIRST per immagini e librerie statiche
   e.respondWith(
     caches.match(e.request).then((cachedResponse) => {
       return cachedResponse || fetch(e.request);
