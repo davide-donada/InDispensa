@@ -473,7 +473,7 @@
             auth.signOut();
         }
 
-        // --- Gestione Notifiche Push (FCM) ---
+        // --- Gestione Notifiche Push (FCM con VAPID Key) ---
         function checkNotificationPermissionStatus() {
             const notifBtn = document.getElementById('notifToggleBtn');
             if (!("Notification" in window) || !messaging) {
@@ -517,9 +517,12 @@
         async function registerFcmToken() {
             if (!messaging || !currentUser) return;
             try {
-                const token = await messaging.getToken();
+                const token = await messaging.getToken({
+                    vapidKey: "BFttKVTvW62IxOS_4CArSIR4_I7XEwu_2V-EhR9CHn5pMCzwjERawYN0NI_k2I6aVZwbWe80PfkPmQzC8rXpc9k"
+                });
                 if (token) {
                     await db.ref(`utenti/${currentUser.uid}/fcmToken`).set(token);
+                    console.log("Token FCM salvato con successo:", token);
                 }
             } catch (err) {
                 console.log("Errore recupero Token FCM:", err);
