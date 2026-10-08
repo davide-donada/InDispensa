@@ -87,6 +87,7 @@ firebase.initializeApp({
 });
 
 const messaging = firebase.messaging();
+
 messaging.onBackgroundMessage((payload) => {
   const notificationTitle = payload.notification ? payload.notification.title : 'InDispensa';
   const notificationOptions = {
@@ -98,28 +99,28 @@ messaging.onBackgroundMessage((payload) => {
   self.registration.showNotification(notificationTitle, notificationOptions);
 });
 
-// Listener di fallback per intercettare i test locali da DevTools
+// Listener Push generico per intercettare i test manuali da DevTools
 self.addEventListener('push', (event) => {
-  if (event.data) {
-    let title = "InDispensa Test";
-    let body = event.data.text();
+  if (!event.data) return;
 
-    try {
-      const json = event.data.json();
-      if (json.notification) {
-        title = json.notification.title || title;
-        body = json.notification.body || body;
-      }
-    } catch (e) {
-      // Se è testo semplice usa il body così com'è
+  let title = "InDispensa Test";
+  let body = event.data.text();
+
+  try {
+    const json = event.data.json();
+    if (json.notification) {
+      title = json.notification.title || title;
+      body = json.notification.body || body;
     }
-
-    event.waitUntil(
-      self.registration.showNotification(title, {
-        body: body,
-        icon: './icon-192.png',
-        badge: './icon-192.png'
-      })
-    );
+  } catch (e) {
+    // Se è testo semplice mantieni il body così com'è
   }
+
+  event.waitUntil(
+    self.registration.showNotification(title, {
+      body: body,
+      icon: './icon-192.png',
+      badge: './icon-192.png'
+    })
+  );
 });
