@@ -58,6 +58,25 @@
         body {
             -webkit-tap-highlight-color: transparent;
         }
+        .no-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        .no-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+        /* Stili avanzati Focus Mode In Negozio */
+        .focus-mode-active .item-checked {
+            opacity: 0.4;
+        }
+        .focus-mode-active label span.item-title {
+            font-size: 1.05rem !important;
+            font-weight: 700 !important;
+        }
+        .focus-mode-active input[type="checkbox"] {
+            width: 1.6rem !important;
+            height: 1.6rem !important;
+        }
     </style>
 </head>
 <body class="bg-gray-50 dark:bg-slate-950 min-h-screen pb-32 overflow-x-hidden text-gray-800 dark:text-slate-100 transition-colors duration-200">
@@ -129,7 +148,7 @@
         <!-- Layout Principale Streamlined -->
         <div class="max-w-md md:max-w-5xl lg:max-w-7xl mx-auto p-3.5 space-y-3 w-full box-border">
 
-            <!-- Pannello di Controllo Lista Unificato (Responsive Fix) -->
+            <!-- Pannello di Controllo Lista Unificato -->
             <div class="bg-white dark:bg-slate-900 border border-gray-200/80 dark:border-slate-800 rounded-2xl p-3 shadow-sm space-y-2.5 transition-colors">
                 <div class="flex flex-wrap items-center justify-between gap-2">
                     <div class="flex items-center gap-2 flex-1 min-w-[180px]">
@@ -152,7 +171,7 @@
                 </div>
             </div>
 
-            <!-- Modulo Aggiunta Rapida Compatto -->
+            <!-- Modulo Aggiunta Rapida Compatto con Qtà e Note -->
             <form id="quickAddForm" onsubmit="handleQuickAdd(event)" class="bg-white dark:bg-slate-900 p-3 rounded-2xl shadow-sm space-y-2 border border-gray-200/80 dark:border-slate-800 transition-colors">
                 <div class="flex items-center justify-between px-1">
                     <span class="text-[11px] font-bold text-gray-500 dark:text-slate-400 uppercase tracking-wider flex items-center gap-1"><span>➕</span> Aggiungi prodotto</span>
@@ -160,31 +179,50 @@
                 </div>
                 
                 <div class="flex flex-wrap sm:flex-nowrap gap-2">
-                    <div class="relative flex-1 min-w-[140px]">
-                        <input type="text" id="newItemText" list="productsList" oninput="onProductInput(this.value)" placeholder="es. Latte, Mele, Scottex..." class="w-full bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-700 text-gray-800 dark:text-slate-100 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 transition shadow-inner">
+                    <div class="relative flex-1 min-w-[130px]">
+                        <input type="text" id="newItemText" list="productsList" oninput="onProductInput(this.value)" placeholder="Nome (es. Latte, Mele...)" class="w-full bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-700 text-gray-800 dark:text-slate-100 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 transition shadow-inner">
                         <datalist id="productsList"></datalist>
                     </div>
-                    <div class="flex gap-2 flex-1 sm:flex-initial">
-                        <select id="newItemDept" class="flex-1 sm:w-32 bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-700 text-gray-800 dark:text-slate-100 rounded-xl px-2.5 py-2.5 text-xs focus:outline-none focus:ring-2 focus:ring-indigo-500 font-semibold shadow-inner cursor-pointer">
-                            <option value="Frutta">🍎 Frutta</option>
-                            <option value="Verdura">🥬 Verdura</option>
-                            <option value="Carne e Pesce">🥩 Carne/Pesce</option>
-                            <option value="Latticini e Uova">🧀 Latticini</option>
-                            <option value="Dispensa">📦 Dispensa</option>
-                            <option value="Surgelati">❄️ Surgelati</option>
-                            <option value="Casa e Pulizia">🧹 Pulizia</option>
-                            <option value="Bucato">🧺 Bucato</option>
-                            <option value="Igiene Personale">🧴 Igiene</option>
-                            <option value="Sfizi e Dolci">🍫 Dolci</option>
-                        </select>
-                        <button type="submit" class="bg-indigo-600 hover:bg-indigo-700 text-white font-extrabold px-4 py-2.5 rounded-xl text-base active:scale-95 transition flex items-center justify-center shadow-md flex-shrink-0">
-                            +
-                        </button>
-                    </div>
+                    <input type="text" id="newItemQty" placeholder="Qtà (es. 2x, 500g)" class="w-24 bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-700 text-gray-800 dark:text-slate-100 rounded-xl px-2.5 py-2 text-xs focus:outline-none focus:ring-2 focus:ring-indigo-500 shadow-inner">
+                    <select id="newItemDept" class="w-28 bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-700 text-gray-800 dark:text-slate-100 rounded-xl px-2 py-2 text-xs focus:outline-none focus:ring-2 focus:ring-indigo-500 font-semibold shadow-inner cursor-pointer">
+                        <option value="Frutta">🍎 Frutta</option>
+                        <option value="Verdura">🥬 Verdura</option>
+                        <option value="Carne e Pesce">🥩 Carne/Pesce</option>
+                        <option value="Latticini e Uova">🧀 Latticini</option>
+                        <option value="Dispensa">📦 Dispensa</option>
+                        <option value="Surgelati">❄️ Surgelati</option>
+                        <option value="Casa e Pulizia">🧹 Pulizia</option>
+                        <option value="Bucato">🧺 Bucato</option>
+                        <option value="Igiene Personale">🧴 Igiene</option>
+                        <option value="Sfizi e Dolci">🍫 Dolci</option>
+                    </select>
+                    <button type="submit" class="bg-indigo-600 hover:bg-indigo-700 text-white font-extrabold px-3.5 py-2 rounded-xl text-base active:scale-95 transition flex items-center justify-center shadow-md flex-shrink-0">
+                        +
+                    </button>
+                </div>
+                <div>
+                    <input type="text" id="newItemNote" placeholder="Note facoltative (es. Solo se in offerta, marca specifica...)" class="w-full bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-700 text-gray-700 dark:text-slate-300 rounded-xl px-3 py-1.5 text-xs focus:outline-none focus:ring-2 focus:ring-indigo-500 shadow-inner">
                 </div>
             </form>
 
-            <!-- Barra Strumenti e Ricerca -->
+            <!-- Sezione 4: Prodotti Frequenti (1-Tap) -->
+            <div class="bg-white dark:bg-slate-900 p-2.5 rounded-2xl shadow-sm border border-gray-200/80 dark:border-slate-800 transition-colors">
+                <div class="text-[10px] font-bold text-gray-400 dark:text-slate-500 uppercase tracking-wider mb-1.5 px-1 flex items-center justify-between">
+                    <span>⚡ Aggiunta rapida frequenti (1-Tap)</span>
+                </div>
+                <div class="flex items-center gap-1.5 overflow-x-auto no-scrollbar pb-0.5 pt-0.5 px-0.5">
+                    <button type="button" onclick="addFrequentItem('Pane')" class="bg-indigo-50/80 dark:bg-slate-800 hover:bg-indigo-100 text-indigo-900 dark:text-slate-200 text-xs font-bold px-3 py-1.5 rounded-xl border border-indigo-100 dark:border-slate-700 whitespace-nowrap active:scale-95 transition flex items-center gap-1">🍞 Pane</button>
+                    <button type="button" onclick="addFrequentItem('Latte')" class="bg-indigo-50/80 dark:bg-slate-800 hover:bg-indigo-100 text-indigo-900 dark:text-slate-200 text-xs font-bold px-3 py-1.5 rounded-xl border border-indigo-100 dark:border-slate-700 whitespace-nowrap active:scale-95 transition flex items-center gap-1">🥛 Latte</button>
+                    <button type="button" onclick="addFrequentItem('Uova')" class="bg-indigo-50/80 dark:bg-slate-800 hover:bg-indigo-100 text-indigo-900 dark:text-slate-200 text-xs font-bold px-3 py-1.5 rounded-xl border border-indigo-100 dark:border-slate-700 whitespace-nowrap active:scale-95 transition flex items-center gap-1">🥚 Uova</button>
+                    <button type="button" onclick="addFrequentItem('Caffè')" class="bg-indigo-50/80 dark:bg-slate-800 hover:bg-indigo-100 text-indigo-900 dark:text-slate-200 text-xs font-bold px-3 py-1.5 rounded-xl border border-indigo-100 dark:border-slate-700 whitespace-nowrap active:scale-95 transition flex items-center gap-1">☕ Caffè</button>
+                    <button type="button" onclick="addFrequentItem('Acqua')" class="bg-indigo-50/80 dark:bg-slate-800 hover:bg-indigo-100 text-indigo-900 dark:text-slate-200 text-xs font-bold px-3 py-1.5 rounded-xl border border-indigo-100 dark:border-slate-700 whitespace-nowrap active:scale-95 transition flex items-center gap-1">💧 Acqua</button>
+                    <button type="button" onclick="addFrequentItem('Pasta')" class="bg-indigo-50/80 dark:bg-slate-800 hover:bg-indigo-100 text-indigo-900 dark:text-slate-200 text-xs font-bold px-3 py-1.5 rounded-xl border border-indigo-100 dark:border-slate-700 whitespace-nowrap active:scale-95 transition flex items-center gap-1">🍝 Pasta</button>
+                    <button type="button" onclick="addFrequentItem('Biscotti')" class="bg-indigo-50/80 dark:bg-slate-800 hover:bg-indigo-100 text-indigo-900 dark:text-slate-200 text-xs font-bold px-3 py-1.5 rounded-xl border border-indigo-100 dark:border-slate-700 whitespace-nowrap active:scale-95 transition flex items-center gap-1">🍪 Biscotti</button>
+                    <button type="button" onclick="addFrequentItem('Insalata')" class="bg-indigo-50/80 dark:bg-slate-800 hover:bg-indigo-100 text-indigo-900 dark:text-slate-200 text-xs font-bold px-3 py-1.5 rounded-xl border border-indigo-100 dark:border-slate-700 whitespace-nowrap active:scale-95 transition flex items-center gap-1">🥗 Insalata</button>
+                </div>
+            </div>
+
+            <!-- Barra Strumenti e Ricerca + Focus Mode e Percorso Supermercato -->
             <div class="bg-white dark:bg-slate-900 p-3 rounded-2xl shadow-sm border border-gray-200/80 dark:border-slate-800 flex flex-col gap-2.5 transition-colors">
                 <div class="bg-gray-50 dark:bg-slate-800 p-1 rounded-xl border border-gray-200 dark:border-slate-700 flex items-center px-3 gap-2 shadow-inner">
                     <span class="text-gray-400 dark:text-slate-500 text-xs">🔍</span>
@@ -192,12 +230,24 @@
                     <button type="button" onclick="clearSearch()" id="clearSearchBtn" class="text-gray-400 hover:text-gray-600 dark:hover:text-slate-200 text-xs hidden font-bold p-1">✕</button>
                 </div>
 
-                <div class="flex justify-between items-center px-0.5 text-xs">
-                    <button id="hideCheckedBtn" onclick="toggleHideChecked()" class="bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-700 text-gray-700 dark:text-slate-300 px-3 py-2 rounded-xl font-bold shadow-sm flex items-center gap-1.5 active:scale-95 transition">
-                        <span>👁️</span> <span id="hideCheckedLabel">Solo da prendere</span>
-                    </button>
+                <div class="flex flex-wrap justify-between items-center gap-2 text-xs">
+                    <div class="flex items-center gap-2 flex-wrap">
+                        <button id="hideCheckedBtn" onclick="toggleHideChecked()" class="bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-700 text-gray-700 dark:text-slate-300 px-3 py-1.5 rounded-xl font-bold shadow-sm flex items-center gap-1.5 active:scale-95 transition">
+                            <span>👁️</span> <span id="hideCheckedLabel">Solo da prendere</span>
+                        </button>
+                        
+                        <!-- Sezione 2: Focus Mode Toggle -->
+                        <button id="focusModeBtn" onclick="toggleFocusMode()" class="bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-700 text-gray-700 dark:text-slate-300 px-3 py-1.5 rounded-xl font-bold shadow-sm flex items-center gap-1.5 active:scale-95 transition">
+                            <span>🛒</span> <span id="focusModeLabel">Focus Mode</span>
+                        </button>
 
-                    <div class="flex gap-2.5 font-semibold">
+                        <!-- Sezione 3: Riordino Reparti Supermercato -->
+                        <button onclick="openDeptOrderModal()" class="bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-700 text-gray-700 dark:text-slate-300 px-3 py-1.5 rounded-xl font-bold shadow-sm flex items-center gap-1.5 active:scale-95 transition" title="Personalizza l'ordine delle corsie">
+                            <span>⚙️</span> Percorso
+                        </button>
+                    </div>
+
+                    <div class="flex gap-2.5 font-semibold ml-auto">
                         <button onclick="deselezionaTutti()" class="text-gray-500 dark:text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 transition py-1">Deseleziona</button>
                         <button onclick="eliminaComprati()" class="text-rose-500 dark:text-rose-400 hover:text-rose-700 transition py-1">Pulisci presi</button>
                     </div>
@@ -215,6 +265,28 @@
                 Nessun prodotto trovato.
             </div>
 
+        </div>
+    </div>
+
+    <!-- Modale Grafica: Riordino Reparti (Percorso Supermercato) -->
+    <div id="deptOrderModal" class="hidden fixed inset-0 bg-slate-950/70 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+        <div class="bg-white dark:bg-slate-900 rounded-3xl max-w-sm w-full p-5 shadow-2xl border border-gray-100 dark:border-slate-800 space-y-4 text-gray-800 dark:text-slate-100 max-h-[85vh] flex flex-col">
+            <div class="flex justify-between items-center border-b border-gray-100 dark:border-slate-800 pb-2.5 flex-shrink-0">
+                <h3 class="font-extrabold text-sm text-indigo-950 dark:text-indigo-400 flex items-center gap-2">
+                    <span>⚙️</span> Ordine Reparti (Percorso)
+                </h3>
+                <button onclick="closeDeptOrderModal()" class="text-gray-400 hover:text-gray-600 text-base font-bold p-1">✕</button>
+            </div>
+
+            <p class="text-xs text-gray-500 dark:text-slate-400 leading-relaxed flex-shrink-0">
+                Sposta i reparti nell'ordine in cui li incontri al supermercato per velocizzare la tua spesa.
+            </p>
+
+            <div id="deptOrderListContainer" class="space-y-1.5 overflow-y-auto flex-1 pr-1"></div>
+
+            <div class="pt-2 border-t border-gray-100 dark:border-slate-800 flex-shrink-0">
+                <button onclick="closeDeptOrderModal()" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2.5 rounded-xl text-xs transition shadow-md">Salva Percorso</button>
+            </div>
         </div>
     </div>
 
@@ -400,7 +472,13 @@
         let currentItemsData = [];
         let currentListOwnerInfo = { ownerUid: null, ownerName: 'Sconosciuto' };
         let hideChecked = false;
+        let focusMode = false;
         let onConfirmCallback = null;
+
+        let deptOrder = [
+            "Frutta", "Verdura", "Dispensa", "Carne e Pesce", "Latticini e Uova", 
+            "Casa e Pulizia", "Bucato", "Igiene Personale", "Surgelati", "Sfizi e Dolci"
+        ];
 
         auth.onAuthStateChanged((user) => {
             const loadingScreen = document.getElementById('loadingScreen');
@@ -422,6 +500,7 @@
                     photoURL: user.photoURL
                 });
 
+                loadCustomDeptOrder();
                 initUserLists();
                 initAutocomplete();
             } else {
@@ -463,7 +542,7 @@
             "Verdura": ["broccoli", "broccolo", "cavolfiore", "zucca", "carota", "carote", "spinaci", "zucchina", "zucchine", "insalata", "pomodoro", "pomodori", "funghi", "cipolla", "cipolle"],
             "Carne e Pesce": ["pollo", "tacchino", "macinato", "manzo", "pancetta", "speck", "salmone", "orata", "branzino", "tonno", "salsiccia"],
             "Latticini e Uova": ["uova", "yogurt", "fiocchi di latte", "stracchino", "mozzarella", "grana", "parmigiano", "latte", "burro", "ricotta"],
-            "Dispensa": ["pasta", "riso", "olio", "mandorle", "noci", "nocciole", "ceci", "fagioli", "lenticchie", "farina", "zucchero", "caffe", "passata"],
+            "Dispensa": ["pasta", "riso", "olio", "mandorle", "noci", "nocciole", "ceci", "fagioli", "lenticchie", "farina", "zucchero", "caffe", "passata", "pane"],
             "Surgelati": ["piselli", "merluzzo", "minestrone", "gelato"],
             "Casa e Pulizia": ["detersivo piatti", "lavastoviglie", "sgrassatore", "scottex", "sacchetti spazzatura"],
             "Bucato": ["detersivo lavatrice", "ammorbidente"],
@@ -621,7 +700,6 @@
             }
         }
 
-        // --- Verifica se l'utente corrente è l'Admin (Proprietario) della lista attiva ---
         function isCurrentuserAdmin() {
             const currentObj = userLists.find(l => l.id === activeListId);
             if (!currentObj) return true;
@@ -630,7 +708,7 @@
             return ownerUid === currentUser.uid;
         }
 
-        // --- Gestione Modali UI ---
+        // --- Modali UI ---
         function showConfirmModal(title, message, confirmBtnText = 'Elimina', isDanger = true, badgeIcon = '🗑️', onConfirm) {
             document.getElementById('confirmModalTitle').textContent = title;
             document.getElementById('confirmModalMsg').textContent = message;
@@ -804,6 +882,84 @@
             });
         }
 
+        // --- Sezione 3: Riordino Reparti Supermercato (JS) ---
+        function openDeptOrderModal() {
+            renderDeptOrderList();
+            document.getElementById('deptOrderModal').classList.remove('hidden');
+        }
+
+        function closeDeptOrderModal() {
+            document.getElementById('deptOrderModal').classList.add('hidden');
+        }
+
+        function renderDeptOrderList() {
+            const container = document.getElementById('deptOrderListContainer');
+            container.innerHTML = deptOrder.map((dept, idx) => `
+                <div class="flex items-center justify-between p-2.5 bg-gray-50 dark:bg-slate-800 rounded-xl border border-gray-200 dark:border-slate-700">
+                    <span class="text-xs font-bold text-gray-800 dark:text-slate-200 flex items-center gap-2">
+                        <span>${deptIcons[dept] || '🛒'}</span> ${dept}
+                    </span>
+                    <div class="flex items-center gap-1">
+                        <button onclick="moveDeptUp(${idx})" ${idx === 0 ? 'disabled class="opacity-30 p-1 text-xs"' : 'class="p-1 text-xs font-bold hover:bg-gray-200 dark:hover:bg-slate-700 rounded active:scale-95 transition"'} title="Sposta su">▲</button>
+                        <button onclick="moveDeptDown(${idx})" ${idx === deptOrder.length - 1 ? 'disabled class="opacity-30 p-1 text-xs"' : 'class="p-1 text-xs font-bold hover:bg-gray-200 dark:hover:bg-slate-700 rounded active:scale-95 transition"'} title="Sposta giù">▼</button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function moveDeptUp(index) {
+            if (index <= 0) return;
+            const temp = deptOrder[index];
+            deptOrder[index] = deptOrder[index - 1];
+            deptOrder[index - 1] = temp;
+            saveCustomDeptOrder();
+            renderDeptOrderList();
+            filterList();
+        }
+
+        function moveDeptDown(index) {
+            if (index >= deptOrder.length - 1) return;
+            const temp = deptOrder[index];
+            deptOrder[index] = deptOrder[index + 1];
+            deptOrder[index + 1] = temp;
+            saveCustomDeptOrder();
+            renderDeptOrderList();
+            filterList();
+        }
+
+        function saveCustomDeptOrder() {
+            localStorage.setItem(`customDeptOrder_${currentUser ? currentUser.uid : 'default'}`, JSON.stringify(deptOrder));
+        }
+
+        function loadCustomDeptOrder() {
+            const saved = localStorage.getItem(`customDeptOrder_${currentUser ? currentUser.uid : 'default'}`);
+            if (saved) {
+                try {
+                    const parsed = JSON.parse(saved);
+                    if (Array.isArray(parsed) && parsed.length > 0) {
+                        deptOrder = parsed;
+                    }
+                } catch(e){}
+            }
+        }
+
+        // --- Sezione 2: Focus Mode Toggle (JS) ---
+        function toggleFocusMode() {
+            focusMode = !focusMode;
+            const btn = document.getElementById('focusModeBtn');
+            const label = document.getElementById('focusModeLabel');
+            if (focusMode) {
+                btn.className = "bg-amber-500 border border-amber-600 text-white px-3 py-1.5 rounded-xl font-extrabold shadow-sm flex items-center gap-1.5 active:scale-95 transition animate-pulse";
+                label.textContent = "Focus In Negozio ON";
+                document.body.classList.add('focus-mode-active');
+            } else {
+                btn.className = "bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-700 text-gray-700 dark:text-slate-300 px-3 py-1.5 rounded-xl font-bold shadow-sm flex items-center gap-1.5 active:scale-95 transition";
+                label.textContent = "Focus Mode";
+                document.body.classList.remove('focus-mode-active');
+            }
+            filterList();
+        }
+
         function switchList(listId) {
             activeListId = listId;
             localStorage.setItem(`lastActiveList_${currentUser.uid}`, activeListId);
@@ -882,102 +1038,16 @@
             );
         }
 
-        const deptOrder = [
-            "Frutta", "Verdura", "Dispensa", "Carne e Pesce", "Latticini e Uova", 
-            "Casa e Pulizia", "Bucato", "Igiene Personale", "Surgelati", "Sfizi e Dolci"
-        ];
-
-        // --- Lista predefinita con elementi singoli, puliti e rigorosamente coerenti alle categorie ---
         const defaultItems = [
-            // --- FRUTTA ---
-            { name: "Mele", dept: "Frutta", checked: false, approved: true },
-            { name: "Pere", dept: "Frutta", checked: false, approved: true },
-            { name: "Banane", dept: "Frutta", checked: false, approved: true },
-            { name: "Limoni", dept: "Frutta", checked: false, approved: true },
-            { name: "Arance", dept: "Frutta", checked: false, approved: true },
-            { name: "Avocado", dept: "Frutta", checked: false, approved: true },
-            { name: "Mirtilli", dept: "Frutta", checked: false, approved: true },
-            { name: "Kiwi", dept: "Frutta", checked: false, approved: true },
-            { name: "Uva", dept: "Frutta", checked: false, approved: true },
-
-            // --- VERDURA ---
-            { name: "Broccoli", dept: "Verdura", checked: false, approved: true },
-            { name: "Cavolfiore", dept: "Verdura", checked: false, approved: true },
-            { name: "Zucca", dept: "Verdura", checked: false, approved: true },
-            { name: "Carote", dept: "Verdura", checked: false, approved: true },
-            { name: "Spinaci", dept: "Verdura", checked: false, approved: true },
-            { name: "Zucchine", dept: "Verdura", checked: false, approved: true },
-            { name: "Insalata fresca", dept: "Verdura", checked: false, approved: true },
-            { name: "Pomodori", dept: "Verdura", checked: false, approved: true },
-            { name: "Funghi", dept: "Verdura", checked: false, approved: true },
-            { name: "Cipolle", dept: "Verdura", checked: false, approved: true },
-
-            // --- CARNE E PESCE ---
-            { name: "Petto di pollo", dept: "Carne e Pesce", checked: false, approved: true },
-            { name: "Fesa di tacchino", dept: "Carne e Pesce", checked: false, approved: true },
-            { name: "Macinato di manzo", dept: "Carne e Pesce", checked: false, approved: true },
-            { name: "Fettine di manzo", dept: "Carne e Pesce", checked: false, approved: true },
-            { name: "Pancetta a cubetti", dept: "Carne e Pesce", checked: false, approved: true },
-            { name: "Speck", dept: "Carne e Pesce", checked: false, approved: true },
-            { name: "Tranci di salmone", dept: "Carne e Pesce", checked: false, approved: true },
-            { name: "Orata", dept: "Carne e Pesce", checked: false, approved: true },
-            { name: "Branzino", dept: "Carne e Pesce", checked: false, approved: true },
-            { name: "Tonno in scatola", dept: "Carne e Pesce", checked: false, approved: true },
-            { name: "Salsiccia", dept: "Carne e Pesce", checked: false, approved: true },
-
-            // --- LATTICINI E UOVA ---
-            { name: "Uova fresche", dept: "Latticini e Uova", checked: false, approved: true },
-            { name: "Yogurt greco", dept: "Latticini e Uova", checked: false, approved: true },
-            { name: "Fiocchi di latte", dept: "Latticini e Uova", checked: false, approved: true },
-            { name: "Stracchino", dept: "Latticini e Uova", checked: false, approved: true },
-            { name: "Mozzarella", dept: "Latticini e Uova", checked: false, approved: true },
-            { name: "Grana Padano", dept: "Latticini e Uova", checked: false, approved: true },
-            { name: "Latte intero", dept: "Latticini e Uova", checked: false, approved: true },
-            { name: "Burro", dept: "Latticini e Uova", checked: false, approved: true },
-            { name: "Ricotta", dept: "Latticini e Uova", checked: false, approved: true },
-
-            // --- DISPENSA ---
-            { name: "Pasta", dept: "Dispensa", checked: false, approved: true },
-            { name: "Riso Basmati", dept: "Dispensa", checked: false, approved: true },
-            { name: "Olio Extravergine d'Oliva", dept: "Dispensa", checked: false, approved: true },
-            { name: "Mandorle", dept: "Dispensa", checked: false, approved: true },
-            { name: "Noci", dept: "Dispensa", checked: false, approved: true },
-            { name: "Nocciole", dept: "Dispensa", checked: false, approved: true },
-            { name: "Ceci", dept: "Dispensa", checked: false, approved: true },
-            { name: "Fagioli", dept: "Dispensa", checked: false, approved: true },
-            { name: "Lenticchie", dept: "Dispensa", checked: false, approved: true },
-            { name: "Farina", dept: "Dispensa", checked: false, approved: true },
-            { name: "Zucchero", dept: "Dispensa", checked: false, approved: true },
-            { name: "Caffè", dept: "Dispensa", checked: false, approved: true },
-            { name: "Passata di pomodoro", dept: "Dispensa", checked: false, approved: true },
-
-            // --- SURGELATI ---
-            { name: "Piselli surgelati", dept: "Surgelati", checked: false, approved: true },
-            { name: "Filetti di merluzzo surgelati", dept: "Surgelati", checked: false, approved: true },
-            { name: "Minestrone surgelato", dept: "Surgelati", checked: false, approved: true },
-            { name: "Gelato", dept: "Surgelati", checked: false, approved: true },
-
-            // --- CASA E PULIZIA ---
-            { name: "Detersivo piatti", dept: "Casa e Pulizia", checked: false, approved: true },
-            { name: "Pastiglie lavastoviglie", dept: "Casa e Pulizia", checked: false, approved: true },
-            { name: "Sgrassatore universale", dept: "Casa e Pulizia", checked: false, approved: true },
-            { name: "Carta casa (Scottex)", dept: "Casa e Pulizia", checked: false, approved: true },
-            { name: "Sacchetti spazzatura", dept: "Casa e Pulizia", checked: false, approved: true },
-
-            // --- BUCATO ---
-            { name: "Detersivo lavatrice", dept: "Bucato", checked: false, approved: true },
-            { name: "Ammorbidente", dept: "Bucato", checked: false, approved: true },
-
-            // --- IGIENE PERSONALE ---
-            { name: "Carta igienica", dept: "Igiene Personale", checked: false, approved: true },
-            { name: "Bagnoschiuma", dept: "Igiene Personale", checked: false, approved: true },
-            { name: "Dentifricio", dept: "Igiene Personale", checked: false, approved: true },
-            { name: "Shampoo", dept: "Igiene Personale", checked: false, approved: true },
-
-            // --- SFIZI E DOLCI ---
-            { name: "Biscotti", dept: "Sfizi e Dolci", checked: false, approved: true },
-            { name: "Cioccolato fondente", dept: "Sfizi e Dolci", checked: false, approved: true },
-            { name: "Snack", dept: "Sfizi e Dolci", checked: false, approved: true }
+            { name: "Mele", dept: "Frutta", qty: "", note: "", checked: false, approved: true },
+            { name: "Pere", dept: "Frutta", qty: "", note: "", checked: false, approved: true },
+            { name: "Banane", dept: "Frutta", qty: "", note: "", checked: false, approved: true },
+            { name: "Broccoli", dept: "Verdura", qty: "", note: "", checked: false, approved: true },
+            { name: "Petto di pollo", dept: "Carne e Pesce", qty: "", note: "", checked: false, approved: true },
+            { name: "Uova fresche", dept: "Latticini e Uova", qty: "", note: "", checked: false, approved: true },
+            { name: "Pasta", dept: "Dispensa", qty: "", note: "", checked: false, approved: true },
+            { name: "Olio Extravergine d'Oliva", dept: "Dispensa", qty: "", note: "", checked: false, approved: true },
+            { name: "Carta casa (Scottex)", dept: "Casa e Pulizia", qty: "", note: "", checked: false, approved: true }
         ];
 
         function attachDatabaseListener() {
@@ -1073,7 +1143,7 @@
                 pendingContainer.classList.add('hidden');
             }
 
-            // 2. Renderizza la lista normale suddivisa per reparti
+            // 2. Renderizza la lista normale suddivisa per reparti ordinati
             if (approvedItems.length === 0 && pendingItems.length === 0) {
                 noResults.classList.remove('hidden');
                 return;
@@ -1097,6 +1167,13 @@
 
             for (const dept of sortedDepts) {
                 const deptItems = grouped[dept];
+
+                // Auto-nascondimento reparti completati in Focus Mode
+                const isDeptCompleted = deptItems.every(i => i.checked);
+                if (focusMode && isDeptCompleted) {
+                    continue; // Salta la resa del reparto se tutti gli elementi sono spuntati
+                }
+
                 const deptCard = document.createElement('div');
                 deptCard.className = 'dept-card bg-white dark:bg-slate-900 rounded-2xl p-3.5 shadow-sm border border-gray-200/80 dark:border-slate-800 overflow-hidden transition-colors';
 
@@ -1105,20 +1182,38 @@
                     let authorBadge = '';
                     if (item.addedByName) {
                         const firstName = item.addedByName.split(' ')[0];
-                        authorBadge = `<span class="text-[10px] bg-indigo-50 dark:bg-slate-800 text-indigo-600 dark:text-indigo-400 font-bold px-1.5 py-0.5 rounded ml-1.5 flex-shrink-0">da ${firstName}</span>`;
+                        authorBadge = `<span class="text-[9px] bg-indigo-50 dark:bg-slate-800 text-indigo-600 dark:text-indigo-400 font-bold px-1.5 py-0.5 rounded ml-1 flex-shrink-0">da ${firstName}</span>`;
+                    }
+
+                    // Pillola quantità
+                    let qtyBadge = '';
+                    if (item.qty) {
+                        qtyBadge = `<span class="bg-indigo-100 dark:bg-slate-800 text-indigo-900 dark:text-indigo-300 font-extrabold text-[11px] px-1.5 py-0.5 rounded-md mr-1.5 flex-shrink-0">${item.qty}</span>`;
+                    }
+
+                    // Micro-testo note opzionali
+                    let noteHtml = '';
+                    if (item.note) {
+                        noteHtml = `<p class="text-[11px] text-gray-500 dark:text-slate-400 italic font-normal leading-tight mt-0.5">📝 ${item.note}</p>`;
                     }
 
                     return `
-                        <li class="flex items-center justify-between py-2 border-b border-gray-100 dark:border-slate-800 last:border-0 gap-2 hover:bg-gray-50/80 dark:hover:bg-slate-800/40 rounded-xl px-1.5 transition">
-                            <label class="flex items-center gap-3 flex-1 cursor-pointer select-none min-w-0 py-0.5">
+                        <li class="flex items-start justify-between py-2 border-b border-gray-100 dark:border-slate-800 last:border-0 gap-2 hover:bg-gray-50/80 dark:hover:bg-slate-800/40 rounded-xl px-1.5 transition">
+                            <label class="flex items-start gap-3 flex-1 cursor-pointer select-none min-w-0 py-0.5">
                                 <input type="checkbox" 
                                        ${item.checked ? 'checked' : ''} 
                                        onchange="toggleCheck(${item.originalIndex})" 
-                                       class="w-5 h-5 rounded-md text-indigo-600 focus:ring-indigo-500 border-gray-300 dark:border-slate-700 dark:bg-slate-800 flex-shrink-0 cursor-pointer shadow-sm">
-                                <span class="text-sm ${item.checked ? 'item-checked' : 'text-gray-800 dark:text-slate-100 font-semibold'} break-words min-w-0">${item.name}</span>
-                                ${authorBadge}
+                                       class="w-5 h-5 rounded-md text-indigo-600 focus:ring-indigo-500 border-gray-300 dark:border-slate-700 dark:bg-slate-800 flex-shrink-0 cursor-pointer shadow-sm mt-0.5">
+                                <div class="min-w-0 flex-1">
+                                    <div class="flex items-center flex-wrap gap-1">
+                                        ${qtyBadge}
+                                        <span class="item-title text-sm ${item.checked ? 'item-checked' : 'text-gray-800 dark:text-slate-100 font-semibold'} break-words">${item.name}</span>
+                                        ${authorBadge}
+                                    </div>
+                                    ${noteHtml}
+                                </div>
                             </label>
-                            <button onclick="deleteItem(${item.originalIndex})" class="text-gray-300 dark:text-slate-600 hover:text-rose-500 p-1.5 flex-shrink-0 transition rounded-lg active:scale-95 text-sm" title="Elimina">✕</button>
+                            <button onclick="deleteItem(${item.originalIndex})" class="text-gray-300 dark:text-slate-600 hover:text-rose-500 p-1 flex-shrink-0 transition rounded-lg active:scale-95 text-sm mt-0.5" title="Elimina">✕</button>
                         </li>
                     `;
                 }).join('');
@@ -1152,7 +1247,8 @@
 
             const filtered = indexedItems.filter(item => 
                 item.name.toLowerCase().includes(query) || 
-                item.dept.toLowerCase().includes(query)
+                item.dept.toLowerCase().includes(query) ||
+                (item.note && item.note.toLowerCase().includes(query))
             );
 
             renderList(filtered);
@@ -1164,10 +1260,10 @@
             const label = document.getElementById('hideCheckedLabel');
 
             if (hideChecked) {
-                btn.className = "bg-indigo-50 dark:bg-indigo-950/80 border border-indigo-300 dark:border-indigo-600 text-indigo-700 dark:text-indigo-300 px-3 py-2 rounded-xl font-bold shadow-sm flex items-center gap-1.5 active:scale-95 transition";
+                btn.className = "bg-indigo-50 dark:bg-indigo-950/80 border border-indigo-300 dark:border-indigo-600 text-indigo-700 dark:text-indigo-300 px-3 py-1.5 rounded-xl font-bold shadow-sm flex items-center gap-1.5 active:scale-95 transition";
                 label.textContent = "Mostra tutti";
             } else {
-                btn.className = "bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-700 text-gray-700 dark:text-slate-300 px-3 py-2 rounded-xl font-bold shadow-sm flex items-center gap-1.5 active:scale-95 transition";
+                btn.className = "bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-700 text-gray-700 dark:text-slate-300 px-3 py-1.5 rounded-xl font-bold shadow-sm flex items-center gap-1.5 active:scale-95 transition";
                 label.textContent = "Solo da prendere";
             }
             filterList();
@@ -1200,10 +1296,16 @@
             addItem();
         }
 
+        // --- Sezione 1: Aggiunta Prodotto con Quantità e Note ---
         function addItem() {
             const nameInput = document.getElementById('newItemText');
+            const qtyInput = document.getElementById('newItemQty');
+            const noteInput = document.getElementById('newItemNote');
             const deptInput = document.getElementById('newItemDept');
+            
             const name = nameInput.value.trim();
+            const qty = qtyInput.value.trim();
+            const note = noteInput.value.trim();
             const dept = deptInput.value;
 
             if (name) {
@@ -1214,6 +1316,8 @@
                     const newItemObj = { 
                         name, 
                         dept, 
+                        qty: qty || '',
+                        note: note || '',
                         checked: false, 
                         approved: isOwner, 
                         addedByUid: currentUser.uid, 
@@ -1223,9 +1327,43 @@
                     listRef.set(currentList);
 
                     nameInput.value = '';
+                    qtyInput.value = '';
+                    noteInput.value = '';
                     document.getElementById('autoCatBadge').classList.add('hidden');
                 });
             }
+        }
+
+        // --- Sezione 4: Inserimento Rapido 1-Tap ---
+        function addFrequentItem(itemName) {
+            if ('vibrate' in navigator) navigator.vibrate(30);
+
+            let foundDept = "Dispensa";
+            const cleanVal = itemName.toLowerCase().trim();
+            for (const [dept, keywords] of Object.entries(categoryDictionary)) {
+                if (keywords.some(k => cleanVal.includes(k))) {
+                    foundDept = dept;
+                    break;
+                }
+            }
+
+            listRef.once('value', snapshot => {
+                const currentList = snapshot.val() || [];
+                const isOwner = isCurrentuserAdmin();
+
+                const newItemObj = { 
+                    name: itemName, 
+                    dept: foundDept, 
+                    qty: '1x',
+                    note: '',
+                    checked: false, 
+                    approved: isOwner, 
+                    addedByUid: currentUser.uid, 
+                    addedByName: currentUser.displayName || 'Qualcuno' 
+                };
+                currentList.push(newItemObj);
+                listRef.set(currentList);
+            });
         }
 
         function deleteItem(index) {
