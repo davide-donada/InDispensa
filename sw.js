@@ -51,7 +51,7 @@ self.addEventListener('fetch', (e) => {
     return;
   }
 
-  // STRATEGIA NETWORK-FIRST per la pagina principale (index.html)
+  // STRATEGIA NETWORK-FIRST per la pagina principale (index.html):
   if (e.request.mode === 'navigate' || url.endsWith('index.html') || url === self.location.origin + '/') {
     e.respondWith(
       fetch(e.request)
