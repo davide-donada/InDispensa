@@ -1,4 +1,4 @@
-const CACHE_NAME = 'indispensa-pwa-v7';
+const CACHE_NAME = 'indispensa-pwa-v8';
 
 // Asset locali da salvare in cache per il funzionamento offline
 const ASSETS = [
@@ -95,38 +95,33 @@ messaging.onBackgroundMessage((payload) => {
   const title = payload.notification?.title || payload.data?.title || 'InDispensa';
   const body = payload.notification?.body || payload.data?.body || 'Nuovo aggiornamento nella lista';
 
-  const notificationOptions = {
+  return self.registration.showNotification(title, {
     body: body,
     icon: './icon-192.png',
     badge: './icon-192.png',
     data: payload.data
-  };
-
-  return self.registration.showNotification(title, notificationOptions);
+  });
 });
 
-// Listener Push di fallback per DevTools (evita duplicati da FCM)
+// Listener Push per forzare la notifica a schermo sia in foreground che in background
 self.addEventListener('push', (event) => {
   if (!event.data) return;
 
-  // Se il messaggio proviene da FCM, verrà gestito da onBackgroundMessage
-  try {
-    const json = event.data.json();
-    if (json.fcmMessageId || json.from) return; 
-  } catch (e) {
-    // Non è JSON di FCM, prosegui come Push semplice
-  }
-
-  let title = "InDispensa Test";
-  let body = event.data.text();
+  let title = 'InDispensa';
+  let body = 'Nuova notifica ricevuta';
 
   try {
-    const json = event.data.json();
-    if (json.notification) {
-      title = json.notification.title || title;
-      body = json.notification.body || body;
+    const data = event.data.json();
+    if (data.notification) {
+      title = data.notification.title || title;
+      body = data.notification.body || body;
+    } else if (data.data) {
+      title = data.data.title || title;
+      body = data.data.body || body;
     }
-  } catch (e) {}
+  } catch (e) {
+    body = event.data.text();
+  }
 
   event.waitUntil(
     self.registration.showNotification(title, {
