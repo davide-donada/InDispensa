@@ -206,6 +206,9 @@
 
             </div>
 
+            <!-- Contenitore Approvazioni in Attesa (Evidente) -->
+            <div id="pendingContainer" class="hidden"></div>
+
             <!-- Lista Reparti -->
             <div id="listContainer" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 items-start pt-2"></div>
 
@@ -894,94 +897,94 @@
         // --- Lista predefinita con elementi singoli, puliti e rigorosamente coerenti alle categorie ---
         const defaultItems = [
             // --- FRUTTA ---
-            { name: "Mele", dept: "Frutta", checked: false },
-            { name: "Pere", dept: "Frutta", checked: false },
-            { name: "Banane", dept: "Frutta", checked: false },
-            { name: "Limoni", dept: "Frutta", checked: false },
-            { name: "Arance", dept: "Frutta", checked: false },
-            { name: "Avocado", dept: "Frutta", checked: false },
-            { name: "Mirtilli", dept: "Frutta", checked: false },
-            { name: "Kiwi", dept: "Frutta", checked: false },
-            { name: "Uva", dept: "Frutta", checked: false },
+            { name: "Mele", dept: "Frutta", checked: false, approved: true },
+            { name: "Pere", dept: "Frutta", checked: false, approved: true },
+            { name: "Banane", dept: "Frutta", checked: false, approved: true },
+            { name: "Limoni", dept: "Frutta", checked: false, approved: true },
+            { name: "Arance", dept: "Frutta", checked: false, approved: true },
+            { name: "Avocado", dept: "Frutta", checked: false, approved: true },
+            { name: "Mirtilli", dept: "Frutta", checked: false, approved: true },
+            { name: "Kiwi", dept: "Frutta", checked: false, approved: true },
+            { name: "Uva", dept: "Frutta", checked: false, approved: true },
 
             // --- VERDURA ---
-            { name: "Broccoli", dept: "Verdura", checked: false },
-            { name: "Cavolfiore", dept: "Verdura", checked: false },
-            { name: "Zucca", dept: "Verdura", checked: false },
-            { name: "Carote", dept: "Verdura", checked: false },
-            { name: "Spinaci", dept: "Verdura", checked: false },
-            { name: "Zucchine", dept: "Verdura", checked: false },
-            { name: "Insalata fresca", dept: "Verdura", checked: false },
-            { name: "Pomodori", dept: "Verdura", checked: false },
-            { name: "Funghi", dept: "Verdura", checked: false },
-            { name: "Cipolle", dept: "Verdura", checked: false },
+            { name: "Broccoli", dept: "Verdura", checked: false, approved: true },
+            { name: "Cavolfiore", dept: "Verdura", checked: false, approved: true },
+            { name: "Zucca", dept: "Verdura", checked: false, approved: true },
+            { name: "Carote", dept: "Verdura", checked: false, approved: true },
+            { name: "Spinaci", dept: "Verdura", checked: false, approved: true },
+            { name: "Zucchine", dept: "Verdura", checked: false, approved: true },
+            { name: "Insalata fresca", dept: "Verdura", checked: false, approved: true },
+            { name: "Pomodori", dept: "Verdura", checked: false, approved: true },
+            { name: "Funghi", dept: "Verdura", checked: false, approved: true },
+            { name: "Cipolle", dept: "Verdura", checked: false, approved: true },
 
             // --- CARNE E PESCE ---
-            { name: "Petto di pollo", dept: "Carne e Pesce", checked: false },
-            { name: "Fesa di tacchino", dept: "Carne e Pesce", checked: false },
-            { name: "Macinato di manzo", dept: "Carne e Pesce", checked: false },
-            { name: "Fettine di manzo", dept: "Carne e Pesce", checked: false },
-            { name: "Pancetta a cubetti", dept: "Carne e Pesce", checked: false },
-            { name: "Speck", dept: "Carne e Pesce", checked: false },
-            { name: "Tranci di salmone", dept: "Carne e Pesce", checked: false },
-            { name: "Orata", dept: "Carne e Pesce", checked: false },
-            { name: "Branzino", dept: "Carne e Pesce", checked: false },
-            { name: "Tonno in scatola", dept: "Carne e Pesce", checked: false },
-            { name: "Salsiccia", dept: "Carne e Pesce", checked: false },
+            { name: "Petto di pollo", dept: "Carne e Pesce", checked: false, approved: true },
+            { name: "Fesa di tacchino", dept: "Carne e Pesce", checked: false, approved: true },
+            { name: "Macinato di manzo", dept: "Carne e Pesce", checked: false, approved: true },
+            { name: "Fettine di manzo", dept: "Carne e Pesce", checked: false, approved: true },
+            { name: "Pancetta a cubetti", dept: "Carne e Pesce", checked: false, approved: true },
+            { name: "Speck", dept: "Carne e Pesce", checked: false, approved: true },
+            { name: "Tranci di salmone", dept: "Carne e Pesce", checked: false, approved: true },
+            { name: "Orata", dept: "Carne e Pesce", checked: false, approved: true },
+            { name: "Branzino", dept: "Carne e Pesce", checked: false, approved: true },
+            { name: "Tonno in scatola", dept: "Carne e Pesce", checked: false, approved: true },
+            { name: "Salsiccia", dept: "Carne e Pesce", checked: false, approved: true },
 
             // --- LATTICINI E UOVA ---
-            { name: "Uova fresche", dept: "Latticini e Uova", checked: false },
-            { name: "Yogurt greco", dept: "Latticini e Uova", checked: false },
-            { name: "Fiocchi di latte", dept: "Latticini e Uova", checked: false },
-            { name: "Stracchino", dept: "Latticini e Uova", checked: false },
-            { name: "Mozzarella", dept: "Latticini e Uova", checked: false },
-            { name: "Grana Padano", dept: "Latticini e Uova", checked: false },
-            { name: "Latte intero", dept: "Latticini e Uova", checked: false },
-            { name: "Burro", dept: "Latticini e Uova", checked: false },
-            { name: "Ricotta", dept: "Latticini e Uova", checked: false },
+            { name: "Uova fresche", dept: "Latticini e Uova", checked: false, approved: true },
+            { name: "Yogurt greco", dept: "Latticini e Uova", checked: false, approved: true },
+            { name: "Fiocchi di latte", dept: "Latticini e Uova", checked: false, approved: true },
+            { name: "Stracchino", dept: "Latticini e Uova", checked: false, approved: true },
+            { name: "Mozzarella", dept: "Latticini e Uova", checked: false, approved: true },
+            { name: "Grana Padano", dept: "Latticini e Uova", checked: false, approved: true },
+            { name: "Latte intero", dept: "Latticini e Uova", checked: false, approved: true },
+            { name: "Burro", dept: "Latticini e Uova", checked: false, approved: true },
+            { name: "Ricotta", dept: "Latticini e Uova", checked: false, approved: true },
 
             // --- DISPENSA ---
-            { name: "Pasta", dept: "Dispensa", checked: false },
-            { name: "Riso Basmati", dept: "Dispensa", checked: false },
-            { name: "Olio Extravergine d'Oliva", dept: "Dispensa", checked: false },
-            { name: "Mandorle", dept: "Dispensa", checked: false },
-            { name: "Noci", dept: "Dispensa", checked: false },
-            { name: "Nocciole", dept: "Dispensa", checked: false },
-            { name: "Ceci", dept: "Dispensa", checked: false },
-            { name: "Fagioli", dept: "Dispensa", checked: false },
-            { name: "Lenticchie", dept: "Dispensa", checked: false },
-            { name: "Farina", dept: "Dispensa", checked: false },
-            { name: "Zucchero", dept: "Dispensa", checked: false },
-            { name: "Caffè", dept: "Dispensa", checked: false },
-            { name: "Passata di pomodoro", dept: "Dispensa", checked: false },
+            { name: "Pasta", dept: "Dispensa", checked: false, approved: true },
+            { name: "Riso Basmati", dept: "Dispensa", checked: false, approved: true },
+            { name: "Olio Extravergine d'Oliva", dept: "Dispensa", checked: false, approved: true },
+            { name: "Mandorle", dept: "Dispensa", checked: false, approved: true },
+            { name: "Noci", dept: "Dispensa", checked: false, approved: true },
+            { name: "Nocciole", dept: "Dispensa", checked: false, approved: true },
+            { name: "Ceci", dept: "Dispensa", checked: false, approved: true },
+            { name: "Fagioli", dept: "Dispensa", checked: false, approved: true },
+            { name: "Lenticchie", dept: "Dispensa", checked: false, approved: true },
+            { name: "Farina", dept: "Dispensa", checked: false, approved: true },
+            { name: "Zucchero", dept: "Dispensa", checked: false, approved: true },
+            { name: "Caffè", dept: "Dispensa", checked: false, approved: true },
+            { name: "Passata di pomodoro", dept: "Dispensa", checked: false, approved: true },
 
             // --- SURGELATI ---
-            { name: "Piselli surgelati", dept: "Surgelati", checked: false },
-            { name: "Filetti di merluzzo surgelati", dept: "Surgelati", checked: false },
-            { name: "Minestrone surgelato", dept: "Surgelati", checked: false },
-            { name: "Gelato", dept: "Surgelati", checked: false },
+            { name: "Piselli surgelati", dept: "Surgelati", checked: false, approved: true },
+            { name: "Filetti di merluzzo surgelati", dept: "Surgelati", checked: false, approved: true },
+            { name: "Minestrone surgelato", dept: "Surgelati", checked: false, approved: true },
+            { name: "Gelato", dept: "Surgelati", checked: false, approved: true },
 
             // --- CASA E PULIZIA ---
-            { name: "Detersivo piatti", dept: "Casa e Pulizia", checked: false },
-            { name: "Pastiglie lavastoviglie", dept: "Casa e Pulizia", checked: false },
-            { name: "Sgrassatore universale", dept: "Casa e Pulizia", checked: false },
-            { name: "Carta casa (Scottex)", dept: "Casa e Pulizia", checked: false },
-            { name: "Sacchetti spazzatura", dept: "Casa e Pulizia", checked: false },
+            { name: "Detersivo piatti", dept: "Casa e Pulizia", checked: false, approved: true },
+            { name: "Pastiglie lavastoviglie", dept: "Casa e Pulizia", checked: false, approved: true },
+            { name: "Sgrassatore universale", dept: "Casa e Pulizia", checked: false, approved: true },
+            { name: "Carta casa (Scottex)", dept: "Casa e Pulizia", checked: false, approved: true },
+            { name: "Sacchetti spazzatura", dept: "Casa e Pulizia", checked: false, approved: true },
 
             // --- BUCATO ---
-            { name: "Detersivo lavatrice", dept: "Bucato", checked: false },
-            { name: "Ammorbidente", dept: "Bucato", checked: false },
+            { name: "Detersivo lavatrice", dept: "Bucato", checked: false, approved: true },
+            { name: "Ammorbidente", dept: "Bucato", checked: false, approved: true },
 
             // --- IGIENE PERSONALE ---
-            { name: "Carta igienica", dept: "Igiene Personale", checked: false },
-            { name: "Bagnoschiuma", dept: "Igiene Personale", checked: false },
-            { name: "Dentifricio", dept: "Igiene Personale", checked: false },
-            { name: "Shampoo", dept: "Igiene Personale", checked: false },
+            { name: "Carta igienica", dept: "Igiene Personale", checked: false, approved: true },
+            { name: "Bagnoschiuma", dept: "Igiene Personale", checked: false, approved: true },
+            { name: "Dentifricio", dept: "Igiene Personale", checked: false, approved: true },
+            { name: "Shampoo", dept: "Igiene Personale", checked: false, approved: true },
 
             // --- SFIZI E DOLCI ---
-            { name: "Biscotti", dept: "Sfizi e Dolci", checked: false },
-            { name: "Cioccolato fondente", dept: "Sfizi e Dolci", checked: false },
-            { name: "Snack", dept: "Sfizi e Dolci", checked: false }
+            { name: "Biscotti", dept: "Sfizi e Dolci", checked: false, approved: true },
+            { name: "Cioccolato fondente", dept: "Sfizi e Dolci", checked: false, approved: true },
+            { name: "Snack", dept: "Sfizi e Dolci", checked: false, approved: true }
         ];
 
         function attachDatabaseListener() {
@@ -1006,17 +1009,67 @@
         };
 
         function updateCounter() {
-            const total = currentItemsData.length;
-            const checkedCount = currentItemsData.filter(i => i.checked).length;
+            const total = currentItemsData.filter(i => i.approved !== false).length;
+            const checkedCount = currentItemsData.filter(i => i.approved !== false && i.checked).length;
             document.getElementById('progressCounter').textContent = `${checkedCount} di ${total} prodotti presi`;
         }
 
         function renderList(items) {
             const container = document.getElementById('listContainer');
+            const pendingContainer = document.getElementById('pendingContainer');
             const noResults = document.getElementById('noResults');
+            
             container.innerHTML = '';
+            pendingContainer.innerHTML = '';
 
-            if (!items || items.length === 0) {
+            // Separa gli elementi non approvati (in attesa) da quelli normali
+            const pendingItems = items.filter(i => i.approved === false);
+            const approvedItems = items.filter(i => i.approved !== false);
+
+            // 1. Renderizza la sezione in attesa di approvazione (se presente)
+            if (pendingItems.length > 0) {
+                pendingContainer.classList.remove('hidden');
+                
+                let pendingHtml = pendingItems.map(item => {
+                    const firstName = item.addedByName ? item.addedByName.split(' ')[0] : 'Esterno';
+                    return `
+                        <li class="flex items-center justify-between py-2.5 px-3 bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-700/60 rounded-xl gap-2 mb-2">
+                            <div class="flex items-center gap-2 flex-1 min-w-0">
+                                <span class="text-base">⏳</span>
+                                <div class="min-w-0 flex-1">
+                                    <p class="text-sm font-bold text-amber-900 dark:text-amber-200 truncate">${item.name}</p>
+                                    <p class="text-[11px] text-amber-700 dark:text-amber-400">Reparto: ${item.dept} • da <span class="font-semibold">${firstName}</span></p>
+                                </div>
+                            </div>
+                            <div class="flex items-center gap-1.5 flex-shrink-0">
+                                <button onclick="approveItem(${item.originalIndex})" title="Approva" class="bg-emerald-600 hover:bg-emerald-700 text-white font-bold px-3 py-1.5 rounded-lg text-xs transition shadow-sm flex items-center gap-1">
+                                    ✓ Approva
+                                </button>
+                                <button onclick="rejectItem(${item.originalIndex})" title="Rifiuta" class="bg-rose-600 hover:bg-rose-700 text-white font-bold px-3 py-1.5 rounded-lg text-xs transition shadow-sm flex items-center gap-1">
+                                    ✕ Rifiuta
+                                </button>
+                            </div>
+                        </li>
+                    `;
+                }).join('');
+
+                pendingContainer.innerHTML = `
+                    <div class="bg-amber-100/70 dark:bg-amber-950/60 border-2 border-amber-300 dark:border-amber-600 rounded-2xl p-4 shadow-sm space-y-3">
+                        <div class="flex items-center justify-between">
+                            <h2 class="font-extrabold text-sm text-amber-900 dark:text-amber-300 flex items-center gap-2">
+                                <span>⚠️</span> Prodotti in attesa di approvazione
+                            </h2>
+                            <span class="text-[10px] bg-amber-200 dark:bg-amber-800 text-amber-900 dark:text-amber-100 font-bold px-2 py-0.5 rounded-full">${pendingItems.length}</span>
+                        </div>
+                        <ul class="space-y-1">${pendingHtml}</ul>
+                    </div>
+                `;
+            } else {
+                pendingContainer.classList.add('hidden');
+            }
+
+            // 2. Renderizza la lista normale suddivisa per reparti
+            if (approvedItems.length === 0 && pendingItems.length === 0) {
                 noResults.classList.remove('hidden');
                 return;
             } else {
@@ -1024,7 +1077,7 @@
             }
 
             const grouped = {};
-            items.forEach((item) => {
+            approvedItems.forEach((item) => {
                 if (!grouped[item.dept]) grouped[item.dept] = [];
                 grouped[item.dept].push(item);
             });
@@ -1127,6 +1180,14 @@
             listRef.child(index).child('checked').transaction(checked => !checked);
         }
 
+        function approveItem(index) {
+            listRef.child(index).child('approved').set(true);
+        }
+
+        function rejectItem(index) {
+            deleteItem(index);
+        }
+
         function handleQuickAdd(e) {
             e.preventDefault();
             addItem();
@@ -1141,10 +1202,15 @@
             if (name) {
                 listRef.once('value', snapshot => {
                     const currentList = snapshot.val() || [];
+                    
+                    const currentObj = userLists.find(l => l.id === activeListId);
+                    const isOwner = (currentObj && currentObj.type === 'private') || (currentListOwnerInfo.ownerUid === currentUser.uid);
+
                     const newItemObj = { 
                         name, 
                         dept, 
                         checked: false, 
+                        approved: isOwner, 
                         addedByUid: currentUser.uid, 
                         addedByName: currentUser.displayName || 'Qualcuno' 
                     };
