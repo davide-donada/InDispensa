@@ -457,6 +457,14 @@
             "Casa e Pulizia", "Bucato", "Igiene Personale", "Surgelati", "Sfizi e Dolci"
         ];
 
+        // --- Utility per convertire in sicurezza dati Firebase in Array ---
+        function ensureArray(data) {
+            if (!data) return [];
+            if (Array.isArray(data)) return data;
+            if (typeof data === 'object') return Object.values(data);
+            return [];
+        }
+
         auth.onAuthStateChanged((user) => {
             const loadingScreen = document.getElementById('loadingScreen');
             const loginScreen = document.getElementById('loginScreen');
@@ -558,8 +566,8 @@
         function initUserLists() {
             const userListsRef = db.ref(`utenti/${currentUser.uid}/userLists`);
             userListsRef.on('value', (snapshot) => {
-                let listsFromDb = snapshot.val();
-                if (!listsFromDb || !Array.isArray(listsFromDb) || listsFromDb.length === 0) {
+                let listsFromDb = ensureArray(snapshot.val());
+                if (listsFromDb.length === 0) {
                     listsFromDb = [{ id: 'p_main', name: 'Spesa Personale', type: 'private', ownerUid: currentUser.uid, ownerName: currentUser.displayName }];
                 }
                 userLists = listsFromDb;
@@ -648,7 +656,7 @@
             listRef.on('value', (snapshot) => {
                 const data = snapshot.val();
                 if (!data) listRef.set(defaultItems);
-                else { currentItemsData = data; updateCounter(); filterList(); }
+                else { currentItemsData = ensureArray(data); updateCounter(); filterList(); }
             });
         }
 
@@ -656,8 +664,7 @@
             if (!pantryRef) return;
             pantryRef.off();
             pantryRef.on('value', (snapshot) => {
-                const data = snapshot.val();
-                currentPantryData = data || [];
+                currentPantryData = ensureArray(snapshot.val());
                 renderPantryList();
             });
         }
@@ -769,7 +776,7 @@
             const lowerName = cleanName.toLowerCase();
 
             listRef.once('value', snapshot => {
-                const currentList = snapshot.val() || [];
+                const currentList = ensureArray(snapshot.val());
                 const isOwner = isCurrentuserAdmin();
                 const existingIndex = currentList.findIndex(item => item.name && item.name.trim().toLowerCase() === lowerName);
 
@@ -803,7 +810,7 @@
 
         function deleteItem(index) {
             listRef.once('value', snapshot => {
-                const currentList = snapshot.val() || [];
+                const currentList = ensureArray(snapshot.val());
                 currentList.splice(index, 1);
                 listRef.set(currentList);
             });
@@ -811,26 +818,28 @@
 
         function deselezionaTutti() {
             listRef.once('value', snapshot => {
-                const currentList = snapshot.val() || [];
+                const currentList = ensureArray(snapshot.val());
                 listRef.set(currentList.map(i => ({ ...i, checked: false })));
             });
         }
 
         function eliminaComprati() {
-            showConfirmModal("Elimina presi", "Vuoi eliminare tutti gli elementi spuntati?", "Elimina tutti", true, "🗑️", () => {
+            showConfirmModal("Elimina presi", "Vuoi eliminare tutti gli elementi spuntati?", "Elimina tutti", true, "🧹", () => {
                 listRef.once('value', snapshot => {
-                    const currentList = snapshot.val() || [];
+                    const currentList = ensureArray(snapshot.val());
                     listRef.set(currentList.filter(i => !i.checked));
                 });
             });
         }
 
-        // --- SEZIONE DISPENSA & GESTIONE SCADENZE (JS CORE) ---
+        // --- SEZIONE DISPENSA & SCADENZE (ROBUSTA PER LISTE CONDIVISE) ---
         function moveCheckedToPantry() {
+            if (!listRef || !pantryRef) return;
+
             listRef.once('value', snapshot => {
-                const currentList = snapshot.val() || [];
-                const checkedItems = currentList.filter(i => i.checked);
-                const remainingItems = currentList.filter(i => !i.checked);
+                const currentList = ensureArray(snapshot.val());
+                const checkedItems = currentList.filter(i => i && i.checked);
+                const remainingItems = currentList.filter(i => i && !i.checked);
 
                 if (checkedItems.length === 0) {
                     showAlertModal("Nessun prodotto preso", "Spunta prima i prodotti che hai acquistato per poterli spostare in dispensa.", "⚠️");
@@ -838,7 +847,7 @@
                 }
 
                 pantryRef.once('value', pSnap => {
-                    const currentPantry = pSnap.val() || [];
+                    const currentPantry = ensureArray(pSnap.val());
                     
                     checkedItems.forEach(item => {
                         currentPantry.push({
@@ -853,7 +862,7 @@
 
                     pantryRef.set(currentPantry);
                     listRef.set(remainingItems);
-                    showAlertModal("Prodotti Spostati", `${checkedItems.length} prodotti presi sono stati trasferiti nella tua Dispensa!`, "📦");
+                    showAlertModal("Prodotti Spostati", `${checkedItems.length} prodotti presi sono stati trasferiti in Dispensa!`, "📦");
                 });
             });
         }
@@ -868,7 +877,7 @@
             if (!name) return;
 
             pantryRef.once('value', snapshot => {
-                const currentPantry = snapshot.val() || [];
+                const currentPantry = ensureArray(snapshot.val());
                 currentPantry.push({
                     id: `pantry_${Date.now()}`,
                     name: name,
@@ -988,7 +997,7 @@
 
         function deletePantryItem(index) {
             pantryRef.once('value', snapshot => {
-                const currentPantry = snapshot.val() || [];
+                const currentPantry = ensureArray(snapshot.val());
                 currentPantry.splice(index, 1);
                 pantryRef.set(currentPantry);
             });
