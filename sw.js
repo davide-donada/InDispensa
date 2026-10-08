@@ -97,3 +97,29 @@ messaging.onBackgroundMessage((payload) => {
   };
   self.registration.showNotification(notificationTitle, notificationOptions);
 });
+
+// Listener di fallback per intercettare i test locali da DevTools
+self.addEventListener('push', (event) => {
+  if (event.data) {
+    let title = "InDispensa Test";
+    let body = event.data.text();
+
+    try {
+      const json = event.data.json();
+      if (json.notification) {
+        title = json.notification.title || title;
+        body = json.notification.body || body;
+      }
+    } catch (e) {
+      // Se è testo semplice usa il body così com'è
+    }
+
+    event.waitUntil(
+      self.registration.showNotification(title, {
+        body: body,
+        icon: './icon-192.png',
+        badge: './icon-192.png'
+      })
+    );
+  }
+});
