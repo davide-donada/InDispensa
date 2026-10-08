@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>InDispensa - Lista Spesa & Eventi</title>
+    <title>InDispensa - Lista Spesa & Gestione Dispensa</title>
     
     <!-- Favicon e Icone PWA / iOS -->
     <link rel="icon" type="image/x-icon" href="./favicon.ico">
@@ -20,15 +20,15 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="InDispensa">
 
-    <!-- Meta Open Graph per anteprime WhatsApp & Social -->
-    <meta property="og:title" content="InDispensa - Lista Spesa Condivisa">
+    <!-- Meta Open Graph -->
+    <meta property="og:title" content="InDispensa - Lista Spesa Condivisa & Dispensa">
     <meta property="og:description" content="La tua spesa e la tua casa in sintonia">
     <meta property="og:image" content="./og-image.png">
     <meta property="og:image:type" content="image/png">
     <meta property="og:image:width" content="1200">
     <meta property="og:image:height" content="630">
 
-    <!-- Tailwind CSS con Configurazione Dark Mode -->
+    <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
         tailwind.config = {
@@ -40,7 +40,6 @@
     <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-database-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-auth-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-messaging-compat.js"></script>
 
     <style>
         .item-checked {
@@ -93,7 +92,7 @@
         </p>
     </div>
 
-    <!-- Schermata di Login Obbligatoria -->
+    <!-- Schermata di Login -->
     <div id="loginScreen" class="hidden fixed inset-0 bg-indigo-600 dark:bg-slate-950 z-40 flex items-center justify-center p-6 text-white text-center">
         <div class="max-w-sm w-full bg-white dark:bg-slate-900 text-gray-800 dark:text-slate-100 p-8 rounded-3xl shadow-2xl space-y-6 border border-gray-100 dark:border-slate-800">
             <img src="./icon-192.png" alt="InDispensa Logo" class="w-20 h-20 mx-auto rounded-3xl shadow-lg">
@@ -101,15 +100,7 @@
                 <h1 class="text-2xl font-extrabold text-indigo-900 dark:text-indigo-400">InDispensa</h1>
                 <p class="text-xs text-gray-500 dark:text-slate-400 mt-1">La tua spesa e la tua casa in sintonia</p>
             </div>
-            <p class="text-xs text-gray-600 dark:text-slate-300 leading-relaxed">Accedi con il tuo account Google per gestire le tue liste private ed eventi condivisi.</p>
-            
             <button type="button" onclick="loginGoogle()" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-4 px-4 rounded-2xl flex items-center justify-center gap-3 transition active:scale-95 shadow-md text-sm">
-                <svg class="w-5 h-5 bg-white rounded-full p-0.5" viewBox="0 0 24 24">
-                    <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
-                    <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
-                    <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z"/>
-                    <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"/>
-                </svg>
                 <span>Accedi con Google</span>
             </button>
         </div>
@@ -117,281 +108,285 @@
 
     <!-- Main App Content -->
     <div id="appContent" class="hidden">
-        <!-- Header Minimal -->
-        <div class="bg-indigo-600 dark:bg-slate-900 text-white px-4 py-3 shadow-sm sticky top-0 z-20 transition-colors border-b border-indigo-700/50 dark:border-slate-800">
-            <div class="max-w-md md:max-w-5xl lg:max-w-7xl mx-auto flex justify-between items-center">
-                <div class="flex items-center gap-2.5">
-                    <img src="./icon-192.png" alt="InDispensa Logo" class="w-8 h-8 rounded-xl shadow-sm">
-                    <div>
-                        <h1 class="text-base font-extrabold tracking-tight flex items-center gap-2">
-                            <span>InDispensa</span>
-                            <span id="networkBadge" class="hidden text-[9px] bg-rose-500 text-white font-bold px-1.5 py-0.5 rounded-full shadow-sm animate-pulse">Offline</span>
-                        </h1>
-                        <p id="progressCounter" class="text-[11px] text-indigo-200 dark:text-slate-400 font-medium leading-none mt-0.5">Caricamento...</p>
+        <!-- Header Minimal con Tab Bar Navigazione -->
+        <div class="bg-indigo-600 dark:bg-slate-900 text-white px-4 pt-3 pb-0 shadow-sm sticky top-0 z-20 transition-colors border-b border-indigo-700/50 dark:border-slate-800">
+            <div class="max-w-md md:max-w-5xl lg:max-w-7xl mx-auto flex flex-col gap-2.5">
+                <div class="flex justify-between items-center">
+                    <div class="flex items-center gap-2.5">
+                        <img src="./icon-192.png" alt="InDispensa Logo" class="w-8 h-8 rounded-xl shadow-sm">
+                        <div>
+                            <h1 class="text-base font-extrabold tracking-tight flex items-center gap-2">
+                                <span>InDispensa</span>
+                                <span id="networkBadge" class="hidden text-[9px] bg-rose-500 text-white font-bold px-1.5 py-0.5 rounded-full shadow-sm animate-pulse">Offline</span>
+                            </h1>
+                            <p id="progressCounter" class="text-[11px] text-indigo-200 dark:text-slate-400 font-medium leading-none mt-0.5">Caricamento...</p>
+                        </div>
+                    </div>
+                    
+                    <div class="flex items-center gap-2">
+                        <button onclick="toggleDarkMode()" id="themeToggleBtn" title="Cambia tema" class="bg-indigo-700 hover:bg-indigo-800 dark:bg-slate-800 p-2 rounded-xl text-xs active:scale-95">🌙</button>
+                        <div class="flex items-center gap-2 bg-indigo-700/60 dark:bg-slate-800 p-1 pl-2 rounded-xl">
+                            <img id="userAvatar" src="" class="w-6 h-6 rounded-full">
+                            <button onclick="logoutGoogle()" class="bg-indigo-800 dark:bg-slate-700 hover:bg-indigo-900 text-[11px] py-1 px-2 rounded-lg text-indigo-100 dark:text-slate-200 font-medium">Esci</button>
+                        </div>
                     </div>
                 </div>
-                
-                <!-- Profile & Theme Toggle -->
-                <div class="flex items-center gap-2">
-                    <button onclick="toggleDarkMode()" id="themeToggleBtn" title="Cambia tema" class="bg-indigo-700 hover:bg-indigo-800 dark:bg-slate-800 dark:hover:bg-slate-700 p-2 rounded-xl transition border border-indigo-500/40 dark:border-slate-700 flex items-center justify-center text-xs shadow-sm active:scale-95">
-                        🌙
+
+                <!-- Navigazione a Schede principale: Lista vs Dispensa -->
+                <div class="flex items-center gap-2 border-b border-indigo-500/30 dark:border-slate-800">
+                    <button id="tabShoppingBtn" onclick="switchTab('shopping')" class="flex-1 py-2 text-xs font-extrabold text-center border-b-2 border-white dark:border-indigo-400 text-white transition flex items-center justify-center gap-1.5">
+                        <span>🛒</span> Lista Spesa
                     </button>
-                    <div class="flex items-center gap-2 bg-indigo-700/60 dark:bg-slate-800 p-1 pl-2 rounded-xl border border-indigo-500/40 dark:border-slate-700">
-                        <img id="userAvatar" src="" alt="User" class="w-6 h-6 rounded-full shadow-sm">
-                        <button onclick="logoutGoogle()" class="bg-indigo-800 dark:bg-slate-700 hover:bg-indigo-900 text-[11px] py-1 px-2 rounded-lg text-indigo-100 dark:text-slate-200 transition active:scale-95 font-medium">Esci</button>
-                    </div>
+                    <button id="tabPantryBtn" onclick="switchTab('pantry')" class="flex-1 py-2 text-xs font-extrabold text-center border-b-2 border-transparent text-indigo-200 dark:text-slate-400 hover:text-white transition flex items-center justify-center gap-1.5">
+                        <span>📦</span> La Mia Dispensa <span id="expiringBadge" class="hidden text-[9px] bg-amber-400 text-slate-950 font-black px-1.5 py-0.2 rounded-full">!</span>
+                    </button>
                 </div>
             </div>
         </div>
 
-        <!-- Layout Principale Streamlined -->
+        <!-- Layout Principale -->
         <div class="max-w-md md:max-w-5xl lg:max-w-7xl mx-auto p-3.5 space-y-3 w-full box-border">
 
-            <!-- Pannello di Controllo Lista Unificato -->
-            <div class="bg-white dark:bg-slate-900 border border-gray-200/80 dark:border-slate-800 rounded-2xl p-3 shadow-sm space-y-2.5 transition-colors">
-                <div class="flex flex-wrap items-center justify-between gap-2">
-                    <div class="flex items-center gap-2 flex-1 min-w-[180px]">
-                        <span id="houseIcon" class="text-base flex-shrink-0">🔒</span>
-                        <select id="houseSelect" onchange="onHouseSelectChange(this.value)" class="bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-700 text-indigo-950 dark:text-slate-100 font-bold rounded-xl px-3 py-2 text-xs focus:outline-none focus:ring-2 focus:ring-indigo-500 flex-1 min-w-0 truncate shadow-sm cursor-pointer">
+            <!-- SCHEDA 1: LISTA SPESA -->
+            <div id="shoppingTabSection" class="space-y-3">
+                <!-- Pannello di Controllo Lista Unificato -->
+                <div class="bg-white dark:bg-slate-900 border border-gray-200/80 dark:border-slate-800 rounded-2xl p-3 shadow-sm space-y-2.5 transition-colors">
+                    <div class="flex flex-wrap items-center justify-between gap-2">
+                        <div class="flex items-center gap-2 flex-1 min-w-[180px]">
+                            <span id="houseIcon" class="text-base flex-shrink-0">🔒</span>
+                            <select id="houseSelect" onchange="onHouseSelectChange(this.value)" class="bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-700 text-indigo-950 dark:text-slate-100 font-bold rounded-xl px-3 py-2 text-xs focus:outline-none focus:ring-2 focus:ring-indigo-500 flex-1 min-w-0 truncate shadow-sm cursor-pointer"></select>
+                            <button id="deleteHouseBtn" onclick="eliminaListaCorrente()" title="Rimuovi lista" class="text-gray-400 hover:text-rose-500 p-2 text-xs transition rounded-xl hover:bg-rose-50 dark:hover:bg-slate-800 active:scale-95 flex-shrink-0">🗑️</button>
+                        </div>
+                        <button id="shareBtn" onclick="openShareModal()" class="bg-indigo-600 text-white px-3 py-2 rounded-xl font-bold hover:bg-indigo-700 active:scale-95 transition shadow-sm flex items-center gap-1 text-xs flex-shrink-0">
+                            <span>🔗</span> Condividi
+                        </button>
+                    </div>
+
+                    <div id="ownerBadgeContainer" class="flex items-center justify-between text-[11px] pt-2 border-t border-gray-100 dark:border-slate-800 text-gray-500 dark:text-slate-400 px-0.5">
+                        <span class="flex items-center gap-1 truncate">
+                            <span>👑</span> <span class="text-gray-600 dark:text-slate-400">Admin:</span>
+                            <span id="ownerNameDisplay" class="font-extrabold text-indigo-600 dark:text-indigo-400 truncate">Sconosciuto</span>
+                        </span>
+                        <span id="listTypeBadge" class="bg-indigo-50 dark:bg-slate-800 text-indigo-700 dark:text-indigo-300 font-bold px-2 py-0.5 rounded-lg text-[10px] flex-shrink-0">Condivisa</span>
+                    </div>
+                </div>
+
+                <!-- Form Aggiunta Prodotto Spesa -->
+                <form id="quickAddForm" onsubmit="handleQuickAdd(event)" class="bg-white dark:bg-slate-900 p-3 rounded-2xl shadow-sm space-y-2 border border-gray-200/80 dark:border-slate-800 transition-colors">
+                    <div class="flex items-center justify-between px-1">
+                        <span class="text-[11px] font-bold text-gray-500 dark:text-slate-400 uppercase tracking-wider flex items-center gap-1"><span>➕</span> Aggiungi in lista</span>
+                        <span id="autoCatBadge" class="text-[10px] text-indigo-600 dark:text-indigo-400 bg-indigo-50 dark:bg-slate-800 px-2 py-0.5 rounded-md hidden font-bold">Cat. rilevata</span>
+                    </div>
+                    
+                    <div class="flex flex-wrap sm:flex-nowrap gap-2">
+                        <div class="relative flex-1 min-w-[130px]">
+                            <input type="text" id="newItemText" list="productsList" oninput="onProductInput(this.value)" placeholder="Nome (es. Latte, Mele...)" class="w-full bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-700 text-gray-800 dark:text-slate-100 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 shadow-inner">
+                            <datalist id="productsList"></datalist>
+                        </div>
+                        <input type="text" id="newItemQty" placeholder="Qtà (es. 2x)" class="w-20 bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-700 text-gray-800 dark:text-slate-100 rounded-xl px-2.5 py-2 text-xs focus:outline-none focus:ring-2 focus:ring-indigo-500 shadow-inner">
+                        <select id="newItemDept" class="w-28 bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-700 text-gray-800 dark:text-slate-100 rounded-xl px-2 py-2 text-xs focus:outline-none font-semibold shadow-inner cursor-pointer">
+                            <option value="Frutta">🍎 Frutta</option>
+                            <option value="Verdura">🥬 Verdura</option>
+                            <option value="Carne e Pesce">🥩 Carne/Pesce</option>
+                            <option value="Latticini e Uova">🧀 Latticini</option>
+                            <option value="Dispensa">📦 Dispensa</option>
+                            <option value="Surgelati">❄️ Surgelati</option>
+                            <option value="Casa e Pulizia">🧹 Pulizia</option>
+                            <option value="Bucato">🧺 Bucato</option>
+                            <option value="Igiene Personale">🧴 Igiene</option>
+                            <option value="Sfizi e Dolci">🍫 Dolci</option>
                         </select>
-                        <button id="deleteHouseBtn" onclick="eliminaListaCorrente()" title="Rimuovi lista" class="text-gray-400 hover:text-rose-500 p-2 text-xs transition rounded-xl hover:bg-rose-50 dark:hover:bg-slate-800 active:scale-95 flex-shrink-0">🗑️</button>
+                        <button type="submit" class="bg-indigo-600 hover:bg-indigo-700 text-white font-extrabold px-3.5 py-2 rounded-xl text-base active:scale-95 transition shadow-md flex-shrink-0">+</button>
                     </div>
-                    <button id="shareBtn" onclick="openShareModal()" class="bg-indigo-600 text-white px-3 py-2 rounded-xl font-bold hover:bg-indigo-700 active:scale-95 transition shadow-sm flex items-center gap-1 text-xs flex-shrink-0">
-                        <span>🔗</span> Condividi
-                    </button>
+                    <div>
+                        <input type="text" id="newItemNote" placeholder="Note facoltative (es. Solo se in offerta...)" class="w-full bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-700 text-gray-700 dark:text-slate-300 rounded-xl px-3 py-1.5 text-xs focus:outline-none shadow-inner">
+                    </div>
+                </form>
+
+                <!-- Prodotti Frequenti (1-Tap) -->
+                <div class="bg-white dark:bg-slate-900 p-2.5 rounded-2xl shadow-sm border border-gray-200/80 dark:border-slate-800">
+                    <div class="text-[10px] font-bold text-gray-400 dark:text-slate-500 uppercase tracking-wider mb-1.5 px-1 flex justify-between">
+                        <span>⚡ Frequenti (1-Tap Anti-duplicato)</span>
+                    </div>
+                    <div class="flex items-center gap-1.5 overflow-x-auto no-scrollbar pb-0.5 pt-0.5 px-0.5">
+                        <button type="button" onclick="addFrequentItem('Pane')" class="bg-indigo-50/80 dark:bg-slate-800 text-indigo-900 dark:text-slate-200 text-xs font-bold px-3 py-1.5 rounded-xl border border-indigo-100 dark:border-slate-700 whitespace-nowrap active:scale-95">🍞 Pane</button>
+                        <button type="button" onclick="addFrequentItem('Latte')" class="bg-indigo-50/80 dark:bg-slate-800 text-indigo-900 dark:text-slate-200 text-xs font-bold px-3 py-1.5 rounded-xl border border-indigo-100 dark:border-slate-700 whitespace-nowrap active:scale-95">🥛 Latte</button>
+                        <button type="button" onclick="addFrequentItem('Uova')" class="bg-indigo-50/80 dark:bg-slate-800 text-indigo-900 dark:text-slate-200 text-xs font-bold px-3 py-1.5 rounded-xl border border-indigo-100 dark:border-slate-700 whitespace-nowrap active:scale-95">🥚 Uova</button>
+                        <button type="button" onclick="addFrequentItem('Caffè')" class="bg-indigo-50/80 dark:bg-slate-800 text-indigo-900 dark:text-slate-200 text-xs font-bold px-3 py-1.5 rounded-xl border border-indigo-100 dark:border-slate-700 whitespace-nowrap active:scale-95">☕ Caffè</button>
+                        <button type="button" onclick="addFrequentItem('Acqua')" class="bg-indigo-50/80 dark:bg-slate-800 text-indigo-900 dark:text-slate-200 text-xs font-bold px-3 py-1.5 rounded-xl border border-indigo-100 dark:border-slate-700 whitespace-nowrap active:scale-95">💧 Acqua</button>
+                        <button type="button" onclick="addFrequentItem('Pasta')" class="bg-indigo-50/80 dark:bg-slate-800 text-indigo-900 dark:text-slate-200 text-xs font-bold px-3 py-1.5 rounded-xl border border-indigo-100 dark:border-slate-700 whitespace-nowrap active:scale-95">🍝 Pasta</button>
+                        <button type="button" onclick="addFrequentItem('Biscotti')" class="bg-indigo-50/80 dark:bg-slate-800 text-indigo-900 dark:text-slate-200 text-xs font-bold px-3 py-1.5 rounded-xl border border-indigo-100 dark:border-slate-700 whitespace-nowrap active:scale-95">🍪 Biscotti</button>
+                    </div>
                 </div>
 
-                <div id="ownerBadgeContainer" class="flex items-center justify-between text-[11px] pt-2 border-t border-gray-100 dark:border-slate-800 text-gray-500 dark:text-slate-400 px-0.5">
-                    <span class="flex items-center gap-1 truncate">
-                        <span>👑</span> <span class="text-gray-600 dark:text-slate-400">Admin:</span>
-                        <span id="ownerNameDisplay" class="font-extrabold text-indigo-600 dark:text-indigo-400 truncate">Sconosciuto</span>
-                    </span>
-                    <span id="listTypeBadge" class="bg-indigo-50 dark:bg-slate-800 text-indigo-700 dark:text-indigo-300 font-bold px-2 py-0.5 rounded-lg text-[10px] flex-shrink-0">Condivisa</span>
+                <!-- Barra Strumenti Lista -->
+                <div class="bg-white dark:bg-slate-900 p-3 rounded-2xl shadow-sm border border-gray-200/80 dark:border-slate-800 flex flex-col gap-2.5">
+                    <div class="bg-gray-50 dark:bg-slate-800 p-1 rounded-xl border border-gray-200 dark:border-slate-700 flex items-center px-3 gap-2 shadow-inner">
+                        <span class="text-gray-400 text-xs">🔍</span>
+                        <input type="text" id="searchInput" oninput="filterList()" placeholder="Cerca prodotto nella lista..." class="w-full bg-transparent text-sm text-gray-800 dark:text-slate-100 focus:outline-none py-1">
+                        <button type="button" onclick="clearSearch()" id="clearSearchBtn" class="text-gray-400 text-xs hidden font-bold p-1">✕</button>
+                    </div>
+
+                    <div class="flex flex-wrap justify-between items-center gap-2 text-xs">
+                        <div class="flex items-center gap-1.5 flex-wrap">
+                            <button id="hideCheckedBtn" onclick="toggleHideChecked()" class="bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-700 px-2.5 py-1.5 rounded-xl font-bold shadow-sm active:scale-95">
+                                <span>👁️</span> <span id="hideCheckedLabel">Solo da prendere</span>
+                            </button>
+                            <button id="focusModeBtn" onclick="toggleFocusMode()" class="bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-700 px-2.5 py-1.5 rounded-xl font-bold shadow-sm active:scale-95">
+                                <span>🛒</span> <span id="focusModeLabel">Focus Mode</span>
+                            </button>
+                            <button onclick="openDeptOrderModal()" class="bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-700 px-2.5 py-1.5 rounded-xl font-bold shadow-sm active:scale-95">
+                                <span>⚙️</span> Percorso
+                            </button>
+                        </div>
+
+                        <div class="flex gap-2 font-semibold ml-auto flex-wrap">
+                            <button onclick="moveCheckedToPantry()" class="text-emerald-600 dark:text-emerald-400 hover:text-emerald-700 font-bold py-1 flex items-center gap-1">📦 Sposta presi in Dispensa</button>
+                            <button onclick="eliminaComprati()" class="text-rose-500 hover:text-rose-700 py-1">Pulisci presi</button>
+                        </div>
+                    </div>
                 </div>
+
+                <div id="pendingContainer" class="hidden"></div>
+                <div id="listContainer" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3.5 items-start pt-1"></div>
+                <div id="noResults" class="hidden text-center text-gray-500 dark:text-slate-400 py-12 text-sm bg-white dark:bg-slate-900 rounded-2xl border border-gray-200/80 dark:border-slate-800 shadow-sm font-medium">Nessun prodotto trovato.</div>
             </div>
 
-            <!-- Modulo Aggiunta Rapida Compatto con Qtà e Note -->
-            <form id="quickAddForm" onsubmit="handleQuickAdd(event)" class="bg-white dark:bg-slate-900 p-3 rounded-2xl shadow-sm space-y-2 border border-gray-200/80 dark:border-slate-800 transition-colors">
-                <div class="flex items-center justify-between px-1">
-                    <span class="text-[11px] font-bold text-gray-500 dark:text-slate-400 uppercase tracking-wider flex items-center gap-1"><span>➕</span> Aggiungi prodotto</span>
-                    <span id="autoCatBadge" class="text-[10px] text-indigo-600 dark:text-indigo-400 bg-indigo-50 dark:bg-slate-800 px-2 py-0.5 rounded-md hidden font-bold">Cat. rilevata</span>
-                </div>
+
+            <!-- SCHEDA 2: LA MIA DISPENSA & SCADENZE -->
+            <div id="pantryTabSection" class="hidden space-y-3">
                 
-                <div class="flex flex-wrap sm:flex-nowrap gap-2">
-                    <div class="relative flex-1 min-w-[130px]">
-                        <input type="text" id="newItemText" list="productsList" oninput="onProductInput(this.value)" placeholder="Nome (es. Latte, Mele...)" class="w-full bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-700 text-gray-800 dark:text-slate-100 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 transition shadow-inner">
-                        <datalist id="productsList"></datalist>
-                    </div>
-                    <input type="text" id="newItemQty" placeholder="Qtà (es. 2x, 500g)" class="w-24 bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-700 text-gray-800 dark:text-slate-100 rounded-xl px-2.5 py-2 text-xs focus:outline-none focus:ring-2 focus:ring-indigo-500 shadow-inner">
-                    <select id="newItemDept" class="w-28 bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-700 text-gray-800 dark:text-slate-100 rounded-xl px-2 py-2 text-xs focus:outline-none focus:ring-2 focus:ring-indigo-500 font-semibold shadow-inner cursor-pointer">
-                        <option value="Frutta">🍎 Frutta</option>
-                        <option value="Verdura">🥬 Verdura</option>
-                        <option value="Carne e Pesce">🥩 Carne/Pesce</option>
-                        <option value="Latticini e Uova">🧀 Latticini</option>
-                        <option value="Dispensa">📦 Dispensa</option>
-                        <option value="Surgelati">❄️ Surgelati</option>
-                        <option value="Casa e Pulizia">🧹 Pulizia</option>
-                        <option value="Bucato">🧺 Bucato</option>
-                        <option value="Igiene Personale">🧴 Igiene</option>
-                        <option value="Sfizi e Dolci">🍫 Dolci</option>
-                    </select>
-                    <button type="submit" class="bg-indigo-600 hover:bg-indigo-700 text-white font-extrabold px-3.5 py-2 rounded-xl text-base active:scale-95 transition flex items-center justify-center shadow-md flex-shrink-0">
-                        +
-                    </button>
-                </div>
-                <div>
-                    <input type="text" id="newItemNote" placeholder="Note facoltative (es. Solo se in offerta, marca specifica...)" class="w-full bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-700 text-gray-700 dark:text-slate-300 rounded-xl px-3 py-1.5 text-xs focus:outline-none focus:ring-2 focus:ring-indigo-500 shadow-inner">
-                </div>
-            </form>
-
-            <!-- Sezione: Prodotti Frequenti (1-Tap Anti-Duplicato) -->
-            <div class="bg-white dark:bg-slate-900 p-2.5 rounded-2xl shadow-sm border border-gray-200/80 dark:border-slate-800 transition-colors">
-                <div class="text-[10px] font-bold text-gray-400 dark:text-slate-500 uppercase tracking-wider mb-1.5 px-1 flex items-center justify-between">
-                    <span>⚡ Aggiunta rapida frequenti (1-Tap)</span>
-                </div>
-                <div class="flex items-center gap-1.5 overflow-x-auto no-scrollbar pb-0.5 pt-0.5 px-0.5">
-                    <button type="button" onclick="addFrequentItem('Pane')" class="bg-indigo-50/80 dark:bg-slate-800 hover:bg-indigo-100 text-indigo-900 dark:text-slate-200 text-xs font-bold px-3 py-1.5 rounded-xl border border-indigo-100 dark:border-slate-700 whitespace-nowrap active:scale-95 transition flex items-center gap-1">🍞 Pane</button>
-                    <button type="button" onclick="addFrequentItem('Latte')" class="bg-indigo-50/80 dark:bg-slate-800 hover:bg-indigo-100 text-indigo-900 dark:text-slate-200 text-xs font-bold px-3 py-1.5 rounded-xl border border-indigo-100 dark:border-slate-700 whitespace-nowrap active:scale-95 transition flex items-center gap-1">🥛 Latte</button>
-                    <button type="button" onclick="addFrequentItem('Uova')" class="bg-indigo-50/80 dark:bg-slate-800 hover:bg-indigo-100 text-indigo-900 dark:text-slate-200 text-xs font-bold px-3 py-1.5 rounded-xl border border-indigo-100 dark:border-slate-700 whitespace-nowrap active:scale-95 transition flex items-center gap-1">🥚 Uova</button>
-                    <button type="button" onclick="addFrequentItem('Caffè')" class="bg-indigo-50/80 dark:bg-slate-800 hover:bg-indigo-100 text-indigo-900 dark:text-slate-200 text-xs font-bold px-3 py-1.5 rounded-xl border border-indigo-100 dark:border-slate-700 whitespace-nowrap active:scale-95 transition flex items-center gap-1">☕ Caffè</button>
-                    <button type="button" onclick="addFrequentItem('Acqua')" class="bg-indigo-50/80 dark:bg-slate-800 hover:bg-indigo-100 text-indigo-900 dark:text-slate-200 text-xs font-bold px-3 py-1.5 rounded-xl border border-indigo-100 dark:border-slate-700 whitespace-nowrap active:scale-95 transition flex items-center gap-1">💧 Acqua</button>
-                    <button type="button" onclick="addFrequentItem('Pasta')" class="bg-indigo-50/80 dark:bg-slate-800 hover:bg-indigo-100 text-indigo-900 dark:text-slate-200 text-xs font-bold px-3 py-1.5 rounded-xl border border-indigo-100 dark:border-slate-700 whitespace-nowrap active:scale-95 transition flex items-center gap-1">🍝 Pasta</button>
-                    <button type="button" onclick="addFrequentItem('Biscotti')" class="bg-indigo-50/80 dark:bg-slate-800 hover:bg-indigo-100 text-indigo-900 dark:text-slate-200 text-xs font-bold px-3 py-1.5 rounded-xl border border-indigo-100 dark:border-slate-700 whitespace-nowrap active:scale-95 transition flex items-center gap-1">🍪 Biscotti</button>
-                    <button type="button" onclick="addFrequentItem('Insalata')" class="bg-indigo-50/80 dark:bg-slate-800 hover:bg-indigo-100 text-indigo-900 dark:text-slate-200 text-xs font-bold px-3 py-1.5 rounded-xl border border-indigo-100 dark:border-slate-700 whitespace-nowrap active:scale-95 transition flex items-center gap-1">🥗 Insalata</button>
-                </div>
-            </div>
-
-            <!-- Barra Strumenti e Ricerca + Focus Mode e Percorso Supermercato -->
-            <div class="bg-white dark:bg-slate-900 p-3 rounded-2xl shadow-sm border border-gray-200/80 dark:border-slate-800 flex flex-col gap-2.5 transition-colors">
-                <div class="bg-gray-50 dark:bg-slate-800 p-1 rounded-xl border border-gray-200 dark:border-slate-700 flex items-center px-3 gap-2 shadow-inner">
-                    <span class="text-gray-400 dark:text-slate-500 text-xs">🔍</span>
-                    <input type="text" id="searchInput" oninput="filterList()" placeholder="Cerca prodotto nella lista..." class="w-full bg-transparent text-sm text-gray-800 dark:text-slate-100 focus:outline-none py-1">
-                    <button type="button" onclick="clearSearch()" id="clearSearchBtn" class="text-gray-400 hover:text-gray-600 dark:hover:text-slate-200 text-xs hidden font-bold p-1">✕</button>
-                </div>
-
-                <div class="flex flex-wrap justify-between items-center gap-2 text-xs">
-                    <div class="flex items-center gap-2 flex-wrap">
-                        <button id="hideCheckedBtn" onclick="toggleHideChecked()" class="bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-700 text-gray-700 dark:text-slate-300 px-3 py-1.5 rounded-xl font-bold shadow-sm flex items-center gap-1.5 active:scale-95 transition">
-                            <span>👁️</span> <span id="hideCheckedLabel">Solo da prendere</span>
-                        </button>
-                        
-                        <button id="focusModeBtn" onclick="toggleFocusMode()" class="bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-700 text-gray-700 dark:text-slate-300 px-3 py-1.5 rounded-xl font-bold shadow-sm flex items-center gap-1.5 active:scale-95 transition">
-                            <span>🛒</span> <span id="focusModeLabel">Focus Mode</span>
-                        </button>
-
-                        <button onclick="openDeptOrderModal()" class="bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-700 text-gray-700 dark:text-slate-300 px-3 py-1.5 rounded-xl font-bold shadow-sm flex items-center gap-1.5 active:scale-95 transition" title="Personalizza l'ordine delle corsie">
-                            <span>⚙️</span> Percorso
-                        </button>
-                    </div>
-
-                    <div class="flex gap-2.5 font-semibold ml-auto">
-                        <button onclick="deselezionaTutti()" class="text-gray-500 dark:text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 transition py-1">Deseleziona</button>
-                        <button onclick="eliminaComprati()" class="text-rose-500 dark:text-rose-400 hover:text-rose-700 transition py-1">Pulisci presi</button>
+                <!-- Box In Evidenza: Avviso Scadenze -->
+                <div id="pantryAlertBox" class="bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-700/60 p-3.5 rounded-2xl shadow-sm flex items-center justify-between">
+                    <div class="flex items-center gap-3">
+                        <span class="text-2xl">⚠️</span>
+                        <div>
+                            <h3 id="pantryAlertTitle" class="font-extrabold text-xs text-amber-900 dark:text-amber-200">Nessuna scadenza critica</h3>
+                            <p id="pantryAlertSub" class="text-[11px] text-amber-700 dark:text-amber-400">I tuoi prodotti in dispensa sono tutti freschi e in regola.</p>
+                        </div>
                     </div>
                 </div>
-            </div>
 
-            <!-- Contenitore Approvazioni in Attesa -->
-            <div id="pendingContainer" class="hidden"></div>
+                <!-- Modulo Aggiunta Diretta in Dispensa -->
+                <form id="pantryAddForm" onsubmit="handlePantryAdd(event)" class="bg-white dark:bg-slate-900 p-3 rounded-2xl shadow-sm space-y-2 border border-gray-200/80 dark:border-slate-800">
+                    <div class="text-[11px] font-bold text-gray-500 dark:text-slate-400 uppercase tracking-wider px-1 flex items-center gap-1">
+                        <span>📦</span> Aggiungi direttamente in Dispensa
+                    </div>
+                    <div class="flex flex-wrap sm:flex-nowrap gap-2">
+                        <input type="text" id="pantryItemText" placeholder="Nome prodotto..." class="flex-1 min-w-[120px] bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-xl px-3 py-2 text-sm focus:outline-none shadow-inner">
+                        <select id="pantryLocationSelect" class="w-28 bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-xl px-2 py-2 text-xs font-semibold shadow-inner cursor-pointer">
+                            <option value="Frigo">❄️ Frigo</option>
+                            <option value="Freezer">🧊 Freezer</option>
+                            <option value="Dispensa" selected>📦 Dispensa</option>
+                            <option value="Altro">🚪 Altro</option>
+                        </select>
+                        <input type="date" id="pantryExpireDate" class="w-32 bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-xl px-2 py-2 text-xs focus:outline-none shadow-inner">
+                        <button type="submit" class="bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold px-3.5 py-2 rounded-xl text-xs active:scale-95 transition shadow-md flex-shrink-0">Salva in Dispensa</button>
+                    </div>
+                </form>
 
-            <!-- Lista Reparti -->
-            <div id="listContainer" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3.5 items-start pt-1"></div>
+                <!-- Filtri Posizione / Ubicazione -->
+                <div class="bg-white dark:bg-slate-900 p-2.5 rounded-2xl shadow-sm border border-gray-200/80 dark:border-slate-800 flex items-center gap-1.5 overflow-x-auto no-scrollbar">
+                    <button onclick="filterPantryLocation('ALL')" id="pantryFilter_ALL" class="pantry-filter-btn bg-indigo-600 text-white text-xs font-bold px-3 py-1.5 rounded-xl transition">Tutti</button>
+                    <button onclick="filterPantryLocation('Frigo')" id="pantryFilter_Frigo" class="pantry-filter-btn bg-gray-100 dark:bg-slate-800 text-gray-700 dark:text-slate-300 text-xs font-bold px-3 py-1.5 rounded-xl transition">❄️ Frigo</button>
+                    <button onclick="filterPantryLocation('Freezer')" id="pantryFilter_Freezer" class="pantry-filter-btn bg-gray-100 dark:bg-slate-800 text-gray-700 dark:text-slate-300 text-xs font-bold px-3 py-1.5 rounded-xl transition">🧊 Freezer</button>
+                    <button onclick="filterPantryLocation('Dispensa')" id="pantryFilter_Dispensa" class="pantry-filter-btn bg-gray-100 dark:bg-slate-800 text-gray-700 dark:text-slate-300 text-xs font-bold px-3 py-1.5 rounded-xl transition">📦 Dispensa</button>
+                    <button onclick="filterPantryLocation('Altro')" id="pantryFilter_Altro" class="pantry-filter-btn bg-gray-100 dark:bg-slate-800 text-gray-700 dark:text-slate-300 text-xs font-bold px-3 py-1.5 rounded-xl transition">🚪 Altro</button>
+                </div>
 
-            <!-- Messaggio Nessun Risultato Trovato -->
-            <div id="noResults" class="hidden text-center text-gray-500 dark:text-slate-400 py-12 text-sm bg-white dark:bg-slate-900 rounded-2xl border border-gray-200/80 dark:border-slate-800 shadow-sm font-medium">
-                Nessun prodotto trovato.
+                <!-- Griglia Prodotti Dispensa -->
+                <div id="pantryContainer" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3.5 items-start"></div>
+                <div id="noPantryResults" class="hidden text-center text-gray-500 dark:text-slate-400 py-12 text-sm bg-white dark:bg-slate-900 rounded-2xl border border-gray-200/80 dark:border-slate-800 shadow-sm font-medium">La tua dispensa è vuota.</div>
             </div>
 
         </div>
     </div>
 
-    <!-- Modale Grafica: Riordino Reparti (Percorso Supermercato) -->
+    <!-- Modale Grafica: Riordino Reparti (Percorso) -->
     <div id="deptOrderModal" class="hidden fixed inset-0 bg-slate-950/70 backdrop-blur-sm z-50 flex items-center justify-center p-4">
         <div class="bg-white dark:bg-slate-900 rounded-3xl max-w-sm w-full p-5 shadow-2xl border border-gray-100 dark:border-slate-800 space-y-4 text-gray-800 dark:text-slate-100 max-h-[85vh] flex flex-col">
-            <div class="flex justify-between items-center border-b border-gray-100 dark:border-slate-800 pb-2.5 flex-shrink-0">
-                <h3 class="font-extrabold text-sm text-indigo-950 dark:text-indigo-400 flex items-center gap-2">
-                    <span>⚙️</span> Ordine Reparti (Percorso)
-                </h3>
+            <div class="flex justify-between items-center border-b border-gray-100 dark:border-slate-800 pb-2.5">
+                <h3 class="font-extrabold text-sm text-indigo-950 dark:text-indigo-400 flex items-center gap-2"><span>⚙️</span> Ordine Reparti (Percorso)</h3>
                 <button onclick="closeDeptOrderModal()" class="text-gray-400 hover:text-gray-600 text-base font-bold p-1">✕</button>
             </div>
-
-            <p class="text-xs text-gray-500 dark:text-slate-400 leading-relaxed flex-shrink-0">
-                Sposta i reparti nell'ordine in cui li incontri al supermercato per velocizzare la tua spesa.
-            </p>
-
             <div id="deptOrderListContainer" class="space-y-1.5 overflow-y-auto flex-1 pr-1"></div>
-
-            <div class="pt-2 border-t border-gray-100 dark:border-slate-800 flex-shrink-0">
-                <button onclick="closeDeptOrderModal()" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2.5 rounded-xl text-xs transition shadow-md">Salva Percorso</button>
-            </div>
+            <button onclick="closeDeptOrderModal()" class="w-full bg-indigo-600 text-white font-bold py-2.5 rounded-xl text-xs shadow-md">Salva Percorso</button>
         </div>
     </div>
 
-    <!-- Modale Grafica: Nuova Lista -->
+    <!-- Modali Standard: Nuova Lista, Condivisione, Conferma, Avviso -->
     <div id="newListModal" class="hidden fixed inset-0 bg-slate-950/70 backdrop-blur-sm z-50 flex items-center justify-center p-4">
         <div class="bg-white dark:bg-slate-900 rounded-3xl max-w-sm w-full p-6 shadow-2xl border border-gray-100 dark:border-slate-800 space-y-4 text-gray-800 dark:text-slate-100">
             <div class="flex justify-between items-center border-b border-gray-100 dark:border-slate-800 pb-3">
-                <h3 class="font-extrabold text-sm text-indigo-950 dark:text-indigo-400 flex items-center gap-2">
-                    <span>✨</span> Nuova Lista / Spazio
-                </h3>
-                <button onclick="closeNewListModal()" class="text-gray-400 hover:text-gray-600 text-base font-bold p-1">✕</button>
+                <h3 class="font-extrabold text-sm text-indigo-950 dark:text-indigo-400">✨ Nuova Lista / Spazio</h3>
+                <button onclick="closeNewListModal()" class="text-gray-400 font-bold p-1">✕</button>
             </div>
-
             <div class="space-y-3">
-                <div>
-                    <label class="block text-xs font-bold text-gray-700 dark:text-slate-300 mb-1.5">Nome della lista</label>
-                    <input type="text" id="modalListName" placeholder="es. Festa Compleanno, Grigliata..." class="w-full bg-gray-50 dark:bg-slate-800 border border-gray-300 dark:border-slate-700 text-gray-800 dark:text-slate-100 rounded-xl px-3.5 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 transition shadow-inner">
-                </div>
-
-                <div>
-                    <label class="block text-xs font-bold text-gray-700 dark:text-slate-300 mb-1.5">Tipologia di accesso</label>
-                    <div class="grid grid-cols-2 gap-2.5">
-                        <label class="cursor-pointer">
-                            <input type="radio" name="modalListType" value="private" class="peer hidden">
-                            <div class="border-2 border-gray-200 dark:border-slate-700 peer-checked:border-indigo-600 peer-checked:bg-indigo-50/50 dark:peer-checked:bg-indigo-950/40 rounded-2xl p-3 text-center transition">
-                                <div class="text-xl mb-0.5">🔒</div>
-                                <div class="font-bold text-xs">Privata</div>
-                            </div>
-                        </label>
-                        <label class="cursor-pointer">
-                            <input type="radio" name="modalListType" value="shared" class="peer hidden" checked>
-                            <div class="border-2 border-gray-200 dark:border-slate-700 peer-checked:border-indigo-600 peer-checked:bg-indigo-50/50 dark:peer-checked:bg-indigo-950/40 rounded-2xl p-3 text-center transition">
-                                <div class="text-xl mb-0.5">👥</div>
-                                <div class="font-bold text-xs">Condivisa</div>
-                            </div>
-                        </label>
-                    </div>
+                <input type="text" id="modalListName" placeholder="es. Festa Compleanno, Grigliata..." class="w-full bg-gray-50 dark:bg-slate-800 border border-gray-300 dark:border-slate-700 text-gray-800 dark:text-slate-100 rounded-xl px-3.5 py-2.5 text-sm focus:outline-none">
+                <div class="grid grid-cols-2 gap-2.5">
+                    <label class="cursor-pointer">
+                        <input type="radio" name="modalListType" value="private" class="peer hidden">
+                        <div class="border-2 border-gray-200 dark:border-slate-700 peer-checked:border-indigo-600 peer-checked:bg-indigo-50/50 rounded-2xl p-3 text-center">
+                            <div class="text-xl">🔒</div><div class="font-bold text-xs">Privata</div>
+                        </div>
+                    </label>
+                    <label class="cursor-pointer">
+                        <input type="radio" name="modalListType" value="shared" class="peer hidden" checked>
+                        <div class="border-2 border-gray-200 dark:border-slate-700 peer-checked:border-indigo-600 peer-checked:bg-indigo-50/50 rounded-2xl p-3 text-center">
+                            <div class="text-xl">👥</div><div class="font-bold text-xs">Condivisa</div>
+                        </div>
+                    </label>
                 </div>
             </div>
-
             <div class="flex gap-2 pt-2">
-                <button onclick="closeNewListModal()" class="flex-1 bg-gray-100 dark:bg-slate-800 hover:bg-gray-200 text-gray-700 dark:text-slate-300 font-bold py-2.5 rounded-xl text-xs transition">Annulla</button>
-                <button onclick="confermaCreaLista()" class="flex-1 bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2.5 rounded-xl text-xs transition shadow-md">Crea Lista</button>
+                <button onclick="closeNewListModal()" class="flex-1 bg-gray-100 dark:bg-slate-800 text-gray-700 dark:text-slate-300 font-bold py-2.5 rounded-xl text-xs">Annulla</button>
+                <button onclick="confermaCreaLista()" class="flex-1 bg-indigo-600 text-white font-bold py-2.5 rounded-xl text-xs shadow-md">Crea Lista</button>
             </div>
         </div>
     </div>
 
-    <!-- Modale Grafica: Condivisione -->
     <div id="shareModal" class="hidden fixed inset-0 bg-slate-950/70 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-        <div class="bg-white dark:bg-slate-900 rounded-3xl max-w-sm w-full p-6 shadow-2xl border border-gray-100 dark:border-slate-800 space-y-4 text-gray-800 dark:text-slate-100">
-            <div class="flex justify-between items-center border-b border-gray-100 dark:border-slate-800 pb-3">
-                <h3 class="font-extrabold text-sm text-indigo-950 dark:text-indigo-400 flex items-center gap-2">
-                    <span>🔗</span> Condividi Lista
-                </h3>
-                <button onclick="closeShareModal()" class="text-gray-400 hover:text-gray-600 text-base font-bold p-1">✕</button>
+        <div class="bg-white dark:bg-slate-900 rounded-3xl max-w-sm w-full p-6 shadow-2xl space-y-4">
+            <div class="flex justify-between items-center border-b pb-3">
+                <h3 class="font-extrabold text-sm text-indigo-950 dark:text-indigo-400">🔗 Condividi Lista</h3>
+                <button onclick="closeShareModal()" class="text-gray-400 font-bold">✕</button>
             </div>
-
-            <div class="space-y-2.5">
-                <p id="shareModalSubhead" class="text-xs text-gray-600 dark:text-slate-300 leading-relaxed">Invia questo link d'invito. Chiunque lo apra potrà visualizzare e spuntare i prodotti in tempo reale.</p>
-                <input type="text" id="shareUrlInput" readonly onclick="this.select()" class="w-full bg-gray-50 dark:bg-slate-800 border border-gray-300 dark:border-slate-700 text-gray-700 dark:text-slate-200 rounded-xl px-3.5 py-2.5 text-xs font-mono focus:outline-none shadow-inner">
-            </div>
-
-            <div class="space-y-2 pt-1">
-                <button id="nativeShareBtn" onclick="nativeShare()" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 px-4 rounded-xl text-xs flex items-center justify-center gap-2 transition shadow-md">
-                    <span>📲</span> Condividi via App (WhatsApp...)
-                </button>
-                <button id="copyShareUrlBtn" onclick="copyShareUrl()" class="w-full bg-gray-100 dark:bg-slate-800 hover:bg-gray-200 text-gray-800 dark:text-slate-200 font-bold py-3 px-4 rounded-xl text-xs flex items-center justify-center gap-2 transition">
-                    <span>📋</span> Copia Link negli Appunti
-                </button>
+            <p id="shareModalSubhead" class="text-xs text-gray-600 dark:text-slate-300">Invia questo link d'invito.</p>
+            <input type="text" id="shareUrlInput" readonly onclick="this.select()" class="w-full bg-gray-50 dark:bg-slate-800 text-xs font-mono p-2.5 rounded-xl">
+            <div class="space-y-2">
+                <button id="nativeShareBtn" onclick="nativeShare()" class="w-full bg-indigo-600 text-white font-bold py-3 rounded-xl text-xs shadow-md">📲 Condividi via App</button>
+                <button id="copyShareUrlBtn" onclick="copyShareUrl()" class="w-full bg-gray-100 dark:bg-slate-800 text-gray-800 dark:text-slate-200 font-bold py-3 rounded-xl text-xs">📋 Copia Link</button>
             </div>
         </div>
     </div>
 
-    <!-- Modale Grafica: Conferma -->
     <div id="confirmModal" class="hidden fixed inset-0 bg-slate-950/70 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-        <div class="bg-white dark:bg-slate-900 rounded-3xl max-w-sm w-full p-6 shadow-2xl border border-gray-100 dark:border-slate-800 space-y-4 text-center">
+        <div class="bg-white dark:bg-slate-900 rounded-3xl max-w-sm w-full p-6 shadow-2xl border space-y-4 text-center">
             <div id="confirmModalBadge" class="w-12 h-12 rounded-2xl bg-rose-50 text-rose-600 flex items-center justify-center mx-auto text-xl shadow-inner">🗑️</div>
             <div class="space-y-1">
                 <h3 id="confirmModalTitle" class="font-extrabold text-base text-gray-900 dark:text-slate-100">Conferma azione</h3>
-                <p id="confirmModalMsg" class="text-xs text-gray-600 dark:text-slate-300 leading-relaxed">Sei sicuro di voler procedere?</p>
+                <p id="confirmModalMsg" class="text-xs text-gray-600 dark:text-slate-300">Sei sicuro di voler procedere?</p>
             </div>
             <div class="flex gap-2.5 pt-2">
-                <button onclick="closeConfirmModal()" class="flex-1 bg-gray-100 dark:bg-slate-800 hover:bg-gray-200 text-gray-700 dark:text-slate-300 font-bold py-2.5 rounded-xl text-xs transition">Annulla</button>
-                <button id="confirmModalActionBtn" onclick="handleConfirmModalAction()" class="flex-1 bg-rose-600 hover:bg-rose-700 text-white font-bold py-2.5 rounded-xl text-xs transition shadow-md">Elimina</button>
+                <button onclick="closeConfirmModal()" class="flex-1 bg-gray-100 dark:bg-slate-800 text-gray-700 dark:text-slate-300 font-bold py-2.5 rounded-xl text-xs">Annulla</button>
+                <button id="confirmModalActionBtn" onclick="handleConfirmModalAction()" class="flex-1 bg-rose-600 text-white font-bold py-2.5 rounded-xl text-xs shadow-md">Elimina</button>
             </div>
         </div>
     </div>
 
-    <!-- Modale Grafica: Avviso -->
     <div id="alertModal" class="hidden fixed inset-0 bg-slate-950/70 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-        <div class="bg-white dark:bg-slate-900 rounded-3xl max-w-sm w-full p-6 shadow-2xl border border-gray-100 dark:border-slate-800 space-y-4 text-center">
+        <div class="bg-white dark:bg-slate-900 rounded-3xl max-w-sm w-full p-6 shadow-2xl border space-y-4 text-center">
             <div id="alertModalBadge" class="w-12 h-12 rounded-2xl bg-indigo-50 text-indigo-600 flex items-center justify-center mx-auto text-xl shadow-inner">ℹ️</div>
-            <div class="space-y-1">
-                <h3 id="alertModalTitle" class="font-extrabold text-base text-gray-900 dark:text-slate-100">Avviso</h3>
-                <p id="alertModalMsg" class="text-xs text-gray-600 dark:text-slate-300 leading-relaxed">Messaggio di informazione.</p>
-            </div>
-            <div class="pt-2">
-                <button onclick="closeAlertModal()" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2.5 rounded-xl text-xs transition shadow-md">Ho capito</button>
-            </div>
+            <h3 id="alertModalTitle" class="font-extrabold text-base text-gray-900 dark:text-slate-100">Avviso</h3>
+            <p id="alertModalMsg" class="text-xs text-gray-600 dark:text-slate-300">Messaggio di informazione.</p>
+            <button onclick="closeAlertModal()" class="w-full bg-indigo-600 text-white font-bold py-2.5 rounded-xl text-xs shadow-md">Ho capito</button>
         </div>
     </div>
 
     <script>
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
-                navigator.serviceWorker.register('./sw.js')
-                    .then(reg => console.log('Service Worker Registrato'))
-                    .catch(err => console.log('Errore Service Worker:', err));
+                navigator.serviceWorker.register('./sw.js').catch(err => console.log(err));
             });
         }
 
@@ -399,7 +394,6 @@
         function initDarkMode() {
             const isDark = localStorage.getItem('theme') === 'dark' || 
                 (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches);
-            
             if (isDark) {
                 document.documentElement.classList.add('dark');
                 updateDarkIcon(true);
@@ -408,29 +402,22 @@
                 updateDarkIcon(false);
             }
         }
-
         function toggleDarkMode() {
             const isDark = document.documentElement.classList.toggle('dark');
             localStorage.setItem('theme', isDark ? 'dark' : 'light');
             updateDarkIcon(isDark);
         }
-
         function updateDarkIcon(isDark) {
             const btn = document.getElementById('themeToggleBtn');
             if (btn) btn.textContent = isDark ? '☀️' : '🌙';
         }
-
         initDarkMode();
 
-        // --- Monitoraggio Stato Connessione Network ---
         function updateNetworkStatus() {
             const badge = document.getElementById('networkBadge');
             if (badge) {
-                if (navigator.onLine) {
-                    badge.classList.add('hidden');
-                } else {
-                    badge.classList.remove('hidden');
-                }
+                if (navigator.onLine) badge.classList.add('hidden');
+                else badge.classList.remove('hidden');
             }
         }
         window.addEventListener('online', updateNetworkStatus);
@@ -446,30 +433,23 @@
             appId: "1:628445802272:web:74ae840b2a0b53c4ed7145"
         };
         
-        if (!firebase.apps.length) {
-            firebase.initializeApp(firebaseConfig);
-        }
+        if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
         const auth = firebase.auth();
         const provider = new firebase.auth.GoogleAuthProvider();
-        
-        let messaging = null;
-        try {
-            if (firebase.messaging.isSupported()) {
-                messaging = firebase.messaging();
-            }
-        } catch (e) {
-            console.log("Messaging non supportato su questo browser/dispositivo", e);
-        }
 
         let currentUser = null;
         let activeListId = null;
         let listRef = null;
+        let pantryRef = null;
         let userLists = [];
         let currentItemsData = [];
+        let currentPantryData = [];
         let currentListOwnerInfo = { ownerUid: null, ownerName: 'Sconosciuto' };
         let hideChecked = false;
         let focusMode = false;
+        let currentTab = 'shopping';
+        let pantryLocationFilter = 'ALL';
         let onConfirmCallback = null;
 
         let deptOrder = [
@@ -481,7 +461,6 @@
             const loadingScreen = document.getElementById('loadingScreen');
             const loginScreen = document.getElementById('loginScreen');
             const appContent = document.getElementById('appContent');
-            
             if (loadingScreen) loadingScreen.classList.add('hidden');
             updateNetworkStatus();
 
@@ -507,36 +486,40 @@
             }
         });
 
-        auth.getRedirectResult().then((result) => {
-            if (result && result.user) {
-                console.log("Login riuscito via redirect");
-            }
-        }).catch((error) => {
-            if (error && error.code) {
-                showAlertModal("Errore Autenticazione", error.message);
-            }
-        });
-
         async function loginGoogle() {
             try {
                 await auth.signInWithPopup(provider);
             } catch (error) {
-                if (error.code === 'auth/popup-blocked' || error.code === 'auth/popup-closed-by-user') {
-                    await auth.signInWithRedirect(provider);
-                } else {
-                    showAlertModal("Errore Login", error.message);
-                }
+                await auth.signInWithRedirect(provider);
+            }
+        }
+        function logoutGoogle() { auth.signOut(); }
+
+        // --- Gestione Tab Navigazione (Lista vs Dispensa) ---
+        function switchTab(tab) {
+            currentTab = tab;
+            const shopBtn = document.getElementById('tabShoppingBtn');
+            const pantryBtn = document.getElementById('tabPantryBtn');
+            const shopSec = document.getElementById('shoppingTabSection');
+            const pantrySec = document.getElementById('pantryTabSection');
+
+            if (tab === 'shopping') {
+                shopBtn.className = "flex-1 py-2 text-xs font-extrabold text-center border-b-2 border-white dark:border-indigo-400 text-white transition flex items-center justify-center gap-1.5";
+                pantryBtn.className = "flex-1 py-2 text-xs font-extrabold text-center border-b-2 border-transparent text-indigo-200 dark:text-slate-400 hover:text-white transition flex items-center justify-center gap-1.5";
+                shopSec.classList.remove('hidden');
+                pantrySec.classList.add('hidden');
+            } else {
+                pantryBtn.className = "flex-1 py-2 text-xs font-extrabold text-center border-b-2 border-white dark:border-indigo-400 text-white transition flex items-center justify-center gap-1.5";
+                shopBtn.className = "flex-1 py-2 text-xs font-extrabold text-center border-b-2 border-transparent text-indigo-200 dark:text-slate-400 hover:text-white transition flex items-center justify-center gap-1.5";
+                pantrySec.classList.remove('hidden');
+                shopSec.classList.add('hidden');
             }
         }
 
-        function logoutGoogle() {
-            auth.signOut();
-        }
-
-        // --- Dizionario Smart per Rilevamento Categoria Automatico ---
+        // --- Autocomplete ---
         const categoryDictionary = {
-            "Frutta": ["mela", "mele", "pera", "pere", "banana", "banane", "limone", "limoni", "arancia", "arance", "avocado", "mirtilli", "kiwi", "uva", "fragola", "fragole"],
-            "Verdura": ["broccoli", "broccolo", "cavolfiore", "zucca", "carota", "carote", "spinaci", "zucchina", "zucchine", "insalata", "pomodoro", "pomodori", "funghi", "cipolla", "cipolle"],
+            "Frutta": ["mela", "mele", "pera", "pere", "banana", "banane", "limone", "limoni", "arancia", "arance", "avocado", "mirtilli", "kiwi", "uva", "fragola"],
+            "Verdura": ["broccoli", "cavolfiore", "zucca", "carota", "spinaci", "zucchina", "insalata", "pomodoro", "funghi", "cipolla"],
             "Carne e Pesce": ["pollo", "tacchino", "macinato", "manzo", "pancetta", "speck", "salmone", "orata", "branzino", "tonno", "salsiccia"],
             "Latticini e Uova": ["uova", "yogurt", "fiocchi di latte", "stracchino", "mozzarella", "grana", "parmigiano", "latte", "burro", "ricotta"],
             "Dispensa": ["pasta", "riso", "olio", "mandorle", "noci", "nocciole", "ceci", "fagioli", "lenticchie", "farina", "zucchero", "caffe", "passata", "pane"],
@@ -550,108 +533,46 @@
         function initAutocomplete() {
             const datalist = document.getElementById('productsList');
             if (!datalist) return;
-
             const suggestions = new Set();
-            
             defaultItems.forEach(item => suggestions.add(item.name));
-            Object.values(categoryDictionary).flat().forEach(word => {
-                suggestions.add(word.charAt(0).toUpperCase() + word.slice(1));
-            });
-
-            datalist.innerHTML = Array.from(suggestions)
-                .map(item => `<option value="${item}">`)
-                .join('');
+            Object.values(categoryDictionary).flat().forEach(word => suggestions.add(word.charAt(0).toUpperCase() + word.slice(1)));
+            datalist.innerHTML = Array.from(suggestions).map(item => `<option value="${item}">`).join('');
         }
 
         function onProductInput(val) {
             const cleanVal = val.toLowerCase().trim();
             const badge = document.getElementById('autoCatBadge');
-            if (!cleanVal) {
-                badge.classList.add('hidden');
-                return;
-            }
-
+            if (!cleanVal) { badge.classList.add('hidden'); return; }
             let foundDept = null;
             for (const [dept, keywords] of Object.entries(categoryDictionary)) {
-                if (keywords.some(k => cleanVal.includes(k))) {
-                    foundDept = dept;
-                    break;
-                }
+                if (keywords.some(k => cleanVal.includes(k))) { foundDept = dept; break; }
             }
-
             if (foundDept) {
                 document.getElementById('newItemDept').value = foundDept;
                 badge.textContent = `Cat: ${foundDept}`;
                 badge.classList.remove('hidden');
-            } else {
-                badge.classList.add('hidden');
-            }
+            } else { badge.classList.add('hidden'); }
         }
 
-        // --- Inizializzazione e Sincronizzazione Liste ---
+        // --- Sincronizzazione Liste e Dispensa ---
         function initUserLists() {
             const userListsRef = db.ref(`utenti/${currentUser.uid}/userLists`);
-            
-            const urlParams = new URLSearchParams(window.location.search);
-            let urlHouse = urlParams.get('house');
-            if (urlHouse) {
-                urlHouse = urlHouse.trim().toLowerCase().replace(/[^a-z0-9_-]/g, '');
-            }
-
             userListsRef.on('value', (snapshot) => {
                 let listsFromDb = snapshot.val();
-                
                 if (!listsFromDb || !Array.isArray(listsFromDb) || listsFromDb.length === 0) {
-                    listsFromDb = [
-                        { id: 'p_main', name: 'Spesa Personale', type: 'private', ownerUid: currentUser.uid, ownerName: currentUser.displayName }
-                    ];
+                    listsFromDb = [{ id: 'p_main', name: 'Spesa Personale', type: 'private', ownerUid: currentUser.uid, ownerName: currentUser.displayName }];
                 }
-
-                if (urlHouse && !listsFromDb.some(l => l.id === urlHouse)) {
-                    const formattedTitle = urlHouse.split('-')
-                        .map(w => w.charAt(0).toUpperCase() + w.slice(1))
-                        .join(' ');
-                    listsFromDb.push({ 
-                        id: urlHouse, 
-                        name: formattedTitle, 
-                        type: 'shared',
-                        ownerUid: null, 
-                        ownerName: 'Lista Condivisa' 
-                    });
-                    userListsRef.set(listsFromDb);
-
-                    if (window.history.replaceState) {
-                        window.history.replaceState({}, document.title, window.location.pathname);
-                    }
-                    urlHouse = null;
-                    return;
-                }
-
-                if (urlHouse) {
-                    if (window.history.replaceState) {
-                        window.history.replaceState({}, document.title, window.location.pathname);
-                    }
-                    urlHouse = null;
-                }
-
                 userLists = listsFromDb;
-                
                 const lastActive = localStorage.getItem(`lastActiveList_${currentUser.uid}`);
                 activeListId = lastActive || userLists[0].id;
-
-                if (!userLists.some(l => l.id === activeListId)) {
-                    activeListId = userLists[0].id;
-                }
-
+                if (!userLists.some(l => l.id === activeListId)) activeListId = userLists[0].id;
                 renderHouseSelect();
                 switchList(activeListId);
             });
         }
 
         function salvaUserListsSuFirebase() {
-            if (currentUser && userLists) {
-                db.ref(`utenti/${currentUser.uid}/userLists`).set(userLists);
-            }
+            if (currentUser && userLists) db.ref(`utenti/${currentUser.uid}/userLists`).set(userLists);
         }
 
         function renderHouseSelect() {
@@ -659,30 +580,18 @@
             const deleteBtn = document.getElementById('deleteHouseBtn');
             const houseIcon = document.getElementById('houseIcon');
             select.innerHTML = '';
-            
             const currentObj = userLists.find(l => l.id === activeListId) || userLists[0];
-            
-            if (currentObj.type === 'private') {
-                houseIcon.textContent = '🔒';
-            } else {
-                houseIcon.textContent = '👥';
-            }
-
-            if (userLists.length > 1) {
-                deleteBtn.classList.remove('hidden');
-            } else {
-                deleteBtn.classList.add('hidden');
-            }
+            houseIcon.textContent = currentObj.type === 'private' ? '🔒' : '👥';
+            if (userLists.length > 1) deleteBtn.classList.remove('hidden');
+            else deleteBtn.classList.add('hidden');
 
             userLists.forEach(l => {
                 const option = document.createElement('option');
                 option.value = l.id;
-                const icon = l.type === 'private' ? '🔒' : '👥';
-                option.textContent = `${icon} ${l.name}`;
+                option.textContent = `${l.type === 'private' ? '🔒' : '👥'} ${l.name}`;
                 if (l.id === activeListId) option.selected = true;
                 select.appendChild(option);
             });
-
             const addOption = document.createElement('option');
             addOption.value = '__ADD_NEW__';
             addOption.textContent = '➕ Nuova Lista / Spazio...';
@@ -690,271 +599,14 @@
         }
 
         function onHouseSelectChange(value) {
-            if (value === '__ADD_NEW__') {
-                openNewListModal();
-            } else {
-                switchList(value);
-            }
+            if (value === '__ADD_NEW__') openNewListModal();
+            else switchList(value);
         }
 
         function isCurrentuserAdmin() {
             const currentObj = userLists.find(l => l.id === activeListId);
-            if (!currentObj) return true;
-            if (currentObj.type === 'private') return true;
-            const ownerUid = currentObj.ownerUid || currentListOwnerInfo.ownerUid;
-            return ownerUid === currentUser.uid;
-        }
-
-        // --- Modali UI ---
-        function showConfirmModal(title, message, confirmBtnText = 'Elimina', isDanger = true, badgeIcon = '🗑️', onConfirm) {
-            document.getElementById('confirmModalTitle').textContent = title;
-            document.getElementById('confirmModalMsg').textContent = message;
-            document.getElementById('confirmModalBadge').textContent = badgeIcon;
-            
-            const confirmBtn = document.getElementById('confirmModalActionBtn');
-            confirmBtn.textContent = confirmBtnText;
-            
-            if (isDanger) {
-                confirmBtn.className = "flex-1 bg-rose-600 hover:bg-rose-700 text-white font-bold py-2.5 rounded-xl text-xs transition shadow-md active:scale-95";
-                document.getElementById('confirmModalBadge').className = "w-12 h-12 rounded-2xl bg-rose-50 text-rose-600 flex items-center justify-center mx-auto text-xl shadow-inner";
-            } else {
-                confirmBtn.className = "flex-1 bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2.5 rounded-xl text-xs transition shadow-md active:scale-95";
-                document.getElementById('confirmModalBadge').className = "w-12 h-12 rounded-2xl bg-indigo-50 text-indigo-600 flex items-center justify-center mx-auto text-xl shadow-inner";
-            }
-
-            onConfirmCallback = onConfirm;
-            document.getElementById('confirmModal').classList.remove('hidden');
-        }
-
-        function closeConfirmModal() {
-            document.getElementById('confirmModal').classList.add('hidden');
-            onConfirmCallback = null;
-        }
-
-        function handleConfirmModalAction() {
-            if (onConfirmCallback) onConfirmCallback();
-            closeConfirmModal();
-        }
-
-        function showAlertModal(title, message, badgeIcon = 'ℹ️') {
-            document.getElementById('alertModalTitle').textContent = title;
-            document.getElementById('alertModalMsg').textContent = message;
-            document.getElementById('alertModalBadge').textContent = badgeIcon;
-            document.getElementById('alertModal').classList.remove('hidden');
-        }
-
-        function closeAlertModal() {
-            document.getElementById('alertModal').classList.add('hidden');
-        }
-
-        function openNewListModal() {
-            document.getElementById('modalListName').value = '';
-            document.getElementById('newListModal').classList.remove('hidden');
-            setTimeout(() => document.getElementById('modalListName').focus(), 100);
-        }
-
-        function closeNewListModal() {
-            document.getElementById('newListModal').classList.add('hidden');
-            renderHouseSelect();
-        }
-
-        function confermaCreaLista() {
-            const input = document.getElementById('modalListName');
-            const rawName = input.value.trim();
-            if (!rawName) {
-                showAlertModal("Campo Obbligatorio", "Inserisci un nome per la tua nuova lista.", "⚠️");
-                return;
-            }
-
-            const typeRadio = document.querySelector('input[name="modalListType"]:checked');
-            const type = typeRadio ? typeRadio.value : 'shared';
-
-            let listId;
-            const displayName = rawName;
-
-            if (type === 'shared') {
-                const cleanSlug = rawName.toLowerCase()
-                    .normalize("NFD").replace(/[\u0300-\u036f]/g, "")
-                    .replace(/[^a-z0-9_-]/g, '-')
-                    .replace(/-+/g, '-')
-                    .replace(/^-|-$/g, '');
-                
-                listId = cleanSlug || `festa-${Date.now()}`;
-            } else {
-                listId = `p_${Date.now()}`;
-            }
-
-            const newListObj = {
-                id: listId,
-                name: displayName,
-                type: type,
-                ownerUid: currentUser.uid,
-                ownerName: currentUser.displayName || 'Utente'
-            };
-
-            if (type === 'shared') {
-                db.ref(`shared_liste_meta/${listId}`).set({
-                    ownerUid: currentUser.uid,
-                    ownerName: currentUser.displayName || 'Utente',
-                    name: displayName
-                });
-            }
-
-            if (!userLists.some(l => l.id === listId)) {
-                userLists.push(newListObj);
-                salvaUserListsSuFirebase();
-            }
-
-            closeNewListModal();
-            switchList(listId);
-        }
-
-        function openShareModal() {
-            const currentObj = userLists.find(l => l.id === activeListId);
-            const subhead = document.getElementById('shareModalSubhead');
-            const urlInput = document.getElementById('shareUrlInput');
-
-            if (currentObj.type === 'private') {
-                subhead.textContent = "Questa è una Lista Privata visibile solo a te. Crea una nuova lista Condivisa per poterla inviare agli amici.";
-                urlInput.value = "Lista Privata (non condivisibile)";
-            } else {
-                subhead.textContent = `Condividi la lista "${currentObj.name}". Chiunque lo apra potrà visualizzare e spuntare i prodotti in tempo reale.`;
-                const inviteUrl = `${window.location.origin}${window.location.pathname}?house=${activeListId}`;
-                urlInput.value = inviteUrl;
-            }
-
-            document.getElementById('shareModal').classList.remove('hidden');
-        }
-
-        function closeShareModal() {
-            document.getElementById('shareModal').classList.add('hidden');
-        }
-
-        async function nativeShare() {
-            const currentObj = userLists.find(l => l.id === activeListId);
-            if (currentObj.type === 'private') {
-                showAlertModal("Lista Privata", "Crea o seleziona una lista Condivisa per poterla inviare agli amici.", "🔒");
-                return;
-            }
-
-            const inviteUrl = `${window.location.origin}${window.location.pathname}?house=${activeListId}`;
-            const shareData = {
-                title: `InDispensa - ${currentObj.name}`,
-                text: `Unisciti alla lista della spesa condivisa: "${currentObj.name}"`,
-                url: inviteUrl
-            };
-
-            if (navigator.share) {
-                try {
-                    await navigator.share(shareData);
-                } catch (err) {
-                    console.log("Condivisione annullata");
-                }
-            } else {
-                const waUrl = `https://api.whatsapp.com/send?text=${encodeURIComponent(shareData.text + "\n" + inviteUrl)}`;
-                window.open(waUrl, '_blank');
-            }
-        }
-
-        function copyShareUrl() {
-            const currentObj = userLists.find(l => l.id === activeListId);
-            if (currentObj.type === 'private') {
-                showAlertModal("Lista Privata", "Crea o seleziona una lista Condivisa per poterla inviare agli amici.", "🔒");
-                return;
-            }
-
-            const inviteUrl = `${window.location.origin}${window.location.pathname}?house=${activeListId}`;
-            const copyBtn = document.getElementById('copyShareUrlBtn');
-
-            navigator.clipboard.writeText(inviteUrl).then(() => {
-                copyBtn.innerHTML = `<span>✅</span> Link Copiato!`;
-                setTimeout(() => {
-                    copyBtn.innerHTML = `<span>📋</span> Copia Link negli Appunti`;
-                }, 2000);
-            }).catch(() => {
-                const input = document.getElementById('shareUrlInput');
-                input.select();
-                document.execCommand('copy');
-                showAlertModal("Successo", "Link copiato negli appunti!", "✅");
-            });
-        }
-
-        // --- Riordino Reparti Supermercato ---
-        function openDeptOrderModal() {
-            renderDeptOrderList();
-            document.getElementById('deptOrderModal').classList.remove('hidden');
-        }
-
-        function closeDeptOrderModal() {
-            document.getElementById('deptOrderModal').classList.add('hidden');
-        }
-
-        function renderDeptOrderList() {
-            const container = document.getElementById('deptOrderListContainer');
-            container.innerHTML = deptOrder.map((dept, idx) => `
-                <div class="flex items-center justify-between p-2.5 bg-gray-50 dark:bg-slate-800 rounded-xl border border-gray-200 dark:border-slate-700">
-                    <span class="text-xs font-bold text-gray-800 dark:text-slate-200 flex items-center gap-2">
-                        <span>${deptIcons[dept] || '🛒'}</span> ${dept}
-                    </span>
-                    <div class="flex items-center gap-1">
-                        <button onclick="moveDeptUp(${idx})" ${idx === 0 ? 'disabled class="opacity-30 p-1 text-xs"' : 'class="p-1 text-xs font-bold hover:bg-gray-200 dark:hover:bg-slate-700 rounded active:scale-95 transition"'} title="Sposta su">▲</button>
-                        <button onclick="moveDeptDown(${idx})" ${idx === deptOrder.length - 1 ? 'disabled class="opacity-30 p-1 text-xs"' : 'class="p-1 text-xs font-bold hover:bg-gray-200 dark:hover:bg-slate-700 rounded active:scale-95 transition"'} title="Sposta giù">▼</button>
-                    </div>
-                </div>
-            `).join('');
-        }
-
-        function moveDeptUp(index) {
-            if (index <= 0) return;
-            const temp = deptOrder[index];
-            deptOrder[index] = deptOrder[index - 1];
-            deptOrder[index - 1] = temp;
-            saveCustomDeptOrder();
-            renderDeptOrderList();
-            filterList();
-        }
-
-        function moveDeptDown(index) {
-            if (index >= deptOrder.length - 1) return;
-            const temp = deptOrder[index];
-            deptOrder[index] = deptOrder[index + 1];
-            deptOrder[index + 1] = temp;
-            saveCustomDeptOrder();
-            renderDeptOrderList();
-            filterList();
-        }
-
-        function saveCustomDeptOrder() {
-            localStorage.setItem(`customDeptOrder_${currentUser ? currentUser.uid : 'default'}`, JSON.stringify(deptOrder));
-        }
-
-        function loadCustomDeptOrder() {
-            const saved = localStorage.getItem(`customDeptOrder_${currentUser ? currentUser.uid : 'default'}`);
-            if (saved) {
-                try {
-                    const parsed = JSON.parse(saved);
-                    if (Array.isArray(parsed) && parsed.length > 0) {
-                        deptOrder = parsed;
-                    }
-                } catch(e){}
-            }
-        }
-
-        // --- Focus Mode Toggle ---
-        function toggleFocusMode() {
-            focusMode = !focusMode;
-            const btn = document.getElementById('focusModeBtn');
-            const label = document.getElementById('focusModeLabel');
-            if (focusMode) {
-                btn.className = "bg-amber-500 border border-amber-600 text-white px-3 py-1.5 rounded-xl font-extrabold shadow-sm flex items-center gap-1.5 active:scale-95 transition animate-pulse";
-                label.textContent = "Focus In Negozio ON";
-                document.body.classList.add('focus-mode-active');
-            } else {
-                btn.className = "bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-700 text-gray-700 dark:text-slate-300 px-3 py-1.5 rounded-xl font-bold shadow-sm flex items-center gap-1.5 active:scale-95 transition";
-                label.textContent = "Focus Mode";
-                document.body.classList.remove('focus-mode-active');
-            }
-            filterList();
+            if (!currentObj || currentObj.type === 'private') return true;
+            return (currentObj.ownerUid || currentListOwnerInfo.ownerUid) === currentUser.uid;
         }
 
         function switchList(listId) {
@@ -963,88 +615,31 @@
             renderHouseSelect();
 
             const currentObj = userLists.find(l => l.id === activeListId) || userLists[0];
-
             const ownerDisplay = document.getElementById('ownerNameDisplay');
             const typeBadge = document.getElementById('listTypeBadge');
 
-            const fallbackName = currentObj.ownerName || (currentObj.type === 'private' ? (currentUser.displayName || 'Tu') : 'In attesa...');
-            const isInitiallyMe = currentObj.ownerUid === currentUser.uid || currentObj.type === 'private';
-            ownerDisplay.textContent = (isInitiallyMe && fallbackName !== 'Tu') ? `${fallbackName} (Tu)` : fallbackName;
-
             if (currentObj.type === 'private') {
                 listRef = db.ref(`utenti/${currentUser.uid}/liste/${activeListId}`);
-                currentListOwnerInfo = { ownerUid: currentUser.uid, ownerName: currentUser.displayName || 'Tu' };
+                pantryRef = db.ref(`utenti/${currentUser.uid}/dispensa/${activeListId}`);
                 typeBadge.textContent = "Privata";
-                typeBadge.className = "bg-amber-50 dark:bg-amber-950/40 text-amber-700 dark:text-amber-400 font-bold px-2 py-0.5 rounded-lg text-[10px] flex-shrink-0";
+                typeBadge.className = "bg-amber-50 dark:bg-amber-950/40 text-amber-700 dark:text-amber-400 font-bold px-2 py-0.5 rounded-lg text-[10px]";
+                ownerDisplay.textContent = currentUser.displayName || 'Tu';
             } else {
                 listRef = db.ref(`shared_liste/${activeListId}`);
+                pantryRef = db.ref(`shared_dispensa/${activeListId}`);
                 typeBadge.textContent = "Condivisa";
-                typeBadge.className = "bg-indigo-50 dark:bg-slate-800 text-indigo-700 dark:text-indigo-300 font-bold px-2 py-0.5 rounded-lg text-[10px] flex-shrink-0";
-                
-                db.ref(`shared_liste_meta/${activeListId}`).once('value').then((snap) => {
-                    const meta = snap.val();
-                    if (meta && meta.ownerUid) {
-                        currentListOwnerInfo = { ownerUid: meta.ownerUid, ownerName: meta.ownerName };
-                        const isMe = meta.ownerUid === currentUser.uid;
-                        ownerDisplay.textContent = isMe ? `${meta.ownerName} (Tu)` : meta.ownerName;
-                        
-                        currentObj.ownerUid = meta.ownerUid;
-                        currentObj.ownerName = meta.ownerName;
-                        salvaUserListsSuFirebase();
-                    } else {
-                        const myName = currentUser.displayName || 'Utente';
-                        currentListOwnerInfo = { ownerUid: currentUser.uid, ownerName: myName };
-                        db.ref(`shared_liste_meta/${activeListId}`).set({
-                            ownerUid: currentUser.uid,
-                            ownerName: myName,
-                            name: currentObj.name
-                        });
-                        ownerDisplay.textContent = `${myName} (Tu)`;
-                    }
-                }).catch((err) => {
-                    console.warn("Impossibile leggere shared_liste_meta:", err);
-                    ownerDisplay.textContent = currentObj.ownerName || currentUser.displayName || 'Condivisa';
-                });
+                typeBadge.className = "bg-indigo-50 dark:bg-slate-800 text-indigo-700 dark:text-indigo-300 font-bold px-2 py-0.5 rounded-lg text-[10px]";
+                ownerDisplay.textContent = currentObj.ownerName || 'Condivisa';
             }
 
             attachDatabaseListener();
-        }
-
-        function eliminaListaCorrente() {
-            if (userLists.length <= 1) {
-                showAlertModal("Impossibile eliminare", "Devi mantenere almeno una lista salvata nell'elenco.", "⚠️");
-                return;
-            }
-
-            const currentObj = userLists.find(l => l.id === activeListId);
-            showConfirmModal(
-                "Elimina Lista",
-                `Sei sicuro di voler rimuovere la lista "${currentObj.name}" dal tuo elenco?`,
-                "Elimina Lista",
-                true,
-                "🗑️",
-                () => {
-                    if (window.history.replaceState) {
-                        window.history.replaceState({}, document.title, window.location.pathname);
-                    }
-
-                    userLists = userLists.filter(l => l.id !== activeListId);
-                    salvaUserListsSuFirebase();
-                    switchList(userLists[0].id);
-                }
-            );
+            attachPantryDatabaseListener();
         }
 
         const defaultItems = [
             { name: "Mele", dept: "Frutta", qty: "", note: "", checked: false, approved: true },
             { name: "Pere", dept: "Frutta", qty: "", note: "", checked: false, approved: true },
-            { name: "Banane", dept: "Frutta", qty: "", note: "", checked: false, approved: true },
-            { name: "Broccoli", dept: "Verdura", qty: "", note: "", checked: false, approved: true },
-            { name: "Petto di pollo", dept: "Carne e Pesce", qty: "", note: "", checked: false, approved: true },
-            { name: "Uova fresche", dept: "Latticini e Uova", qty: "", note: "", checked: false, approved: true },
-            { name: "Pasta", dept: "Dispensa", qty: "", note: "", checked: false, approved: true },
-            { name: "Olio Extravergine d'Oliva", dept: "Dispensa", qty: "", note: "", checked: false, approved: true },
-            { name: "Carta casa (Scottex)", dept: "Casa e Pulizia", qty: "", note: "", checked: false, approved: true }
+            { name: "Pasta", dept: "Dispensa", qty: "", note: "", checked: false, approved: true }
         ];
 
         function attachDatabaseListener() {
@@ -1052,13 +647,18 @@
             listRef.off();
             listRef.on('value', (snapshot) => {
                 const data = snapshot.val();
-                if (!data) {
-                    listRef.set(defaultItems);
-                } else {
-                    currentItemsData = data;
-                    updateCounter();
-                    filterList();
-                }
+                if (!data) listRef.set(defaultItems);
+                else { currentItemsData = data; updateCounter(); filterList(); }
+            });
+        }
+
+        function attachPantryDatabaseListener() {
+            if (!pantryRef) return;
+            pantryRef.off();
+            pantryRef.on('value', (snapshot) => {
+                const data = snapshot.val();
+                currentPantryData = data || [];
+                renderPantryList();
             });
         }
 
@@ -1078,7 +678,6 @@
             const container = document.getElementById('listContainer');
             const pendingContainer = document.getElementById('pendingContainer');
             const noResults = document.getElementById('noResults');
-            
             container.innerHTML = '';
             pendingContainer.innerHTML = '';
 
@@ -1086,138 +685,58 @@
             const approvedItems = items.filter(i => i.approved !== false);
             const isAdmin = isCurrentuserAdmin();
 
-            // 1. Gestione Sezione in Attesa
             if (pendingItems.length > 0) {
                 pendingContainer.classList.remove('hidden');
-                
-                let pendingHtml = pendingItems.map(item => {
-                    const firstName = item.addedByName ? item.addedByName.split(' ')[0] : 'Esterno';
-                    const isMyItem = item.addedByUid === currentUser.uid;
+                let pendingHtml = pendingItems.map(item => `
+                    <li class="flex items-center justify-between py-2 px-3 bg-amber-50 dark:bg-amber-950/40 rounded-xl mb-1.5">
+                        <span class="text-xs font-bold text-amber-950 dark:text-amber-100">${item.name} (${item.dept})</span>
+                        ${isAdmin ? `<div class="flex gap-1"><button onclick="approveItem(${item.originalIndex})" class="bg-emerald-600 text-white text-xs px-2 py-1 rounded-lg">✓</button><button onclick="rejectItem(${item.originalIndex})" class="bg-rose-600 text-white text-xs px-2 py-1 rounded-lg">✕</button></div>` : ''}
+                    </li>
+                `).join('');
+                pendingContainer.innerHTML = `<div class="bg-amber-100 dark:bg-amber-950/60 p-3 rounded-2xl"><h2 class="font-bold text-xs uppercase mb-1">⚠️ In attesa (${pendingItems.length})</h2><ul>${pendingHtml}</ul></div>`;
+            } else pendingContainer.classList.add('hidden');
 
-                    if (isAdmin) {
-                        return `
-                            <li class="flex items-center justify-between py-2.5 px-3 bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-700/60 rounded-xl gap-2 mb-2 shadow-sm">
-                                <div class="flex items-center gap-2 flex-1 min-w-0">
-                                    <span class="text-base">⏳</span>
-                                    <div class="min-w-0 flex-1">
-                                        <p class="text-xs font-bold text-amber-950 dark:text-amber-100 truncate">${item.name}</p>
-                                        <p class="text-[10px] text-amber-800 dark:text-amber-300 font-medium">${item.dept} • da <span class="font-bold underline">${firstName}</span></p>
-                                    </div>
-                                </div>
-                                <div class="flex items-center gap-1.5 flex-shrink-0">
-                                    <button onclick="approveItem(${item.originalIndex})" class="bg-emerald-600 hover:bg-emerald-700 text-white font-bold px-2.5 py-1.5 rounded-lg text-xs transition active:scale-95 flex items-center gap-0.5 shadow-sm">✓ Approva</button>
-                                    <button onclick="rejectItem(${item.originalIndex})" class="bg-rose-600 hover:bg-rose-700 text-white font-bold px-2.5 py-1.5 rounded-lg text-xs transition active:scale-95 flex items-center gap-0.5 shadow-sm">✕ Rifiuta</button>
-                                </div>
-                            </li>
-                        `;
-                    } else {
-                        return `
-                            <li class="flex items-center justify-between py-2.5 px-3 bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-700/60 rounded-xl gap-2 mb-2 shadow-sm">
-                                <div class="flex items-center gap-2 flex-1 min-w-0">
-                                    <span class="text-base">⏳</span>
-                                    <div class="min-w-0 flex-1">
-                                        <p class="text-xs font-bold text-amber-950 dark:text-amber-100 truncate">${item.name}</p>
-                                        <p class="text-[10px] text-amber-800 dark:text-amber-300 font-medium">${isMyItem ? 'In attesa di approvazione dall\'amministratore' : `Aggiunto da ${firstName} (in attesa)`}</p>
-                                    </div>
-                                </div>
-                            </li>
-                        `;
-                    }
-                }).join('');
-
-                pendingContainer.innerHTML = `
-                    <div class="bg-amber-100/80 dark:bg-amber-950/60 border border-amber-300 dark:border-amber-600 rounded-2xl p-3 shadow-sm space-y-2">
-                        <div class="flex items-center justify-between">
-                            <h2 class="font-bold text-xs uppercase tracking-wider text-amber-900 dark:text-amber-300 flex items-center gap-1.5">
-                                <span>⚠️</span> ${isAdmin ? 'Da approvare' : 'In attesa'}
-                            </h2>
-                            <span class="text-[10px] bg-amber-200 dark:bg-amber-800 text-amber-950 dark:text-amber-100 font-bold px-2 py-0.5 rounded-full">${pendingItems.length}</span>
-                        </div>
-                        <ul class="space-y-1">${pendingHtml}</ul>
-                    </div>
-                `;
-            } else {
-                pendingContainer.classList.add('hidden');
-            }
-
-            // 2. Renderizza la lista normale suddivisa per reparti ordinati
             if (approvedItems.length === 0 && pendingItems.length === 0) {
-                noResults.classList.remove('hidden');
-                return;
-            } else {
-                noResults.classList.add('hidden');
-            }
+                noResults.classList.remove('hidden'); return;
+            } else noResults.classList.add('hidden');
 
             const grouped = {};
-            approvedItems.forEach((item) => {
+            approvedItems.forEach(item => {
                 if (!grouped[item.dept]) grouped[item.dept] = [];
                 grouped[item.dept].push(item);
             });
 
-            const sortedDepts = Object.keys(grouped).sort((a, b) => {
-                let indexA = deptOrder.indexOf(a);
-                let indexB = deptOrder.indexOf(b);
-                if (indexA === -1) indexA = 99;
-                if (indexB === -1) indexB = 99;
-                return indexA - indexB;
-            });
+            const sortedDepts = Object.keys(grouped).sort((a, b) => deptOrder.indexOf(a) - deptOrder.indexOf(b));
 
             for (const dept of sortedDepts) {
                 const deptItems = grouped[dept];
-
-                const isDeptCompleted = deptItems.every(i => i.checked);
-                if (focusMode && isDeptCompleted) {
-                    continue;
-                }
+                if (focusMode && deptItems.every(i => i.checked)) continue;
 
                 const deptCard = document.createElement('div');
-                deptCard.className = 'dept-card bg-white dark:bg-slate-900 rounded-2xl p-3.5 shadow-sm border border-gray-200/80 dark:border-slate-800 overflow-hidden transition-colors';
+                deptCard.className = 'dept-card bg-white dark:bg-slate-900 rounded-2xl p-3.5 shadow-sm border border-gray-200/80 dark:border-slate-800';
 
-                const icon = deptIcons[dept] || '🛒';
-                let itemsHtml = deptItems.map(item => {
-                    let authorBadge = '';
-                    if (item.addedByName) {
-                        const firstName = item.addedByName.split(' ')[0];
-                        authorBadge = `<span class="text-[9px] bg-indigo-50 dark:bg-slate-800 text-indigo-600 dark:text-indigo-400 font-bold px-1.5 py-0.5 rounded ml-1 flex-shrink-0">da ${firstName}</span>`;
-                    }
-
-                    let qtyBadge = '';
-                    if (item.qty) {
-                        qtyBadge = `<span class="bg-indigo-100 dark:bg-slate-800 text-indigo-900 dark:text-indigo-300 font-extrabold text-[11px] px-1.5 py-0.5 rounded-md mr-1.5 flex-shrink-0">${item.qty}</span>`;
-                    }
-
-                    let noteHtml = '';
-                    if (item.note) {
-                        noteHtml = `<p class="text-[11px] text-gray-500 dark:text-slate-400 italic font-normal leading-tight mt-0.5">📝 ${item.note}</p>`;
-                    }
-
-                    return `
-                        <li class="flex items-start justify-between py-2 border-b border-gray-100 dark:border-slate-800 last:border-0 gap-2 hover:bg-gray-50/80 dark:hover:bg-slate-800/40 rounded-xl px-1.5 transition">
-                            <label class="flex items-start gap-3 flex-1 cursor-pointer select-none min-w-0 py-0.5">
-                                <input type="checkbox" 
-                                       ${item.checked ? 'checked' : ''} 
-                                       onchange="toggleCheck(${item.originalIndex})" 
-                                       class="w-5 h-5 rounded-md text-indigo-600 focus:ring-indigo-500 border-gray-300 dark:border-slate-700 dark:bg-slate-800 flex-shrink-0 cursor-pointer shadow-sm mt-0.5">
-                                <div class="min-w-0 flex-1">
-                                    <div class="flex items-center flex-wrap gap-1">
-                                        ${qtyBadge}
-                                        <span class="item-title text-sm ${item.checked ? 'item-checked' : 'text-gray-800 dark:text-slate-100 font-semibold'} break-words">${item.name}</span>
-                                        ${authorBadge}
-                                    </div>
-                                    ${noteHtml}
+                let itemsHtml = deptItems.map(item => `
+                    <li class="flex items-start justify-between py-2 border-b border-gray-100 dark:border-slate-800 last:border-0 gap-2">
+                        <label class="flex items-start gap-3 flex-1 cursor-pointer min-w-0">
+                            <input type="checkbox" ${item.checked ? 'checked' : ''} onchange="toggleCheck(${item.originalIndex})" class="w-5 h-5 rounded text-indigo-600 mt-0.5">
+                            <div class="min-w-0 flex-1">
+                                <div class="flex items-center flex-wrap gap-1">
+                                    ${item.qty ? `<span class="bg-indigo-100 dark:bg-slate-800 text-indigo-900 dark:text-indigo-300 font-extrabold text-[11px] px-1.5 py-0.5 rounded-md">${item.qty}</span>` : ''}
+                                    <span class="item-title text-sm ${item.checked ? 'item-checked' : 'font-semibold'}">${item.name}</span>
                                 </div>
-                            </label>
-                            <button onclick="deleteItem(${item.originalIndex})" class="text-gray-300 dark:text-slate-600 hover:text-rose-500 p-1 flex-shrink-0 transition rounded-lg active:scale-95 text-sm mt-0.5" title="Elimina">✕</button>
-                        </li>
-                    `;
-                }).join('');
+                                ${item.note ? `<p class="text-[11px] text-gray-500 italic mt-0.5">📝 ${item.note}</p>` : ''}
+                            </div>
+                        </label>
+                        <button onclick="deleteItem(${item.originalIndex})" class="text-gray-300 hover:text-rose-500 p-1">✕</button>
+                    </li>
+                `).join('');
 
                 deptCard.innerHTML = `
-                    <h2 class="font-bold text-xs uppercase tracking-wider text-indigo-900 dark:text-indigo-400 border-b border-gray-100 dark:border-slate-800 pb-2 mb-1.5 flex items-center gap-1.5">
-                        <span>${icon}</span> Reparto ${dept}
+                    <h2 class="font-bold text-xs uppercase tracking-wider text-indigo-900 dark:text-indigo-400 border-b pb-2 mb-1.5 flex items-center gap-1.5">
+                        <span>${deptIcons[dept] || '🛒'}</span> Reparto ${dept}
                         <span class="text-[10px] bg-indigo-50 dark:bg-slate-800 text-indigo-700 dark:text-indigo-300 font-bold px-2 py-0.5 rounded-full ml-auto">${deptItems.length}</span>
                     </h2>
-                    <ul class="space-y-0.5">${itemsHtml}</ul>
+                    <ul>${itemsHtml}</ul>
                 `;
                 container.appendChild(deptCard);
             }
@@ -1225,156 +744,45 @@
 
         function filterList() {
             const query = document.getElementById('searchInput').value.toLowerCase().trim();
-            const clearBtn = document.getElementById('clearSearchBtn');
-
-            if (query.length > 0) {
-                clearBtn.classList.remove('hidden');
-            } else {
-                clearBtn.classList.add('hidden');
-            }
-
+            document.getElementById('clearSearchBtn').classList.toggle('hidden', query.length === 0);
             let indexedItems = currentItemsData.map((item, index) => ({ ...item, originalIndex: index }));
-            
-            if (hideChecked) {
-                indexedItems = indexedItems.filter(item => !item.checked);
-            }
-
+            if (hideChecked) indexedItems = indexedItems.filter(item => !item.checked);
             const filtered = indexedItems.filter(item => 
-                item.name.toLowerCase().includes(query) || 
-                item.dept.toLowerCase().includes(query) ||
-                (item.note && item.note.toLowerCase().includes(query))
+                item.name.toLowerCase().includes(query) || item.dept.toLowerCase().includes(query)
             );
-
             renderList(filtered);
         }
 
         function toggleHideChecked() {
             hideChecked = !hideChecked;
-            const btn = document.getElementById('hideCheckedBtn');
-            const label = document.getElementById('hideCheckedLabel');
-
-            if (hideChecked) {
-                btn.className = "bg-indigo-50 dark:bg-indigo-950/80 border border-indigo-300 dark:border-indigo-600 text-indigo-700 dark:text-indigo-300 px-3 py-1.5 rounded-xl font-bold shadow-sm flex items-center gap-1.5 active:scale-95 transition";
-                label.textContent = "Mostra tutti";
-            } else {
-                btn.className = "bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-700 text-gray-700 dark:text-slate-300 px-3 py-1.5 rounded-xl font-bold shadow-sm flex items-center gap-1.5 active:scale-95 transition";
-                label.textContent = "Solo da prendere";
-            }
             filterList();
         }
+        function clearSearch() { document.getElementById('searchInput').value = ''; filterList(); }
+        function toggleCheck(index) { listRef.child(index).child('checked').transaction(c => !c); }
+        function approveItem(index) { if (isCurrentuserAdmin()) listRef.child(index).child('approved').set(true); }
+        function rejectItem(index) { if (isCurrentuserAdmin()) deleteItem(index); }
+        function handleQuickAdd(e) { e.preventDefault(); addItem(); }
 
-        function clearSearch() {
-            document.getElementById('searchInput').value = '';
-            filterList();
-        }
-
-        function toggleCheck(index) {
-            if ('vibrate' in navigator) {
-                navigator.vibrate(35);
-            }
-            listRef.child(index).child('checked').transaction(checked => !checked);
-        }
-
-        function approveItem(index) {
-            if (!isCurrentuserAdmin()) return;
-            listRef.child(index).child('approved').set(true);
-        }
-
-        function rejectItem(index) {
-            if (!isCurrentuserAdmin()) return;
-            deleteItem(index);
-        }
-
-        function handleQuickAdd(e) {
-            e.preventDefault();
-            addItem();
-        }
-
-        // --- Logica Unificata Aggiunta Prodotto + Controllo Anti-Duplicato ---
         function addNewItemToList({ name, dept, qty = '', note = '' }) {
             if (!name || !name.trim()) return;
-
             const cleanName = name.trim();
             const lowerName = cleanName.toLowerCase();
 
             listRef.once('value', snapshot => {
                 const currentList = snapshot.val() || [];
                 const isOwner = isCurrentuserAdmin();
-
-                // Cerca se esiste già un elemento con lo stesso nome (case-insensitive)
                 const existingIndex = currentList.findIndex(item => item.name && item.name.trim().toLowerCase() === lowerName);
 
                 if (existingIndex !== -1) {
-                    // IL PRODOTTO ESISTE GIÀ: Aggiorniamo l'elemento esistente
                     const existingItem = currentList[existingIndex];
-
-                    // 1. Lo riporta in stato "da prendere"
                     existingItem.checked = false;
-
-                    // 2. Se l'admin ri-aggiunge un elemento non approvato, lo approva
                     if (isOwner) existingItem.approved = true;
-
-                    // 3. Incremento / Gestione Quantità
-                    if (qty) {
-                        if (!existingItem.qty) {
-                            existingItem.qty = qty;
-                        } else {
-                            const matchExisting = existingItem.qty.match(/^(\d+)\s*(.*)$/);
-                            const matchNew = qty.match(/^(\d+)\s*(.*)$/);
-
-                            if (matchExisting && matchNew && (matchExisting[2] === matchNew[2] || !matchExisting[2] || !matchNew[2])) {
-                                const totalNum = parseInt(matchExisting[1]) + parseInt(matchNew[1]);
-                                const unit = matchExisting[2] || matchNew[2] || 'x';
-                                existingItem.qty = `${totalNum}${unit}`;
-                            } else {
-                                existingItem.qty = qty;
-                            }
-                        }
-                    } else if (!existingItem.qty) {
-                        existingItem.qty = '2x';
-                    } else {
-                        const match = existingItem.qty.match(/^(\d+)\s*(.*)$/);
-                        if (match) {
-                            const totalNum = parseInt(match[1]) + 1;
-                            existingItem.qty = `${totalNum}${match[2] || 'x'}`;
-                        }
-                    }
-
-                    // 4. Aggiunta nota se fornita
-                    if (note) {
-                        existingItem.note = existingItem.note ? `${existingItem.note} | ${note}` : note;
-                    }
-
-                    existingItem.addedByUid = currentUser.uid;
-                    existingItem.addedByName = currentUser.displayName || 'Qualcuno';
-
+                    existingItem.qty = qty || existingItem.qty || '1x';
                     currentList[existingIndex] = existingItem;
                 } else {
-                    // IL PRODOTTO NON ESISTE: Creazione nuova voce
-                    const newItemObj = { 
-                        name: cleanName, 
-                        dept: dept || 'Dispensa', 
-                        qty: qty || '',
-                        note: note || '',
-                        checked: false, 
-                        approved: isOwner, 
-                        addedByUid: currentUser.uid, 
-                        addedByName: currentUser.displayName || 'Qualcuno' 
-                    };
-                    currentList.push(newItemObj);
+                    currentList.push({ name: cleanName, dept: dept || 'Dispensa', qty, note, checked: false, approved: isOwner, addedByUid: currentUser.uid });
                 }
-
                 listRef.set(currentList);
-
-                // Reset campi modulo
-                const nameInput = document.getElementById('newItemText');
-                const qtyInput = document.getElementById('newItemQty');
-                const noteInput = document.getElementById('newItemNote');
-                if (nameInput) nameInput.value = '';
-                if (qtyInput) qtyInput.value = '';
-                if (noteInput) noteInput.value = '';
-                const badge = document.getElementById('autoCatBadge');
-                if (badge) badge.classList.add('hidden');
             });
         }
 
@@ -1383,23 +791,14 @@
             const qty = document.getElementById('newItemQty').value;
             const note = document.getElementById('newItemNote').value;
             const dept = document.getElementById('newItemDept').value;
-            
             addNewItemToList({ name, dept, qty, note });
+            document.getElementById('newItemText').value = '';
+            document.getElementById('newItemQty').value = '';
+            document.getElementById('newItemNote').value = '';
         }
 
         function addFrequentItem(itemName) {
-            if ('vibrate' in navigator) navigator.vibrate(30);
-
-            let foundDept = "Dispensa";
-            const cleanVal = itemName.toLowerCase().trim();
-            for (const [dept, keywords] of Object.entries(categoryDictionary)) {
-                if (keywords.some(k => cleanVal.includes(k))) {
-                    foundDept = dept;
-                    break;
-                }
-            }
-
-            addNewItemToList({ name: itemName, dept: foundDept, qty: '1x' });
+            addNewItemToList({ name: itemName, dept: 'Dispensa', qty: '1x' });
         }
 
         function deleteItem(index) {
@@ -1413,26 +812,268 @@
         function deselezionaTutti() {
             listRef.once('value', snapshot => {
                 const currentList = snapshot.val() || [];
-                const updatedList = currentList.map(item => ({ ...item, checked: false }));
-                listRef.set(updatedList);
+                listRef.set(currentList.map(i => ({ ...i, checked: false })));
             });
         }
 
         function eliminaComprati() {
-            showConfirmModal(
-                "Elimina elementi presi",
-                "Vuoi eliminare definitivamente tutti gli elementi spuntati da questa lista?",
-                "Elimina tutti",
-                true,
-                "🧹",
-                () => {
-                    listRef.once('value', snapshot => {
-                        const currentList = snapshot.val() || [];
-                        const updatedList = currentList.filter(item => !item.checked);
-                        listRef.set(updatedList);
-                    });
+            showConfirmModal("Elimina presi", "Vuoi eliminare tutti gli elementi spuntati?", "Elimina tutti", true, "🗑️", () => {
+                listRef.once('value', snapshot => {
+                    const currentList = snapshot.val() || [];
+                    listRef.set(currentList.filter(i => !i.checked));
+                });
+            });
+        }
+
+        // --- SEZIONE DISPENSA & GESTIONE SCADENZE (JS CORE) ---
+        function moveCheckedToPantry() {
+            listRef.once('value', snapshot => {
+                const currentList = snapshot.val() || [];
+                const checkedItems = currentList.filter(i => i.checked);
+                const remainingItems = currentList.filter(i => !i.checked);
+
+                if (checkedItems.length === 0) {
+                    showAlertModal("Nessun prodotto preso", "Spunta prima i prodotti che hai acquistato per poterli spostare in dispensa.", "⚠️");
+                    return;
                 }
-            );
+
+                pantryRef.once('value', pSnap => {
+                    const currentPantry = pSnap.val() || [];
+                    
+                    checkedItems.forEach(item => {
+                        currentPantry.push({
+                            id: `pantry_${Date.now()}_${Math.random().toString(36).substr(2, 4)}`,
+                            name: item.name,
+                            location: 'Dispensa',
+                            expireDate: '',
+                            qty: item.qty || '1x',
+                            addedAt: new Date().toISOString()
+                        });
+                    });
+
+                    pantryRef.set(currentPantry);
+                    listRef.set(remainingItems);
+                    showAlertModal("Prodotti Spostati", `${checkedItems.length} prodotti presi sono stati trasferiti nella tua Dispensa!`, "📦");
+                });
+            });
+        }
+
+        function handlePantryAdd(e) {
+            e.preventDefault();
+            const nameInput = document.getElementById('pantryItemText');
+            const locInput = document.getElementById('pantryLocationSelect');
+            const dateInput = document.getElementById('pantryExpireDate');
+
+            const name = nameInput.value.trim();
+            if (!name) return;
+
+            pantryRef.once('value', snapshot => {
+                const currentPantry = snapshot.val() || [];
+                currentPantry.push({
+                    id: `pantry_${Date.now()}`,
+                    name: name,
+                    location: locInput.value,
+                    expireDate: dateInput.value || '',
+                    qty: '1x',
+                    addedAt: new Date().toISOString()
+                });
+                pantryRef.set(currentPantry);
+
+                nameInput.value = '';
+                dateInput.value = '';
+            });
+        }
+
+        function filterPantryLocation(loc) {
+            pantryLocationFilter = loc;
+            document.querySelectorAll('.pantry-filter-btn').forEach(btn => {
+                btn.className = "pantry-filter-btn bg-gray-100 dark:bg-slate-800 text-gray-700 dark:text-slate-300 text-xs font-bold px-3 py-1.5 rounded-xl transition";
+            });
+            const activeBtn = document.getElementById(`pantryFilter_${loc}`);
+            if (activeBtn) activeBtn.className = "pantry-filter-btn bg-indigo-600 text-white text-xs font-bold px-3 py-1.5 rounded-xl transition";
+            renderPantryList();
+        }
+
+        function getExpirationStatus(dateStr) {
+            if (!dateStr) return { label: 'Nessuna data', colorClass: 'bg-gray-100 text-gray-600 dark:bg-slate-800 dark:text-slate-400', status: 'OK' };
+            
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+            const expDate = new Date(dateStr);
+            expDate.setHours(0, 0, 0, 0);
+
+            const diffTime = expDate - today;
+            const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+            if (diffDays < 0) {
+                return { label: `Scaduto il ${dateStr}`, colorClass: 'bg-rose-100 text-rose-800 dark:bg-rose-950/80 dark:text-rose-300 font-extrabold', status: 'EXPIRED' };
+            } else if (diffDays <= 3) {
+                return { label: `Scade tra ${diffDays} gg`, colorClass: 'bg-amber-100 text-amber-800 dark:bg-amber-950/80 dark:text-amber-300 font-bold', status: 'WARNING' };
+            } else {
+                return { label: `Scad: ${dateStr}`, colorClass: 'bg-emerald-50 text-emerald-800 dark:bg-emerald-950/60 dark:text-emerald-300 font-semibold', status: 'OK' };
+            }
+        }
+
+        function renderPantryList() {
+            const container = document.getElementById('pantryContainer');
+            const noPantry = document.getElementById('noPantryResults');
+            const alertBadge = document.getElementById('expiringBadge');
+            const alertBox = document.getElementById('pantryAlertBox');
+            const alertTitle = document.getElementById('pantryAlertTitle');
+            const alertSub = document.getElementById('pantryAlertSub');
+
+            container.innerHTML = '';
+
+            let filtered = currentPantryData;
+            if (pantryLocationFilter !== 'ALL') {
+                filtered = filtered.filter(i => i.location === pantryLocationFilter);
+            }
+
+            let expiredCount = 0;
+            let warningCount = 0;
+
+            currentPantryData.forEach(item => {
+                const exp = getExpirationStatus(item.expireDate);
+                if (exp.status === 'EXPIRED') expiredCount++;
+                if (exp.status === 'WARNING') warningCount++;
+            });
+
+            if (expiredCount > 0 || warningCount > 0) {
+                alertBadge.classList.remove('hidden');
+                alertBox.className = "bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-700/60 p-3.5 rounded-2xl shadow-sm flex items-center justify-between";
+                alertTitle.textContent = "Attenzione alle Scadenze!";
+                alertSub.textContent = `Hai ${expiredCount} prodotti scaduti e ${warningCount} in scadenza nei prossimi 3 giorni.`;
+            } else {
+                alertBadge.classList.add('hidden');
+                alertBox.className = "bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-700/60 p-3.5 rounded-2xl shadow-sm flex items-center justify-between";
+                alertTitle.textContent = "Nessuna scadenza critica";
+                alertSub.textContent = "I tuoi prodotti in dispensa sono tutti freschi e in regola.";
+            }
+
+            if (!filtered || filtered.length === 0) {
+                noPantry.classList.remove('hidden');
+                return;
+            } else {
+                noPantry.classList.add('hidden');
+            }
+
+            const locationIcons = { 'Frigo': '❄️', 'Freezer': '🧊', 'Dispensa': '📦', 'Altro': '🚪' };
+
+            filtered.forEach((item, index) => {
+                const expInfo = getExpirationStatus(item.expireDate);
+                const locIcon = locationIcons[item.location] || '📦';
+
+                const card = document.createElement('div');
+                card.className = "bg-white dark:bg-slate-900 rounded-2xl p-3.5 shadow-sm border border-gray-200/80 dark:border-slate-800 flex flex-col justify-between space-y-2.5";
+
+                card.innerHTML = `
+                    <div class="flex items-start justify-between gap-2">
+                        <div>
+                            <span class="text-[10px] bg-gray-100 dark:bg-slate-800 text-gray-700 dark:text-slate-300 font-bold px-2 py-0.5 rounded-md">${locIcon} ${item.location}</span>
+                            <h3 class="font-extrabold text-sm text-gray-900 dark:text-slate-100 mt-1">${item.name}</h3>
+                        </div>
+                        <button onclick="deletePantryItem(${index})" class="text-gray-300 hover:text-rose-500 text-xs p-1">✕</button>
+                    </div>
+
+                    <div class="flex items-center justify-between pt-1 border-t border-gray-100 dark:border-slate-800 text-xs">
+                        <span class="text-[10px] px-2 py-1 rounded-lg ${expInfo.colorClass}">${expInfo.label}</span>
+                        <button onclick="addPantryItemToShopping('${item.name}', '${index}')" class="bg-indigo-50 dark:bg-slate-800 hover:bg-indigo-100 text-indigo-700 dark:text-indigo-300 font-bold px-2.5 py-1 rounded-xl text-[11px] active:scale-95 transition">
+                            + In Lista
+                        </button>
+                    </div>
+                `;
+                container.appendChild(card);
+            });
+        }
+
+        function deletePantryItem(index) {
+            pantryRef.once('value', snapshot => {
+                const currentPantry = snapshot.val() || [];
+                currentPantry.splice(index, 1);
+                pantryRef.set(currentPantry);
+            });
+        }
+
+        function addPantryItemToShopping(itemName, pantryIndex) {
+            addNewItemToList({ name: itemName, dept: 'Dispensa', qty: '1x' });
+            showAlertModal("Aggiunto in Lista", `"${itemName}" è stato aggiunto nuovamente alla tua lista della spesa!`, "🛒");
+        }
+
+        // --- Modali Generiche ---
+        function showConfirmModal(title, message, confirmBtnText = 'Elimina', isDanger = true, badgeIcon = '🗑️', onConfirm) {
+            document.getElementById('confirmModalTitle').textContent = title;
+            document.getElementById('confirmModalMsg').textContent = message;
+            document.getElementById('confirmModalBadge').textContent = badgeIcon;
+            onConfirmCallback = onConfirm;
+            document.getElementById('confirmModal').classList.remove('hidden');
+        }
+        function closeConfirmModal() { document.getElementById('confirmModal').classList.add('hidden'); onConfirmCallback = null; }
+        function handleConfirmModalAction() { if (onConfirmCallback) onConfirmCallback(); closeConfirmModal(); }
+
+        function showAlertModal(title, message, badgeIcon = 'ℹ️') {
+            document.getElementById('alertModalTitle').textContent = title;
+            document.getElementById('alertModalMsg').textContent = message;
+            document.getElementById('alertModalBadge').textContent = badgeIcon;
+            document.getElementById('alertModal').classList.remove('hidden');
+        }
+        function closeAlertModal() { document.getElementById('alertModal').classList.add('hidden'); }
+
+        function openNewListModal() { document.getElementById('newListModal').classList.remove('hidden'); }
+        function closeNewListModal() { document.getElementById('newListModal').classList.add('hidden'); renderHouseSelect(); }
+        function confermaCreaLista() {
+            const rawName = document.getElementById('modalListName').value.trim();
+            if (!rawName) return;
+            const typeRadio = document.querySelector('input[name="modalListType"]:checked');
+            const type = typeRadio ? typeRadio.value : 'shared';
+            const listId = type === 'shared' ? rawName.toLowerCase().replace(/[^a-z0-9_-]/g, '-') : `p_${Date.now()}`;
+            userLists.push({ id: listId, name: rawName, type: type, ownerUid: currentUser.uid, ownerName: currentUser.displayName || 'Utente' });
+            salvaUserListsSuFirebase();
+            closeNewListModal();
+            switchList(listId);
+        }
+
+        function openShareModal() {
+            const currentObj = userLists.find(l => l.id === activeListId);
+            const inviteUrl = `${window.location.origin}${window.location.pathname}?house=${activeListId}`;
+            document.getElementById('shareUrlInput').value = currentObj.type === 'private' ? "Lista Privata" : inviteUrl;
+            document.getElementById('shareModal').classList.remove('hidden');
+        }
+        function closeShareModal() { document.getElementById('shareModal').classList.add('hidden'); }
+        function nativeShare() {
+            const inviteUrl = `${window.location.origin}${window.location.pathname}?house=${activeListId}`;
+            if (navigator.share) navigator.share({ title: 'InDispensa', url: inviteUrl });
+        }
+        function copyShareUrl() {
+            const inviteUrl = `${window.location.origin}${window.location.pathname}?house=${activeListId}`;
+            navigator.clipboard.writeText(inviteUrl);
+            showAlertModal("Copiato", "Link copiato negli appunti!", "✅");
+        }
+
+        function openDeptOrderModal() { renderDeptOrderList(); document.getElementById('deptOrderModal').classList.remove('hidden'); }
+        function closeDeptOrderModal() { document.getElementById('deptOrderModal').classList.add('hidden'); }
+        function renderDeptOrderList() {
+            const container = document.getElementById('deptOrderListContainer');
+            container.innerHTML = deptOrder.map((dept, idx) => `
+                <div class="flex items-center justify-between p-2 bg-gray-50 dark:bg-slate-800 rounded-xl">
+                    <span class="text-xs font-bold">${deptIcons[dept] || '🛒'} ${dept}</span>
+                    <div class="flex gap-1">
+                        <button onclick="moveDeptUp(${idx})" class="p-1 text-xs">▲</button>
+                        <button onclick="moveDeptDown(${idx})" class="p-1 text-xs">▼</button>
+                    </div>
+                </div>
+            `).join('');
+        }
+        function moveDeptUp(idx) { if (idx > 0) { const t = deptOrder[idx]; deptOrder[idx] = deptOrder[idx-1]; deptOrder[idx-1] = t; saveCustomDeptOrder(); renderDeptOrderList(); filterList(); } }
+        function moveDeptDown(idx) { if (idx < deptOrder.length - 1) { const t = deptOrder[idx]; deptOrder[idx] = deptOrder[idx+1]; deptOrder[idx+1] = t; saveCustomDeptOrder(); renderDeptOrderList(); filterList(); } }
+        function saveCustomDeptOrder() { localStorage.setItem(`customDeptOrder_${currentUser.uid}`, JSON.stringify(deptOrder)); }
+        function loadCustomDeptOrder() {
+            const saved = localStorage.getItem(`customDeptOrder_${currentUser ? currentUser.uid : 'default'}`);
+            if (saved) { try { deptOrder = JSON.parse(saved); } catch(e){} }
+        }
+        function toggleFocusMode() {
+            focusMode = !focusMode;
+            document.body.classList.toggle('focus-mode-active', focusMode);
+            filterList();
         }
     </script>
 </body>
