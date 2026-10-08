@@ -40,7 +40,6 @@
             text-decoration: line-through;
             color: #9ca3af;
         }
-        /* Smooth transition per layout responsive */
         .dept-card {
             transition: all 0.2s ease-in-out;
         }
@@ -106,7 +105,7 @@
             </div>
         </div>
 
-        <!-- Layout Principale: Max Width Ampio per Desktop -->
+        <!-- Layout Principale Responsive -->
         <div class="max-w-md md:max-w-5xl lg:max-w-7xl mx-auto p-4 space-y-4 w-full box-border">
 
             <!-- Banner Lista / Selettore Multi-Lista -->
@@ -128,13 +127,17 @@
             <!-- Griglia Comandi: Aggiunta Rapida + Barra Strumenti -->
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                 
-                <!-- Form Aggiunta Rapida (Supporta Invio) -->
+                <!-- Form Aggiunta Rapida con Autocomplete & Invio -->
                 <form id="quickAddForm" onsubmit="handleQuickAdd(event)" class="bg-white p-3.5 rounded-2xl shadow-sm space-y-2.5 border border-gray-100 flex flex-col justify-between">
                     <div class="text-xs font-bold text-gray-700 flex justify-between items-center">
                         <span>➕ Aggiungi prodotto rapido</span>
                         <span id="autoCatBadge" class="text-[10px] text-indigo-600 bg-indigo-50 px-2 py-0.5 rounded-md hidden font-semibold">Cat. rilevata</span>
                     </div>
-                    <input type="text" id="newItemText" oninput="onProductInput(this.value)" placeholder="es. Latte, Mele, Scottex..." class="w-full bg-gray-50 border border-gray-200 rounded-xl px-3.5 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white transition">
+                    
+                    <input type="text" id="newItemText" list="productsList" oninput="onProductInput(this.value)" placeholder="es. Latte, Mele, Scottex..." class="w-full bg-gray-50 border border-gray-200 rounded-xl px-3.5 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white transition">
+                    <!-- Suggerimenti Autocomplete -->
+                    <datalist id="productsList"></datalist>
+
                     <div class="flex gap-2">
                         <select id="newItemDept" class="flex-1 bg-gray-50 border border-gray-200 rounded-xl px-3 py-2 text-xs focus:outline-none focus:ring-2 focus:ring-indigo-500 font-medium">
                             <option value="Frutta">🍎 Frutta</option>
@@ -180,7 +183,7 @@
 
             </div>
 
-            <!-- Lista Reparti (Grid Responsive per Desktop) -->
+            <!-- Lista Reparti (Grid Responsive Desktop) -->
             <div id="listContainer" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 items-start pt-2"></div>
 
             <!-- Messaggio Nessun Risultato Trovato -->
@@ -367,6 +370,7 @@
                 document.getElementById('userAvatar').src = user.photoURL || 'https://cdn-icons-png.flaticon.com/512/847/847969.png';
                 
                 initUserLists();
+                initAutocomplete();
             } else {
                 currentUser = null;
                 loginScreen.classList.remove('hidden');
@@ -413,6 +417,23 @@
             "Igiene Personale": ["carta igienica", "bagnoschiuma", "sapone", "dentifricio", "shampoo", "balsamo", "assorbenti", "fazzoletti"],
             "Sfizi e Dolci": ["biscotti", "cioccolato", "patatine", "snack", "nutella", "brioche", "caramelle"]
         };
+
+        // Popola l'Autocomplete tramite <datalist>
+        function initAutocomplete() {
+            const datalist = document.getElementById('productsList');
+            if (!datalist) return;
+
+            const suggestions = new Set();
+            
+            defaultItems.forEach(item => suggestions.add(item.name));
+            Object.values(categoryDictionary).flat().forEach(word => {
+                suggestions.add(word.charAt(0).toUpperCase() + word.slice(1));
+            });
+
+            datalist.innerHTML = Array.from(suggestions)
+                .map(item => `<option value="${item}">`)
+                .join('');
+        }
 
         function onProductInput(val) {
             const cleanVal = val.toLowerCase().trim();
@@ -929,7 +950,6 @@
         }
 
         function toggleCheck(index) {
-            // Vibrazione Touch Haptic su Mobile
             if ('vibrate' in navigator) {
                 navigator.vibrate(35);
             }
