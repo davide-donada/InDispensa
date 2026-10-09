@@ -41,6 +41,9 @@
     <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-database-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-auth-compat.js"></script>
 
+    <!-- Tesseract OCR SDK (Scansione Scontrini) -->
+    <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
+
     <style>
         .item-checked {
             text-decoration: line-through;
@@ -78,6 +81,9 @@
     </style>
 </head>
 <body class="bg-gray-50 dark:bg-slate-950 min-h-screen pb-32 overflow-x-hidden text-gray-800 dark:text-slate-100 transition-colors duration-200">
+
+    <!-- Input File Nascosto per Fotocamera/Scontrino -->
+    <input type="file" id="receiptFileInput" accept="image/*" capture="environment" class="hidden" onchange="handleReceiptSelected(event)">
 
     <!-- Splash / Loading Screen -->
     <div id="loadingScreen" class="fixed inset-0 bg-indigo-600 dark:bg-slate-900 z-50 flex flex-col items-center justify-center p-6 text-white text-center">
@@ -267,10 +273,24 @@
                     </div>
                 </div>
 
+                <!-- Banner Scansione Scontrino con Fotocamera -->
+                <div class="bg-gradient-to-r from-indigo-600 to-violet-600 text-white p-3.5 rounded-2xl shadow-sm flex items-center justify-between">
+                    <div class="flex items-center gap-3">
+                        <div class="w-10 h-10 rounded-xl bg-white/20 backdrop-blur-md flex items-center justify-center text-xl shadow-inner">📷</div>
+                        <div>
+                            <h3 class="font-extrabold text-xs">Carica da Scontrino</h3>
+                            <p class="text-[11px] text-indigo-100">Scatta una foto per aggiungere rapidamente i prodotti.</p>
+                        </div>
+                    </div>
+                    <button type="button" onclick="triggerReceiptScan()" class="bg-white text-indigo-900 hover:bg-indigo-50 font-extrabold px-3 py-2 rounded-xl text-xs active:scale-95 transition shadow-md flex-shrink-0">
+                        📸 Scansiona
+                    </button>
+                </div>
+
                 <!-- Modulo Aggiunta Diretta in Dispensa -->
                 <form id="pantryAddForm" onsubmit="handlePantryAdd(event)" class="bg-white dark:bg-slate-900 p-3 rounded-2xl shadow-sm space-y-2 border border-gray-200/80 dark:border-slate-800">
                     <div class="text-[11px] font-bold text-gray-500 dark:text-slate-400 uppercase tracking-wider px-1 flex items-center gap-1">
-                        <span>📦</span> Aggiungi direttamente in Dispensa
+                        <span>📦</span> Aggiungi manualmente in Dispensa
                     </div>
                     <div class="flex flex-wrap sm:flex-nowrap gap-2">
                         <input type="text" id="pantryItemText" placeholder="Nome prodotto..." class="flex-1 min-w-[120px] bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-xl px-3 py-2 text-sm focus:outline-none shadow-inner">
@@ -299,6 +319,43 @@
                 <div id="noPantryResults" class="hidden text-center text-gray-500 dark:text-slate-400 py-12 text-sm bg-white dark:bg-slate-900 rounded-2xl border border-gray-200/80 dark:border-slate-800 shadow-sm font-medium">La tua dispensa è vuota.</div>
             </div>
 
+        </div>
+    </div>
+
+    <!-- MODALE: Scansione Scontrino in Corso -->
+    <div id="receiptLoadingModal" class="hidden fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+        <div class="bg-white dark:bg-slate-900 rounded-3xl max-w-sm w-full p-6 shadow-2xl border border-gray-100 dark:border-slate-800 text-center space-y-4">
+            <div class="w-16 h-16 rounded-2xl bg-indigo-50 dark:bg-slate-800 text-indigo-600 dark:text-indigo-400 flex items-center justify-center mx-auto text-2xl shadow-inner">
+                <svg class="animate-spin h-8 w-8 text-indigo-600 dark:text-indigo-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+            </div>
+            <div>
+                <h3 class="font-extrabold text-base text-gray-900 dark:text-slate-100">Lettura Scontrino...</h3>
+                <p id="receiptStatusText" class="text-xs text-gray-500 dark:text-slate-400 mt-1">Sto analizzando l'immagine con l'OCR...</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODALE: Verifica e Conferma Prodotti dallo Scontrino -->
+    <div id="receiptVerifyModal" class="hidden fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 flex items-center justify-center p-3">
+        <div class="bg-white dark:bg-slate-900 rounded-3xl max-w-lg w-full p-5 shadow-2xl border border-gray-100 dark:border-slate-800 space-y-4 text-gray-800 dark:text-slate-100 max-h-[90vh] flex flex-col">
+            <div class="flex justify-between items-center border-b border-gray-100 dark:border-slate-800 pb-3">
+                <div>
+                    <h3 class="font-extrabold text-sm text-indigo-950 dark:text-indigo-400 flex items-center gap-1.5"><span>🧾</span> Verifica Prodotti Rilevati</h3>
+                    <p class="text-[11px] text-gray-500 dark:text-slate-400">Controlla e correggi i prodotti prima di salvarli in Dispensa.</p>
+                </div>
+                <button onclick="closeReceiptVerifyModal()" class="text-gray-400 hover:text-gray-600 font-bold p-1">✕</button>
+            </div>
+
+            <!-- Lista Dinamica degli Elementi Trovati -->
+            <div id="receiptItemsContainer" class="space-y-2 overflow-y-auto flex-1 pr-1 max-h-[50vh]"></div>
+
+            <div class="flex items-center justify-between pt-2 border-t border-gray-100 dark:border-slate-800 gap-2">
+                <button onclick="closeReceiptVerifyModal()" class="bg-gray-100 dark:bg-slate-800 text-gray-700 dark:text-slate-300 font-bold py-2.5 px-4 rounded-xl text-xs">Annulla</button>
+                <button onclick="confirmReceiptItems()" class="flex-1 bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-2.5 rounded-xl text-xs shadow-md">Conferma e Inserisci in Dispensa</button>
+            </div>
         </div>
     </div>
 
@@ -468,7 +525,6 @@
             return [];
         }
 
-        // Formatta uno slug (es. spesa-festa-compleanno-k8x1a2) in un nome leggibile
         function formatSlugToName(slug) {
             if (!slug) return 'Lista Condivisa';
             let cleaned = slug.replace(/-[a-z0-9]{4,15}$/i, '');
@@ -571,7 +627,6 @@
             } else { badge.classList.add('hidden'); }
         }
 
-        // --- INIZIALIZZAZIONE LISTE & GESTIONE INVITI DA URL ---
         function initUserLists() {
             const userListsRef = db.ref(`utenti/${currentUser.uid}/userLists`);
             userListsRef.on('value', async (snapshot) => {
@@ -694,7 +749,6 @@
                 typeBadge.className = "bg-indigo-50 dark:bg-slate-800 text-indigo-700 dark:text-indigo-300 font-bold px-2 py-0.5 rounded-lg text-[10px]";
                 ownerDisplay.textContent = (currentObj ? currentObj.ownerName : 'Condivisa');
 
-                // Sincronizzazione ed Auto-riparazione metadati
                 db.ref(`shared_liste_meta/${listId}`).once('value', (snap) => {
                     if (snap.exists()) {
                         const meta = snap.val();
@@ -912,7 +966,7 @@
             });
         }
 
-        // --- SEZIONE DISPENSA: ASINCRONA E SICURA ---
+        // --- SEZIONE DISPENSA & SCANSIONE SCONTRINO ---
         function moveCheckedToPantry() {
             if (!listRef || !pantryRef) {
                 showAlertModal("Errore", "Riferimento alla lista non attivo.", "⚠️");
@@ -979,6 +1033,165 @@
 
                 nameInput.value = '';
                 dateInput.value = '';
+            });
+        }
+
+        // --- FUNZIONI OCR & SCANSIONE SCONTRINO ---
+        function triggerReceiptScan() {
+            document.getElementById('receiptFileInput').click();
+        }
+
+        async function handleReceiptSelected(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const loadingModal = document.getElementById('receiptLoadingModal');
+            const statusText = document.getElementById('receiptStatusText');
+            loadingModal.classList.remove('hidden');
+            statusText.textContent = "Caricamento motore OCR Tesseract...";
+
+            try {
+                const worker = await Tesseract.createWorker('ita');
+                statusText.textContent = "Analisi del testo dello scontrino...";
+                
+                const ret = await worker.recognize(file);
+                await worker.terminate();
+
+                loadingModal.classList.add('hidden');
+                event.target.value = ''; // reset file input
+
+                const parsedItems = parseReceiptText(ret.data.text);
+                if (parsedItems.length === 0) {
+                    showAlertModal("Nessun prodotto rilevato", "Non è stato possibile identificare chiaramente i prodotti dallo scontrino. Riprova con una foto più nitida o ben illuminata.", "⚠️");
+                } else {
+                    showReceiptVerifyModal(parsedItems);
+                }
+            } catch (error) {
+                console.error("Errore OCR:", error);
+                loadingModal.classList.add('hidden');
+                event.target.value = '';
+                showAlertModal("Errore Scansione", "Si è verificato un errore durante l'analisi dell'immagine. Assicurati che l'immagine sia leggibile.", "⚠️");
+            }
+        }
+
+        function parseReceiptText(rawText) {
+            if (!rawText) return [];
+            const lines = rawText.split('\n');
+            const items = [];
+
+            const ignoreKeywords = [
+                'totale', 'subtotale', 'euro', 'iva', 'p.iva', 'scontrino', 'fiscale', 
+                'grazie', 'arrivederci', 'contanti', 'carta', 'bancomat', 'resto', 
+                'importo', 'data', 'ora', 'cassa', 'transazione', 'articolo', 'punti', 
+                'sconto', 'pagamento', 'via', 'piazza', 'tel', 'spettabile'
+            ];
+
+            for (let line of lines) {
+                let clean = line.trim();
+                if (clean.length < 3) continue;
+
+                let lower = clean.toLowerCase();
+                if (ignoreKeywords.some(kw => lower.includes(kw))) continue;
+
+                // Rimuove i prezzi in euro alla fine della riga (es. 1.99, 2,50 A, ecc.)
+                clean = clean.replace(/\d+[\.,]\d{2}\s*[a-zA-Z]?$/g, '');
+                // Rimuove codici a barre o numeri iniziali isolati
+                clean = clean.replace(/^[0-9]+\s*/, '');
+                // Rimuove indicazioni di quantità iniziali (es. 1x, 2 x, *1)
+                clean = clean.replace(/^[0-9]+\s*[xX*]\s*/, '');
+                clean = clean.trim();
+
+                // Se la stringa pulita ha ancora almeno 3 caratteri e non è solo un numero
+                if (clean.length >= 3 && !/^\d+$/.test(clean)) {
+                    let defaultLoc = 'Dispensa';
+                    let lowerClean = clean.toLowerCase();
+                    if (['latte', 'yogurt', 'formaggio', 'mozzarella', 'burro', 'carne', 'pesce', 'stracchino', 'ricotta', 'prosciutto', 'salame', 'uova'].some(k => lowerClean.includes(k))) {
+                        defaultLoc = 'Frigo';
+                    } else if (['gelato', 'surgelat', 'piselli', 'minestrone', 'frenzy'].some(k => lowerClean.includes(k))) {
+                        defaultLoc = 'Freezer';
+                    }
+
+                    items.push({
+                        name: clean.charAt(0).toUpperCase() + clean.slice(1).toLowerCase(),
+                        location: defaultLoc,
+                        expireDate: '',
+                        checked: true
+                    });
+                }
+            }
+            return items;
+        }
+
+        function showReceiptVerifyModal(items) {
+            const container = document.getElementById('receiptItemsContainer');
+            container.innerHTML = '';
+
+            items.forEach((item, index) => {
+                const row = document.createElement('div');
+                row.className = "bg-gray-50 dark:bg-slate-800 p-2.5 rounded-2xl border border-gray-200 dark:border-slate-700 space-y-2";
+                row.innerHTML = `
+                    <div class="flex items-center gap-2">
+                        <input type="checkbox" id="receipt_check_${index}" ${item.checked ? 'checked' : ''} class="w-4 h-4 text-indigo-600 rounded">
+                        <input type="text" id="receipt_name_${index}" value="${item.name.replace(/"/g, '&quot;')}" class="flex-1 bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-700 text-xs font-bold px-2.5 py-1.5 rounded-xl focus:outline-none">
+                    </div>
+                    <div class="flex gap-2 pl-6">
+                        <select id="receipt_loc_${index}" class="bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-700 text-[11px] font-semibold px-2 py-1 rounded-xl">
+                            <option value="Frigo" ${item.location === 'Frigo' ? 'selected' : ''}>❄️ Frigo</option>
+                            <option value="Freezer" ${item.location === 'Freezer' ? 'selected' : ''}>🧊 Freezer</option>
+                            <option value="Dispensa" ${item.location === 'Dispensa' ? 'selected' : ''}>📦 Dispensa</option>
+                            <option value="Altro" ${item.location === 'Altro' ? 'selected' : ''}>🚪 Altro</option>
+                        </select>
+                        <input type="date" id="receipt_exp_${index}" value="${item.expireDate}" class="flex-1 bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-700 text-[11px] px-2 py-1 rounded-xl">
+                    </div>
+                `;
+                container.appendChild(row);
+            });
+
+            document.getElementById('receiptVerifyModal').classList.remove('hidden');
+        }
+
+        function closeReceiptVerifyModal() {
+            document.getElementById('receiptVerifyModal').classList.add('hidden');
+        }
+
+        function confirmReceiptItems() {
+            if (!pantryRef) {
+                showAlertModal("Errore", "Nessuna dispensa selezionata.", "⚠️");
+                return;
+            }
+
+            const rows = document.getElementById('receiptItemsContainer').children;
+            const itemsToAdd = [];
+
+            for (let i = 0; i < rows.length; i++) {
+                const isChecked = document.getElementById(`receipt_check_${i}`).checked;
+                const name = document.getElementById(`receipt_name_${i}`).value.trim();
+                const loc = document.getElementById(`receipt_loc_${i}`).value;
+                const exp = document.getElementById(`receipt_exp_${i}`).value;
+
+                if (isChecked && name) {
+                    itemsToAdd.push({
+                        id: `pantry_${Date.now()}_${Math.random().toString(36).substr(2, 4)}`,
+                        name: name,
+                        location: loc,
+                        expireDate: exp || '',
+                        qty: '1x',
+                        addedAt: new Date().toISOString()
+                    });
+                }
+            }
+
+            if (itemsToAdd.length === 0) {
+                showAlertModal("Nessun elemento selezionato", "Seleziona almeno un prodotto spuntando la casella per inserirlo.", "⚠️");
+                return;
+            }
+
+            pantryRef.once('value', snapshot => {
+                const currentPantry = ensureArray(snapshot.val());
+                const updatedPantry = [...currentPantry, ...itemsToAdd];
+                pantryRef.set(updatedPantry);
+                closeReceiptVerifyModal();
+                showAlertModal("Prodotti Aggiunti", `${itemsToAdd.length} prodotti inseriti correttamente in Dispensa!`, "📦");
             });
         }
 
