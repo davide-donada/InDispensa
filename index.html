@@ -352,7 +352,7 @@
                 <h3 class="font-extrabold text-sm text-indigo-950 dark:text-indigo-400">🔗 Condividi Lista</h3>
                 <button onclick="closeShareModal()" class="text-gray-400 font-bold">✕</button>
             </div>
-            <p id="shareModalSubhead" class="text-xs text-gray-600 dark:text-slate-300">Invia questo link d'invito.</p>
+            <p id="shareModalSubhead" class="text-xs text-gray-600 dark:text-slate-300">Chiunque abbia questo link potrà accedere a questa lista condivisa.</p>
             <input type="text" id="shareUrlInput" readonly onclick="this.select()" class="w-full bg-gray-50 dark:bg-slate-800 text-xs font-mono p-2.5 rounded-xl">
             <div class="space-y-2">
                 <button id="nativeShareBtn" onclick="nativeShare()" class="w-full bg-indigo-600 text-white font-bold py-3 rounded-xl text-xs shadow-md">📲 Condividi via App</button>
@@ -563,17 +563,54 @@
             } else { badge.classList.add('hidden'); }
         }
 
+        // --- INIZIALIZZAZIONE LISTE & GESTIONE INVITI DA URL ---
         function initUserLists() {
             const userListsRef = db.ref(`utenti/${currentUser.uid}/userLists`);
-            userListsRef.on('value', (snapshot) => {
+            userListsRef.on('value', async (snapshot) => {
                 let listsFromDb = ensureArray(snapshot.val());
                 if (listsFromDb.length === 0) {
                     listsFromDb = [{ id: 'p_main', name: 'Spesa Personale', type: 'private', ownerUid: currentUser.uid, ownerName: currentUser.displayName }];
                 }
                 userLists = listsFromDb;
-                const lastActive = localStorage.getItem(`lastActiveList_${currentUser.uid}`);
-                activeListId = lastActive || userLists[0].id;
-                if (!userLists.some(l => l && l.id === activeListId)) activeListId = userLists[0].id;
+
+                // Gestione apertura via link condivisibile (?house=ID_LISTA)
+                const urlParams = new URLSearchParams(window.location.search);
+                const houseParam = urlParams.get('house');
+
+                if (houseParam) {
+                    const exists = userLists.some(l => l && l.id === houseParam);
+                    if (!exists) {
+                        let sharedMeta = { name: houseParam, ownerName: 'Condivisa' };
+                        try {
+                            const metaSnap = await db.ref(`shared_liste_meta/${houseParam}`).once('value');
+                            if (metaSnap.exists()) {
+                                sharedMeta = metaSnap.val();
+                            }
+                        } catch (e) {
+                            console.log("Impossibile recuperare metadati lista:", e);
+                        }
+
+                        userLists.push({
+                            id: houseParam,
+                            name: sharedMeta.name || houseParam,
+                            type: 'shared',
+                            ownerUid: sharedMeta.ownerUid || '',
+                            ownerName: sharedMeta.ownerName || 'Condivisa'
+                        });
+
+                        salvaUserListsSuFirebase();
+                    }
+
+                    activeListId = houseParam;
+                    if (window.history.replaceState) {
+                        window.history.replaceState({}, document.title, window.location.pathname);
+                    }
+                } else {
+                    const lastActive = localStorage.getItem(`lastActiveList_${currentUser.uid}`);
+                    activeListId = lastActive || userLists[0].id;
+                    if (!userLists.some(l => l && l.id === activeListId)) activeListId = userLists[0].id;
+                }
+
                 renderHouseSelect();
                 switchList(activeListId);
             });
@@ -644,6 +681,20 @@
                 typeBadge.textContent = "Condivisa";
                 typeBadge.className = "bg-indigo-50 dark:bg-slate-800 text-indigo-700 dark:text-indigo-300 font-bold px-2 py-0.5 rounded-lg text-[10px]";
                 ownerDisplay.textContent = (currentObj ? currentObj.ownerName : 'Condivisa');
+
+                // Sincronizza i metadati reali della lista condivisa
+                db.ref(`shared_liste_meta/${listId}`).once('value', (snap) => {
+                    if (snap.exists()) {
+                        const meta = snap.val();
+                        currentListOwnerInfo = { ownerUid: meta.ownerUid, ownerName: meta.ownerName };
+                        ownerDisplay.textContent = meta.ownerName || 'Condivisa';
+                        if (meta.name && currentObj && currentObj.name !== meta.name) {
+                            currentObj.name = meta.name;
+                            salvaUserListsSuFirebase();
+                            renderHouseSelect();
+                        }
+                    }
+                });
             }
 
             attachDatabaseListener();
@@ -838,7 +889,7 @@
             });
         }
 
-        // --- SEZIONE DISPENSA: ASINCRONA E SICURA PER TUTTE LE LISTE ---
+        // --- SEZIONE DISPENSA: ASINCRONA E SICURA ---
         function moveCheckedToPantry() {
             if (!listRef || !pantryRef) {
                 showAlertModal("Errore", "Riferimento alla lista non attivo.", "⚠️");
@@ -1104,14 +1155,31 @@
 
         function openNewListModal() { document.getElementById('newListModal').classList.remove('hidden'); }
         function closeNewListModal() { document.getElementById('newListModal').classList.add('hidden'); renderHouseSelect(); }
+        
         function confermaCreaLista() {
             const rawName = document.getElementById('modalListName').value.trim();
             if (!rawName) return;
             const typeRadio = document.querySelector('input[name="modalListType"]:checked');
             const type = typeRadio ? typeRadio.value : 'shared';
-            const listId = type === 'shared' ? rawName.toLowerCase().replace(/[^a-z0-9_-]/g, '-') : `p_${Date.now()}`;
-            userLists.push({ id: listId, name: rawName, type: type, ownerUid: currentUser.uid, ownerName: currentUser.displayName || 'Utente' });
+            
+            // Genera ID unico sicuro
+            const listId = type === 'shared' 
+                ? (rawName.toLowerCase().replace(/[^a-z0-9_-]/g, '-') + '-' + Date.now().toString(36)) 
+                : `p_${Date.now()}`;
+
+            const newList = { id: listId, name: rawName, type: type, ownerUid: currentUser.uid, ownerName: currentUser.displayName || 'Utente' };
+            userLists.push(newList);
             salvaUserListsSuFirebase();
+
+            // Registra metadati se condivisa
+            if (type === 'shared') {
+                db.ref(`shared_liste_meta/${listId}`).set({
+                    name: rawName,
+                    ownerUid: currentUser.uid,
+                    ownerName: currentUser.displayName || 'Utente'
+                });
+            }
+
             closeNewListModal();
             switchList(listId);
         }
@@ -1119,19 +1187,34 @@
         function openShareModal() {
             const listArray = ensureArray(userLists);
             const currentObj = listArray.find(l => l && l.id === activeListId);
+            
+            if (currentObj && currentObj.type === 'private') {
+                showAlertModal("Lista Privata", "Le liste private sono visibili solo a te. Crea o seleziona una lista Condivisa per poterla condividere con altri utenti.", "🔒");
+                return;
+            }
+
             const inviteUrl = `${window.location.origin}${window.location.pathname}?house=${activeListId}`;
-            document.getElementById('shareUrlInput').value = (currentObj && currentObj.type === 'private') ? "Lista Privata" : inviteUrl;
+            document.getElementById('shareUrlInput').value = inviteUrl;
             document.getElementById('shareModal').classList.remove('hidden');
         }
+
         function closeShareModal() { document.getElementById('shareModal').classList.add('hidden'); }
+
         function nativeShare() {
-            const inviteUrl = `${window.location.origin}${window.location.pathname}?house=${activeListId}`;
-            if (navigator.share) navigator.share({ title: 'InDispensa', url: inviteUrl });
+            const inviteUrl = document.getElementById('shareUrlInput').value;
+            if (navigator.share && inviteUrl.startsWith('http')) {
+                navigator.share({ title: 'InDispensa - Lista Spesa Condivisa', url: inviteUrl });
+            } else {
+                copyShareUrl();
+            }
         }
+
         function copyShareUrl() {
-            const inviteUrl = `${window.location.origin}${window.location.pathname}?house=${activeListId}`;
-            navigator.clipboard.writeText(inviteUrl);
-            showAlertModal("Copiato", "Link copiato negli appunti!", "✅");
+            const inviteUrl = document.getElementById('shareUrlInput').value;
+            if (inviteUrl.startsWith('http')) {
+                navigator.clipboard.writeText(inviteUrl);
+                showAlertModal("Copiato", "Link d'invito copiato negli appunti! Invia il link a chi vuole unirsi alla lista.", "✅");
+            }
         }
 
         function openDeptOrderModal() { renderDeptOrderList(); document.getElementById('deptOrderModal').classList.remove('hidden'); }
