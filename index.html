@@ -314,7 +314,7 @@
         </div>
     </div>
 
-    <!-- Modali Standard: Nuova Lista, Condivisione, Conferma, Avviso -->
+    <!-- Modale Grafica: Nuova Lista -->
     <div id="newListModal" class="hidden fixed inset-0 bg-slate-950/70 backdrop-blur-sm z-50 flex items-center justify-center p-4">
         <div class="bg-white dark:bg-slate-900 rounded-3xl max-w-sm w-full p-6 shadow-2xl border border-gray-100 dark:border-slate-800 space-y-4 text-gray-800 dark:text-slate-100">
             <div class="flex justify-between items-center border-b border-gray-100 dark:border-slate-800 pb-3">
@@ -345,6 +345,7 @@
         </div>
     </div>
 
+    <!-- Modale Grafica: Condivisione -->
     <div id="shareModal" class="hidden fixed inset-0 bg-slate-950/70 backdrop-blur-sm z-50 flex items-center justify-center p-4">
         <div class="bg-white dark:bg-slate-900 rounded-3xl max-w-sm w-full p-6 shadow-2xl space-y-4">
             <div class="flex justify-between items-center border-b pb-3">
@@ -360,20 +361,22 @@
         </div>
     </div>
 
+    <!-- Modale Grafica: Conferma -->
     <div id="confirmModal" class="hidden fixed inset-0 bg-slate-950/70 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-        <div class="bg-white dark:bg-slate-900 rounded-3xl max-w-sm w-full p-6 shadow-2xl border space-y-4 text-center">
+        <div class="bg-white dark:bg-slate-900 rounded-3xl max-w-sm w-full p-6 shadow-2xl border border-gray-100 dark:border-slate-800 space-y-4 text-center">
             <div id="confirmModalBadge" class="w-12 h-12 rounded-2xl bg-rose-50 text-rose-600 flex items-center justify-center mx-auto text-xl shadow-inner">🗑️</div>
             <div class="space-y-1">
                 <h3 id="confirmModalTitle" class="font-extrabold text-base text-gray-900 dark:text-slate-100">Conferma azione</h3>
-                <p id="confirmModalMsg" class="text-xs text-gray-600 dark:text-slate-300">Sei sicuro di voler procedere?</p>
+                <p id="confirmModalMsg" class="text-xs text-gray-600 dark:text-slate-300 leading-relaxed">Sei sicuro di voler procedere?</p>
             </div>
             <div class="flex gap-2.5 pt-2">
-                <button onclick="closeConfirmModal()" class="flex-1 bg-gray-100 dark:bg-slate-800 text-gray-700 dark:text-slate-300 font-bold py-2.5 rounded-xl text-xs">Annulla</button>
-                <button id="confirmModalActionBtn" onclick="handleConfirmModalAction()" class="flex-1 bg-rose-600 text-white font-bold py-2.5 rounded-xl text-xs shadow-md">Elimina</button>
+                <button type="button" onclick="closeConfirmModal()" class="flex-1 bg-gray-100 dark:bg-slate-800 hover:bg-gray-200 text-gray-700 dark:text-slate-300 font-bold py-2.5 rounded-xl text-xs transition">Annulla</button>
+                <button type="button" id="confirmModalActionBtn" onclick="handleConfirmModalAction()" class="flex-1 bg-rose-600 hover:bg-rose-700 text-white font-bold py-2.5 rounded-xl text-xs transition shadow-md">Elimina</button>
             </div>
         </div>
     </div>
 
+    <!-- Modale Grafica: Avviso -->
     <div id="alertModal" class="hidden fixed inset-0 bg-slate-950/70 backdrop-blur-sm z-50 flex items-center justify-center p-4">
         <div class="bg-white dark:bg-slate-900 rounded-3xl max-w-sm w-full p-6 shadow-2xl border space-y-4 text-center">
             <div id="alertModalBadge" class="w-12 h-12 rounded-2xl bg-indigo-50 text-indigo-600 flex items-center justify-center mx-auto text-xl shadow-inner">ℹ️</div>
@@ -457,11 +460,11 @@
             "Casa e Pulizia", "Bucato", "Igiene Personale", "Surgelati", "Sfizi e Dolci"
         ];
 
-        // --- Utility per convertire in sicurezza dati Firebase in Array ---
+        // Utility per garantire la conversione di dati Firebase in Array puliti
         function ensureArray(data) {
             if (!data) return [];
-            if (Array.isArray(data)) return data;
-            if (typeof data === 'object') return Object.values(data);
+            if (Array.isArray(data)) return data.filter(Boolean);
+            if (typeof data === 'object') return Object.values(data).filter(Boolean);
             return [];
         }
 
@@ -503,7 +506,6 @@
         }
         function logoutGoogle() { auth.signOut(); }
 
-        // --- Gestione Tab Navigazione (Lista vs Dispensa) ---
         function switchTab(tab) {
             currentTab = tab;
             const shopBtn = document.getElementById('tabShoppingBtn');
@@ -524,7 +526,6 @@
             }
         }
 
-        // --- Autocomplete ---
         const categoryDictionary = {
             "Frutta": ["mela", "mele", "pera", "pere", "banana", "banane", "limone", "limoni", "arancia", "arance", "avocado", "mirtilli", "kiwi", "uva", "fragola"],
             "Verdura": ["broccoli", "cavolfiore", "zucca", "carota", "spinaci", "zucchina", "insalata", "pomodoro", "funghi", "cipolla"],
@@ -562,7 +563,6 @@
             } else { badge.classList.add('hidden'); }
         }
 
-        // --- Sincronizzazione Liste e Dispensa ---
         function initUserLists() {
             const userListsRef = db.ref(`utenti/${currentUser.uid}/userLists`);
             userListsRef.on('value', (snapshot) => {
@@ -573,7 +573,7 @@
                 userLists = listsFromDb;
                 const lastActive = localStorage.getItem(`lastActiveList_${currentUser.uid}`);
                 activeListId = lastActive || userLists[0].id;
-                if (!userLists.some(l => l.id === activeListId)) activeListId = userLists[0].id;
+                if (!userLists.some(l => l && l.id === activeListId)) activeListId = userLists[0].id;
                 renderHouseSelect();
                 switchList(activeListId);
             });
@@ -588,12 +588,16 @@
             const deleteBtn = document.getElementById('deleteHouseBtn');
             const houseIcon = document.getElementById('houseIcon');
             select.innerHTML = '';
-            const currentObj = userLists.find(l => l.id === activeListId) || userLists[0];
-            houseIcon.textContent = currentObj.type === 'private' ? '🔒' : '👥';
-            if (userLists.length > 1) deleteBtn.classList.remove('hidden');
+            
+            const listArray = ensureArray(userLists);
+            const currentObj = listArray.find(l => l && l.id === activeListId) || listArray[0];
+            
+            houseIcon.textContent = (currentObj && currentObj.type === 'private') ? '🔒' : '👥';
+            if (listArray.length > 1) deleteBtn.classList.remove('hidden');
             else deleteBtn.classList.add('hidden');
 
-            userLists.forEach(l => {
+            listArray.forEach(l => {
+                if (!l) return;
                 const option = document.createElement('option');
                 option.value = l.id;
                 option.textContent = `${l.type === 'private' ? '🔒' : '👥'} ${l.name}`;
@@ -612,7 +616,8 @@
         }
 
         function isCurrentuserAdmin() {
-            const currentObj = userLists.find(l => l.id === activeListId);
+            const listArray = ensureArray(userLists);
+            const currentObj = listArray.find(l => l && l.id === activeListId);
             if (!currentObj || currentObj.type === 'private') return true;
             return (currentObj.ownerUid || currentListOwnerInfo.ownerUid) === currentUser.uid;
         }
@@ -622,11 +627,12 @@
             localStorage.setItem(`lastActiveList_${currentUser.uid}`, activeListId);
             renderHouseSelect();
 
-            const currentObj = userLists.find(l => l.id === activeListId) || userLists[0];
+            const listArray = ensureArray(userLists);
+            const currentObj = listArray.find(l => l && l.id === activeListId) || listArray[0];
             const ownerDisplay = document.getElementById('ownerNameDisplay');
             const typeBadge = document.getElementById('listTypeBadge');
 
-            if (currentObj.type === 'private') {
+            if (currentObj && currentObj.type === 'private') {
                 listRef = db.ref(`utenti/${currentUser.uid}/liste/${activeListId}`);
                 pantryRef = db.ref(`utenti/${currentUser.uid}/dispensa/${activeListId}`);
                 typeBadge.textContent = "Privata";
@@ -637,7 +643,7 @@
                 pantryRef = db.ref(`shared_dispensa/${activeListId}`);
                 typeBadge.textContent = "Condivisa";
                 typeBadge.className = "bg-indigo-50 dark:bg-slate-800 text-indigo-700 dark:text-indigo-300 font-bold px-2 py-0.5 rounded-lg text-[10px]";
-                ownerDisplay.textContent = currentObj.ownerName || 'Condivisa';
+                ownerDisplay.textContent = (currentObj ? currentObj.ownerName : 'Condivisa');
             }
 
             attachDatabaseListener();
@@ -778,7 +784,7 @@
             listRef.once('value', snapshot => {
                 const currentList = ensureArray(snapshot.val());
                 const isOwner = isCurrentuserAdmin();
-                const existingIndex = currentList.findIndex(item => item.name && item.name.trim().toLowerCase() === lowerName);
+                const existingIndex = currentList.findIndex(item => item && item.name && item.name.trim().toLowerCase() === lowerName);
 
                 if (existingIndex !== -1) {
                     const existingItem = currentList[existingIndex];
@@ -832,27 +838,30 @@
             });
         }
 
-        // --- SEZIONE DISPENSA & SCADENZE (ROBUSTA PER LISTE CONDIVISE) ---
+        // --- SEZIONE DISPENSA: ASINCRONA E SICURA PER TUTTE LE LISTE ---
         function moveCheckedToPantry() {
-            if (!listRef || !pantryRef) return;
+            if (!listRef || !pantryRef) {
+                showAlertModal("Errore", "Riferimento alla lista non attivo.", "⚠️");
+                return;
+            }
 
-            listRef.once('value', snapshot => {
+            listRef.once('value').then(snapshot => {
                 const currentList = ensureArray(snapshot.val());
-                const checkedItems = currentList.filter(i => i && i.checked);
-                const remainingItems = currentList.filter(i => i && !i.checked);
+                const checkedItems = currentList.filter(i => i && (i.checked === true || i.checked === 'true'));
+                const remainingItems = currentList.filter(i => i && !i.checked && i.checked !== 'true');
 
                 if (checkedItems.length === 0) {
-                    showAlertModal("Nessun prodotto preso", "Spunta prima i prodotti che hai acquistato per poterli spostare in dispensa.", "⚠️");
+                    showAlertModal("Nessun prodotto preso", "Spunta prima i prodotti acquistati per trasferirli in dispensa.", "⚠️");
                     return;
                 }
 
-                pantryRef.once('value', pSnap => {
+                pantryRef.once('value').then(pSnap => {
                     const currentPantry = ensureArray(pSnap.val());
-                    
+
                     checkedItems.forEach(item => {
                         currentPantry.push({
                             id: `pantry_${Date.now()}_${Math.random().toString(36).substr(2, 4)}`,
-                            name: item.name,
+                            name: item.name || 'Prodotto',
                             location: 'Dispensa',
                             expireDate: '',
                             qty: item.qty || '1x',
@@ -860,9 +869,15 @@
                         });
                     });
 
-                    pantryRef.set(currentPantry);
-                    listRef.set(remainingItems);
-                    showAlertModal("Prodotti Spostati", `${checkedItems.length} prodotti presi sono stati trasferiti in Dispensa!`, "📦");
+                    return Promise.all([
+                        pantryRef.set(currentPantry),
+                        listRef.set(remainingItems)
+                    ]);
+                }).then(() => {
+                    showAlertModal("Prodotti Spostati", `${checkedItems.length} prodotti trasferiti in Dispensa!`, "📦");
+                }).catch(err => {
+                    console.error("Errore salvataggio dispensa:", err);
+                    showAlertModal("Errore Permessi", `Impossibile aggiornare la dispensa: ${err.message}`, "🚫");
                 });
             });
         }
@@ -935,13 +950,14 @@
 
             let filtered = currentPantryData;
             if (pantryLocationFilter !== 'ALL') {
-                filtered = filtered.filter(i => i.location === pantryLocationFilter);
+                filtered = filtered.filter(i => i && i.location === pantryLocationFilter);
             }
 
             let expiredCount = 0;
             let warningCount = 0;
 
             currentPantryData.forEach(item => {
+                if (!item) return;
                 const exp = getExpirationStatus(item.expireDate);
                 if (exp.status === 'EXPIRED') expiredCount++;
                 if (exp.status === 'WARNING') warningCount++;
@@ -969,6 +985,7 @@
             const locationIcons = { 'Frigo': '❄️', 'Freezer': '🧊', 'Dispensa': '📦', 'Altro': '🚪' };
 
             filtered.forEach((item, index) => {
+                if (!item) return;
                 const expInfo = getExpirationStatus(item.expireDate);
                 const locIcon = locationIcons[item.location] || '📦';
 
@@ -1008,16 +1025,74 @@
             showAlertModal("Aggiunto in Lista", `"${itemName}" è stato aggiunto nuovamente alla tua lista della spesa!`, "🛒");
         }
 
-        // --- Modali Generiche ---
-        function showConfirmModal(title, message, confirmBtnText = 'Elimina', isDanger = true, badgeIcon = '🗑️', onConfirm) {
-            document.getElementById('confirmModalTitle').textContent = title;
-            document.getElementById('confirmModalMsg').textContent = message;
-            document.getElementById('confirmModalBadge').textContent = badgeIcon;
-            onConfirmCallback = onConfirm;
-            document.getElementById('confirmModal').classList.remove('hidden');
+        // --- GESTIONE ELIMINAZIONE LISTA CORRETTA ---
+        function eliminaListaCorrente() {
+            const listArray = ensureArray(userLists);
+            
+            if (listArray.length <= 1) {
+                showAlertModal("Impossibile eliminare", "Devi mantenere almeno una lista salvata nell'elenco.", "⚠️");
+                return;
+            }
+
+            const currentObj = listArray.find(l => l && l.id === activeListId);
+            const listName = currentObj ? currentObj.name : "questa lista";
+
+            showConfirmModal(
+                "Elimina Lista",
+                `Sei sicuro di voler rimuovere la lista "${listName}" dal tuo elenco?`,
+                "Elimina Lista",
+                true,
+                "🗑️",
+                () => {
+                    if (window.history.replaceState) {
+                        window.history.replaceState({}, document.title, window.location.pathname);
+                    }
+
+                    userLists = listArray.filter(l => l && l.id !== activeListId);
+                    salvaUserListsSuFirebase();
+                    
+                    if (userLists.length > 0) {
+                        switchList(userLists[0].id);
+                    }
+                }
+            );
         }
-        function closeConfirmModal() { document.getElementById('confirmModal').classList.add('hidden'); onConfirmCallback = null; }
-        function handleConfirmModalAction() { if (onConfirmCallback) onConfirmCallback(); closeConfirmModal(); }
+
+        // --- MODALI UI ROBUSTE ---
+        function showConfirmModal(title, message, confirmBtnText = 'Elimina', isDanger = true, badgeIcon = '🗑️', onConfirm) {
+            const modal = document.getElementById('confirmModal');
+            const modalTitle = document.getElementById('confirmModalTitle');
+            const modalMsg = document.getElementById('confirmModalMsg');
+            const modalBadge = document.getElementById('confirmModalBadge');
+            const confirmBtn = document.getElementById('confirmModalActionBtn');
+
+            if (!modal) return;
+
+            if (modalTitle) modalTitle.textContent = title;
+            if (modalMsg) modalMsg.textContent = message;
+            if (modalBadge) modalBadge.textContent = badgeIcon;
+            
+            if (confirmBtn) {
+                confirmBtn.textContent = confirmBtnText;
+                confirmBtn.className = isDanger 
+                    ? "flex-1 bg-rose-600 hover:bg-rose-700 text-white font-bold py-2.5 rounded-xl text-xs transition shadow-md active:scale-95"
+                    : "flex-1 bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2.5 rounded-xl text-xs transition shadow-md active:scale-95";
+            }
+
+            onConfirmCallback = onConfirm;
+            modal.classList.remove('hidden');
+        }
+
+        function closeConfirmModal() { 
+            const modal = document.getElementById('confirmModal');
+            if (modal) modal.classList.add('hidden'); 
+            onConfirmCallback = null; 
+        }
+
+        function handleConfirmModalAction() { 
+            if (onConfirmCallback) onConfirmCallback(); 
+            closeConfirmModal(); 
+        }
 
         function showAlertModal(title, message, badgeIcon = 'ℹ️') {
             document.getElementById('alertModalTitle').textContent = title;
@@ -1042,9 +1117,10 @@
         }
 
         function openShareModal() {
-            const currentObj = userLists.find(l => l.id === activeListId);
+            const listArray = ensureArray(userLists);
+            const currentObj = listArray.find(l => l && l.id === activeListId);
             const inviteUrl = `${window.location.origin}${window.location.pathname}?house=${activeListId}`;
-            document.getElementById('shareUrlInput').value = currentObj.type === 'private' ? "Lista Privata" : inviteUrl;
+            document.getElementById('shareUrlInput').value = (currentObj && currentObj.type === 'private') ? "Lista Privata" : inviteUrl;
             document.getElementById('shareModal').classList.remove('hidden');
         }
         function closeShareModal() { document.getElementById('shareModal').classList.add('hidden'); }
