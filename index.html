@@ -468,6 +468,14 @@
             return [];
         }
 
+        // Formatta uno slug (es. spesa-festa-compleanno-k8x1a2) in un nome leggibile
+        function formatSlugToName(slug) {
+            if (!slug) return 'Lista Condivisa';
+            let cleaned = slug.replace(/-[a-z0-9]{4,15}$/i, '');
+            cleaned = cleaned.replace(/[-_]/g, ' ');
+            return cleaned.replace(/\b\w/g, l => l.toUpperCase());
+        }
+
         auth.onAuthStateChanged((user) => {
             const loadingScreen = document.getElementById('loadingScreen');
             const loginScreen = document.getElementById('loginScreen');
@@ -573,18 +581,22 @@
                 }
                 userLists = listsFromDb;
 
-                // Gestione apertura via link condivisibile (?house=ID_LISTA)
                 const urlParams = new URLSearchParams(window.location.search);
                 const houseParam = urlParams.get('house');
 
                 if (houseParam) {
-                    const exists = userLists.some(l => l && l.id === houseParam);
-                    if (!exists) {
-                        let sharedMeta = { name: houseParam, ownerName: 'Condivisa' };
+                    let existingItem = userLists.find(l => l && l.id === houseParam);
+                    if (!existingItem) {
+                        let fallbackName = formatSlugToName(houseParam);
+                        let sharedMeta = { name: fallbackName, ownerName: 'Condivisa' };
+                        
                         try {
                             const metaSnap = await db.ref(`shared_liste_meta/${houseParam}`).once('value');
                             if (metaSnap.exists()) {
-                                sharedMeta = metaSnap.val();
+                                const val = metaSnap.val();
+                                if (val.name) sharedMeta.name = val.name;
+                                if (val.ownerName) sharedMeta.ownerName = val.ownerName;
+                                if (val.ownerUid) sharedMeta.ownerUid = val.ownerUid;
                             }
                         } catch (e) {
                             console.log("Impossibile recuperare metadati lista:", e);
@@ -592,7 +604,7 @@
 
                         userLists.push({
                             id: houseParam,
-                            name: sharedMeta.name || houseParam,
+                            name: sharedMeta.name,
                             type: 'shared',
                             ownerUid: sharedMeta.ownerUid || '',
                             ownerName: sharedMeta.ownerName || 'Condivisa'
@@ -682,17 +694,28 @@
                 typeBadge.className = "bg-indigo-50 dark:bg-slate-800 text-indigo-700 dark:text-indigo-300 font-bold px-2 py-0.5 rounded-lg text-[10px]";
                 ownerDisplay.textContent = (currentObj ? currentObj.ownerName : 'Condivisa');
 
-                // Sincronizza i metadati reali della lista condivisa
+                // Sincronizzazione ed Auto-riparazione metadati
                 db.ref(`shared_liste_meta/${listId}`).once('value', (snap) => {
                     if (snap.exists()) {
                         const meta = snap.val();
                         currentListOwnerInfo = { ownerUid: meta.ownerUid, ownerName: meta.ownerName };
-                        ownerDisplay.textContent = meta.ownerName || 'Condivisa';
+                        if (meta.ownerName) ownerDisplay.textContent = meta.ownerName;
+
                         if (meta.name && currentObj && currentObj.name !== meta.name) {
                             currentObj.name = meta.name;
                             salvaUserListsSuFirebase();
                             renderHouseSelect();
                         }
+                    } else if (currentObj) {
+                        const realName = currentObj.name && !currentObj.name.includes('-') 
+                            ? currentObj.name 
+                            : formatSlugToName(listId);
+                            
+                        db.ref(`shared_liste_meta/${listId}`).set({
+                            name: realName,
+                            ownerUid: currentObj.ownerUid || currentUser.uid,
+                            ownerName: currentObj.ownerName || currentUser.displayName || 'Utente'
+                        });
                     }
                 });
             }
@@ -1162,7 +1185,6 @@
             const typeRadio = document.querySelector('input[name="modalListType"]:checked');
             const type = typeRadio ? typeRadio.value : 'shared';
             
-            // Genera ID unico sicuro
             const listId = type === 'shared' 
                 ? (rawName.toLowerCase().replace(/[^a-z0-9_-]/g, '-') + '-' + Date.now().toString(36)) 
                 : `p_${Date.now()}`;
@@ -1171,7 +1193,6 @@
             userLists.push(newList);
             salvaUserListsSuFirebase();
 
-            // Registra metadati se condivisa
             if (type === 'shared') {
                 db.ref(`shared_liste_meta/${listId}`).set({
                     name: rawName,
