@@ -247,7 +247,7 @@
                         <div class="w-10 h-10 rounded-xl bg-white/20 backdrop-blur-md flex items-center justify-center text-xl shadow-inner">🤖</div>
                         <div>
                             <h3 class="font-extrabold text-xs">Lettura AI Scontrino</h3>
-                            <p class="text-[11px] text-indigo-100">Analisi con GPT-4o-mini per una precisione perfetta.</p>
+                            <p class="text-[11px] text-indigo-100">Estrazione intelligente di Reparto e Posizione.</p>
                         </div>
                     </div>
                     <button type="button" onclick="triggerReceiptScan()" class="bg-white text-indigo-900 hover:bg-indigo-50 font-extrabold px-3 py-2 rounded-xl text-xs active:scale-95 transition shadow-md flex-shrink-0">
@@ -301,7 +301,7 @@
             </div>
             <div>
                 <h3 class="font-extrabold text-base text-gray-900 dark:text-slate-100">Analisi AI Scontrino...</h3>
-                <p id="receiptStatusText" class="text-xs text-gray-500 dark:text-slate-400 mt-1">L'IA sta estraendo e pulendo i prodotti...</p>
+                <p id="receiptStatusText" class="text-xs text-gray-500 dark:text-slate-400 mt-1">L'IA sta estraendo e classificando i prodotti...</p>
             </div>
         </div>
     </div>
@@ -312,13 +312,13 @@
             <div class="flex justify-between items-center border-b border-gray-100 dark:border-slate-800 pb-3">
                 <div>
                     <h3 class="font-extrabold text-sm text-indigo-950 dark:text-indigo-400 flex items-center gap-1.5"><span>🧾</span> Prodotti Rilevati dall'AI</h3>
-                    <p class="text-[11px] text-gray-500 dark:text-slate-400">Controlla e seleziona i prodotti da salvare in Dispensa.</p>
+                    <p class="text-[11px] text-gray-500 dark:text-slate-400">Verifica Reparto e Posizione prima di salvare in Dispensa.</p>
                 </div>
                 <button onclick="closeReceiptVerifyModal()" class="text-gray-400 hover:text-gray-600 font-bold p-1">✕</button>
             </div>
 
             <!-- Lista Dinamica degli Elementi Trovati -->
-            <div id="receiptItemsContainer" class="space-y-2 overflow-y-auto flex-1 pr-1 max-h-[50vh]"></div>
+            <div id="receiptItemsContainer" class="space-y-2.5 overflow-y-auto flex-1 pr-1 max-h-[50vh]"></div>
 
             <div class="flex items-center justify-between pt-2 border-t border-gray-100 dark:border-slate-800 gap-2">
                 <button onclick="closeReceiptVerifyModal()" class="bg-gray-100 dark:bg-slate-800 text-gray-700 dark:text-slate-300 font-bold py-2.5 px-4 rounded-xl text-xs">Annulla</button>
@@ -485,6 +485,19 @@
             "Casa e Pulizia", "Bucato", "Igiene Personale", "Surgelati", "Sfizi e Dolci"
         ];
 
+        const deptToLocationMap = {
+            "Frutta": "Dispensa",
+            "Verdura": "Frigo",
+            "Carne e Pesce": "Frigo",
+            "Latticini e Uova": "Frigo",
+            "Dispensa": "Dispensa",
+            "Surgelati": "Freezer",
+            "Casa e Pulizia": "Altro",
+            "Bucato": "Altro",
+            "Igiene Personale": "Altro",
+            "Sfizi e Dolci": "Dispensa"
+        };
+
         function ensureArray(data) {
             if (!data) return [];
             if (Array.isArray(data)) return data.filter(Boolean);
@@ -497,6 +510,35 @@
             let cleaned = slug.replace(/-[a-z0-9]{4,15}$/i, '');
             cleaned = cleaned.replace(/[-_]/g, ' ');
             return cleaned.replace(/\b\w/g, l => l.toUpperCase());
+        }
+
+        function sanitizeProductKey(name) {
+            if (!name) return '';
+            return name.toLowerCase().trim().replace(/[.#$\[\]]/g, '');
+        }
+
+        // --- CATALOGO PREFERENZE UTENTE (APPRENDIMENTO / OVERRIDE) ---
+        async function getUserProductPref(name) {
+            if (!currentUser || !name) return null;
+            const key = sanitizeProductKey(name);
+            if (!key) return null;
+            try {
+                const snap = await db.ref(`utenti/${currentUser.uid}/catalogoProdotto/${key}`).once('value');
+                return snap.exists() ? snap.val() : null;
+            } catch (e) {
+                return null;
+            }
+        }
+
+        function saveUserProductPref(name, dept, location) {
+            if (!currentUser || !name) return;
+            const key = sanitizeProductKey(name);
+            if (!key) return;
+            db.ref(`utenti/${currentUser.uid}/catalogoProdotto/${key}`).set({
+                dept: dept || 'Dispensa',
+                location: location || 'Dispensa',
+                updatedAt: new Date().toISOString()
+            });
         }
 
         auth.onAuthStateChanged((user) => {
@@ -570,6 +612,15 @@
             "Sfizi e Dolci": ["biscotti", "cioccolato", "snack"]
         };
 
+        function deduceDeptFromName(val) {
+            if (!val) return 'Dispensa';
+            const cleanVal = val.toLowerCase().trim();
+            for (const [dept, keywords] of Object.entries(categoryDictionary)) {
+                if (keywords.some(k => cleanVal.includes(k))) return dept;
+            }
+            return 'Dispensa';
+        }
+
         function initAutocomplete() {
             const datalist = document.getElementById('productsList');
             if (!datalist) return;
@@ -579,14 +630,20 @@
             datalist.innerHTML = Array.from(suggestions).map(item => `<option value="${item}">`).join('');
         }
 
-        function onProductInput(val) {
+        async function onProductInput(val) {
             const cleanVal = val.toLowerCase().trim();
             const badge = document.getElementById('autoCatBadge');
             if (!cleanVal) { badge.classList.add('hidden'); return; }
-            let foundDept = null;
-            for (const [dept, keywords] of Object.entries(categoryDictionary)) {
-                if (keywords.some(k => cleanVal.includes(k))) { foundDept = dept; break; }
+            
+            // Priorità 1: Cerca nello storico utente
+            const userPref = await getUserProductPref(val);
+            let foundDept = userPref ? userPref.dept : null;
+
+            // Priorità 2: Cerca nel dizionario
+            if (!foundDept) {
+                foundDept = deduceDeptFromName(val);
             }
+
             if (foundDept) {
                 document.getElementById('newItemDept').value = foundDept;
                 badge.textContent = `Cat: ${foundDept}`;
@@ -896,6 +953,10 @@
             if (!name || !name.trim()) return;
             const cleanName = name.trim();
             const lowerName = cleanName.toLowerCase();
+            const finalDept = dept || deduceDeptFromName(cleanName);
+
+            // Salva o aggiorna preferenza utente
+            saveUserProductPref(cleanName, finalDept, deptToLocationMap[finalDept] || 'Dispensa');
 
             listRef.once('value', snapshot => {
                 const currentList = ensureArray(snapshot.val());
@@ -907,9 +968,10 @@
                     existingItem.checked = false;
                     if (isOwner) existingItem.approved = true;
                     existingItem.qty = qty || existingItem.qty || '1x';
+                    existingItem.dept = finalDept;
                     currentList[existingIndex] = existingItem;
                 } else {
-                    currentList.push({ name: cleanName, dept: dept || 'Dispensa', qty, note, checked: false, approved: isOwner, addedByUid: currentUser.uid });
+                    currentList.push({ name: cleanName, dept: finalDept, qty, note, checked: false, approved: isOwner, addedByUid: currentUser.uid });
                 }
                 listRef.set(currentList);
             });
@@ -927,7 +989,7 @@
         }
 
         function addFrequentItem(itemName) {
-            addNewItemToList({ name: itemName, dept: 'Dispensa', qty: '1x' });
+            addNewItemToList({ name: itemName, dept: deduceDeptFromName(itemName), qty: '1x' });
         }
 
         function deleteItem(index) {
@@ -972,13 +1034,14 @@
         }
 
         // --- SEZIONE DISPENSA & SCANSIONE SCONTRINO CON AI VISION ---
-        function moveCheckedToPantry() {
+        async function moveCheckedToPantry() {
             if (!listRef || !pantryRef) {
                 showAlertModal("Errore", "Riferimento alla lista non attivo.", "⚠️");
                 return;
             }
 
-            listRef.once('value').then(snapshot => {
+            try {
+                const snapshot = await listRef.once('value');
                 const currentList = ensureArray(snapshot.val());
                 const checkedItems = currentList.filter(i => i && (i.checked === true || i.checked === 'true'));
                 const remainingItems = currentList.filter(i => i && !i.checked && i.checked !== 'true');
@@ -988,31 +1051,34 @@
                     return;
                 }
 
-                pantryRef.once('value').then(pSnap => {
-                    const currentPantry = ensureArray(pSnap.val());
+                const pSnap = await pantryRef.once('value');
+                const currentPantry = ensureArray(pSnap.val());
 
-                    checkedItems.forEach(item => {
-                        currentPantry.push({
-                            id: `pantry_${Date.now()}_${Math.random().toString(36).substr(2, 4)}`,
-                            name: item.name || 'Prodotto',
-                            location: 'Dispensa',
-                            expireDate: '',
-                            qty: item.qty || '1x',
-                            addedAt: new Date().toISOString()
-                        });
+                for (let item of checkedItems) {
+                    const userPref = await getUserProductPref(item.name);
+                    const location = userPref ? userPref.location : (deptToLocationMap[item.dept] || 'Dispensa');
+
+                    currentPantry.push({
+                        id: `pantry_${Date.now()}_${Math.random().toString(36).substr(2, 4)}`,
+                        name: item.name || 'Prodotto',
+                        dept: item.dept || 'Dispensa',
+                        location: location,
+                        expireDate: '',
+                        qty: item.qty || '1x',
+                        addedAt: new Date().toISOString()
                     });
+                }
 
-                    return Promise.all([
-                        pantryRef.set(currentPantry),
-                        listRef.set(remainingItems)
-                    ]);
-                }).then(() => {
-                    showAlertModal("Prodotti Spostati", `${checkedItems.length} prodotti trasferiti in Dispensa!`, "📦");
-                }).catch(err => {
-                    console.error("Errore salvataggio dispensa:", err);
-                    showAlertModal("Errore Permessi", `Impossibile aggiornare la dispensa: ${err.message}`, "🚫");
-                });
-            });
+                await Promise.all([
+                    pantryRef.set(currentPantry),
+                    listRef.set(remainingItems)
+                ]);
+
+                showAlertModal("Prodotti Spostati", `${checkedItems.length} prodotti trasferiti in Dispensa!`, "📦");
+            } catch (err) {
+                console.error("Errore salvataggio dispensa:", err);
+                showAlertModal("Errore Permessi", `Impossibile aggiornare la dispensa: ${err.message}`, "🚫");
+            }
         }
 
         function handlePantryAdd(e) {
@@ -1024,11 +1090,15 @@
             const name = nameInput.value.trim();
             if (!name) return;
 
+            const dept = deduceDeptFromName(name);
+            saveUserProductPref(name, dept, locInput.value);
+
             pantryRef.once('value', snapshot => {
                 const currentPantry = ensureArray(snapshot.val());
                 currentPantry.push({
                     id: `pantry_${Date.now()}`,
                     name: name,
+                    dept: dept,
                     location: locInput.value,
                     expireDate: dateInput.value || '',
                     qty: '1x',
@@ -1089,28 +1159,29 @@
                         messages: [
                             {
                                 role: 'system',
-                                content: `Sei un assistente esperto nell'estrazione e pulizia dati da scontrini italiani per la gestione dispensa.
+                                content: `Sei un assistente esperto nell'estrazione e pulizia dati da scontrini italiani per la gestione dispensa e spesa.
 Restituisci ESCLUSIVAMENTE un oggetto JSON valido con la chiave "items" contenente un array di oggetti:
 {
   "items": [
     {
       "name": "Nome Prodotto Pulito e Leggibile",
       "qty": "1x",
-      "location": "Frigo" | "Freezer" | "Dispensa" | "Altro"
+      "dept": "Verdura",
+      "location": "Frigo"
     }
   ]
 }
 
 Regole importanti:
 1. IGNORA prezzi, importi, IVA, righe "TOTALE", "SUBTOTALE", sconti (es. -0,39), righe "SCONTO SOCI", "PUNTI", e sacchetti compostabili.
-2. Espandi e rendi leggibili i nomi contratti dello scontrino (es. "LENT.GIGANTI VVERDEB" -> "Lenticchie Giganti Bio", "ALTU.LAVAZZA250GX2" -> "Caffè Lavazza 250g x2", "LATTE ESL BIO INT1L" -> "Latte Intero Bio 1L", "SFOGLIATISS.LORIANA" -> "Sfogliatissima Loriana", "SALVASLIP COOP MAXI" -> "Salvaslip Coop Maxi").
-3. Assegna l'ubicazione ideale del prodotto ("Frigo", "Freezer", "Dispensa", "Altro").
-4. Se ci sono più articoli identici consecutivi (es. 4x Filetti di Sgombro), crea una singola voce con la quantità totale (es. qty: "4x") oppure voci separate.`
+2. Espandi e rendi leggibili i nomi contratti (es. "LENT.GIGANTI VVERDEB" -> "Lenticchie Giganti Bio", "ALTU.LAVAZZA250GX2" -> "Caffè Lavazza 250g x2", "LATTE ESL BIO INT1L" -> "Latte Intero Bio 1L").
+3. Assegna il reparto ("dept") scegliendo RIGOROSAMENTE tra: ["Frutta", "Verdura", "Carne e Pesce", "Latticini e Uova", "Dispensa", "Surgelati", "Casa e Pulizia", "Bucato", "Igiene Personale", "Sfizi e Dolci"].
+4. Assegna l'ubicazione ("location") scegliendo RIGOROSAMENTE tra: ["Frigo", "Freezer", "Dispensa", "Altro"].`
                             },
                             {
                                 role: 'user',
                                 content: [
-                                    { type: 'text', text: 'Estrai i prodotti da questo scontrino:' },
+                                    { type: 'text', text: 'Estrai e classifica i prodotti da questo scontrino:' },
                                     { type: 'image_url', image_url: { url: base64Image } }
                                 ]
                             }
@@ -1129,10 +1200,19 @@ Regole importanti:
                 loadingModal.classList.add('hidden');
                 event.target.value = '';
 
-                const parsedItems = (result && result.items) ? result.items : [];
+                let parsedItems = (result && result.items) ? result.items : [];
+
+                // Applicazione regole dello Storico Utente (Override se già salvato in passato)
+                for (let i = 0; i < parsedItems.length; i++) {
+                    const userPref = await getUserProductPref(parsedItems[i].name);
+                    if (userPref) {
+                        if (userPref.dept) parsedItems[i].dept = userPref.dept;
+                        if (userPref.location) parsedItems[i].location = userPref.location;
+                    }
+                }
 
                 if (parsedItems.length === 0) {
-                    showAlertModal("Nessun prodotto trovato", "L'AI non ha rilevato prodotti sullo scontrino. Assicurati che l'immagine sia leggibile.", "⚠️");
+                    showAlertModal("Nessun prodotto trovato", "L'AI non ha rilevato prodotti sullo scontrino. Assicurati che l'immagine sia ben illuminata e leggibile.", "⚠️");
                 } else {
                     showReceiptVerifyModal(parsedItems);
                 }
@@ -1148,26 +1228,37 @@ Regole importanti:
             const container = document.getElementById('receiptItemsContainer');
             container.innerHTML = '';
 
+            const deptOptionsHtml = deptOrder.map(d => `<option value="${d}">${deptIcons[d] || ''} ${d}</option>`).join('');
+
             items.forEach((item, index) => {
                 const row = document.createElement('div');
-                row.className = "bg-gray-50 dark:bg-slate-800 p-2.5 rounded-2xl border border-gray-200 dark:border-slate-700 space-y-2";
+                row.className = "bg-gray-50 dark:bg-slate-800 p-3 rounded-2xl border border-gray-200 dark:border-slate-700 space-y-2";
                 row.innerHTML = `
                     <div class="flex items-center gap-2">
                         <input type="checkbox" id="receipt_check_${index}" checked class="w-4 h-4 text-indigo-600 rounded">
                         <input type="text" id="receipt_name_${index}" value="${(item.name || '').replace(/"/g, '&quot;')}" class="flex-1 bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-700 text-xs font-bold px-2.5 py-1.5 rounded-xl focus:outline-none">
+                        <input type="text" id="receipt_qty_${index}" value="${item.qty || '1x'}" placeholder="Qtà" class="w-14 bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-700 text-[11px] font-bold px-2 py-1.5 rounded-xl text-center">
                     </div>
-                    <div class="flex gap-2 pl-6">
-                        <input type="text" id="receipt_qty_${index}" value="${item.qty || '1x'}" placeholder="Qtà" class="w-16 bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-700 text-[11px] font-bold px-2 py-1 rounded-xl">
+                    <div class="grid grid-cols-3 gap-1.5 pl-6">
+                        <select id="receipt_dept_${index}" class="bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-700 text-[11px] font-semibold px-2 py-1 rounded-xl truncate">
+                            ${deptOptionsHtml}
+                        </select>
                         <select id="receipt_loc_${index}" class="bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-700 text-[11px] font-semibold px-2 py-1 rounded-xl">
                             <option value="Frigo" ${item.location === 'Frigo' ? 'selected' : ''}>❄️ Frigo</option>
                             <option value="Freezer" ${item.location === 'Freezer' ? 'selected' : ''}>🧊 Freezer</option>
                             <option value="Dispensa" ${item.location === 'Dispensa' || !item.location ? 'selected' : ''}>📦 Dispensa</option>
                             <option value="Altro" ${item.location === 'Altro' ? 'selected' : ''}>🚪 Altro</option>
                         </select>
-                        <input type="date" id="receipt_exp_${index}" class="flex-1 bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-700 text-[11px] px-2 py-1 rounded-xl">
+                        <input type="date" id="receipt_exp_${index}" class="bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-700 text-[11px] px-2 py-1 rounded-xl">
                     </div>
                 `;
                 container.appendChild(row);
+
+                // Imposta selezione Reparto predefinito
+                if (item.dept) {
+                    const deptSelect = row.querySelector(`#receipt_dept_${index}`);
+                    if (deptSelect) deptSelect.value = item.dept;
+                }
             });
 
             document.getElementById('receiptVerifyModal').classList.remove('hidden');
@@ -1190,13 +1281,18 @@ Regole importanti:
                 const isChecked = document.getElementById(`receipt_check_${i}`).checked;
                 const name = document.getElementById(`receipt_name_${i}`).value.trim();
                 const qty = document.getElementById(`receipt_qty_${i}`).value.trim();
+                const dept = document.getElementById(`receipt_dept_${i}`).value;
                 const loc = document.getElementById(`receipt_loc_${i}`).value;
                 const exp = document.getElementById(`receipt_exp_${i}`).value;
 
                 if (isChecked && name) {
+                    // Apprendimento: Salva le preferenze aggiornate dall'utente
+                    saveUserProductPref(name, dept, loc);
+
                     itemsToAdd.push({
                         id: `pantry_${Date.now()}_${Math.random().toString(36).substr(2, 4)}`,
                         name: name,
+                        dept: dept,
                         location: loc,
                         expireDate: exp || '',
                         qty: qty || '1x',
@@ -1277,6 +1373,7 @@ Regole importanti:
                 const currentPantry = ensureArray(snapshot.val());
                 if (currentPantry[originalIndex]) {
                     currentPantry[originalIndex].location = newLocation;
+                    saveUserProductPref(currentPantry[originalIndex].name, currentPantry[originalIndex].dept, newLocation);
                     pantryRef.set(currentPantry);
                 }
             });
@@ -1374,9 +1471,17 @@ Regole importanti:
             });
         }
 
-        function addPantryItemToShopping(itemName, pantryIndex) {
-            addNewItemToList({ name: itemName, dept: 'Dispensa', qty: '1x' });
-            showAlertModal("Aggiunto in Lista", `"${itemName}" è stato aggiunto nuovamente alla tua lista della spesa!`, "🛒");
+        async function addPantryItemToShopping(itemName, pantryIndex) {
+            const itemObj = currentPantryData[pantryIndex];
+            let dept = itemObj ? itemObj.dept : null;
+
+            if (!dept) {
+                const userPref = await getUserProductPref(itemName);
+                dept = userPref ? userPref.dept : deduceDeptFromName(itemName);
+            }
+
+            addNewItemToList({ name: itemName, dept: dept, qty: '1x' });
+            showAlertModal("Aggiunto in Lista", `"${itemName}" è stato aggiunto nel reparto ${dept}!`, "🛒");
         }
 
         // --- GESTIONE ELIMINAZIONE LISTA CORRETTA ---
