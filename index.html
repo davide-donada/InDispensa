@@ -188,7 +188,9 @@
                             <input type="text" id="newItemText" list="productsList" oninput="onProductInput(this.value)" placeholder="Nome (es. Latte, Mele...)" class="w-full bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-700 text-gray-800 dark:text-slate-100 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 shadow-inner">
                             <datalist id="productsList"></datalist>
                         </div>
-                        <input type="text" id="newItemQty" placeholder="Qtà (es. 2x)" class="w-20 bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-700 text-gray-800 dark:text-slate-100 rounded-xl px-2.5 py-2 text-xs focus:outline-none focus:ring-2 focus:ring-indigo-500 shadow-inner">
+                        <!-- CAMPO QUANTITÀ NUMERICO PURO -->
+                        <input type="number" id="newItemQty" min="1" value="1" placeholder="Qtà" class="w-16 bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-700 text-gray-800 dark:text-slate-100 font-extrabold text-center rounded-xl px-2 py-2 text-xs focus:outline-none focus:ring-2 focus:ring-indigo-500 shadow-inner">
+                        
                         <select id="newItemDept" class="w-28 bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-700 text-gray-800 dark:text-slate-100 rounded-xl px-2 py-2 text-xs focus:outline-none font-semibold shadow-inner cursor-pointer">
                             <option value="Frutta">🍎 Frutta</option>
                             <option value="Verdura">🥬 Verdura</option>
@@ -211,7 +213,7 @@
                 <!-- Prodotti Frequenti (1-Tap) -->
                 <div class="bg-white dark:bg-slate-900 p-2.5 rounded-2xl shadow-sm border border-gray-200/80 dark:border-slate-800">
                     <div class="text-[10px] font-bold text-gray-400 dark:text-slate-500 uppercase tracking-wider mb-1.5 px-1 flex justify-between">
-                        <span>⚡ Frequenti (1-Tap Anti-duplicato)</span>
+                        <span>⚡ Frequenti (1-Tap Incrementale)</span>
                     </div>
                     <div class="flex items-center gap-1.5 overflow-x-auto no-scrollbar pb-0.5 pt-0.5 px-0.5">
                         <button type="button" onclick="addFrequentItem('Pane')" class="bg-indigo-50/80 dark:bg-slate-800 text-indigo-900 dark:text-slate-200 text-xs font-bold px-3 py-1.5 rounded-xl border border-indigo-100 dark:border-slate-700 whitespace-nowrap active:scale-95">🍞 Pane</button>
@@ -529,6 +531,14 @@
             "Sfizi e Dolci": "Dispensa"
         };
 
+        // HELPER DI CONVERSIONE E PARSING NUMERICO SICURO
+        function parseQty(val) {
+            if (val === null || val === undefined || val === '') return 1;
+            if (typeof val === 'number') return isNaN(val) || val < 1 ? 1 : val;
+            const parsed = parseInt(val.toString().replace(/[^0-9]/g, ''), 10);
+            return isNaN(parsed) || parsed < 1 ? 1 : parsed;
+        }
+
         function ensureArray(data) {
             if (!data) return [];
             if (Array.isArray(data)) return data.filter(Boolean);
@@ -832,9 +842,9 @@
         }
 
         const defaultItems = [
-            { name: "Mele", dept: "Frutta", qty: "", note: "", checked: false, approved: true },
-            { name: "Pere", dept: "Frutta", qty: "", note: "", checked: false, approved: true },
-            { name: "Pasta", dept: "Dispensa", qty: "", note: "", checked: false, approved: true }
+            { name: "Mele", dept: "Frutta", qty: 1, note: "", checked: false, approved: true },
+            { name: "Pere", dept: "Frutta", qty: 1, note: "", checked: false, approved: true },
+            { name: "Pasta", dept: "Dispensa", qty: 1, note: "", checked: false, approved: true }
         ];
 
         function attachDatabaseListener() {
@@ -913,13 +923,15 @@
                 const deptCard = document.createElement('div');
                 deptCard.className = 'dept-card bg-white dark:bg-slate-900 rounded-2xl p-3.5 shadow-sm border border-gray-200/80 dark:border-slate-800';
 
-                let itemsHtml = deptItems.map(item => `
+                let itemsHtml = deptItems.map(item => {
+                    const qtyNum = parseQty(item.qty);
+                    return `
                     <li class="flex items-start justify-between py-2 border-b border-gray-100 dark:border-slate-800 last:border-0 gap-2">
                         <label class="flex items-start gap-3 flex-1 cursor-pointer min-w-0">
                             <input type="checkbox" ${item.checked ? 'checked' : ''} onchange="toggleCheck(${item.originalIndex})" class="w-5 h-5 rounded text-indigo-600 mt-0.5">
                             <div class="min-w-0 flex-1">
                                 <div class="flex items-center flex-wrap gap-1">
-                                    ${item.qty ? `<span class="bg-indigo-100 dark:bg-slate-800 text-indigo-900 dark:text-indigo-300 font-extrabold text-[11px] px-1.5 py-0.5 rounded-md">${item.qty}</span>` : ''}
+                                    <span class="bg-indigo-100 dark:bg-slate-800 text-indigo-900 dark:text-indigo-300 font-extrabold text-[11px] px-1.5 py-0.5 rounded-md">${qtyNum}x</span>
                                     <span class="item-title text-sm ${item.checked ? 'item-checked' : 'font-semibold'}">${item.name}</span>
                                 </div>
                                 ${item.note ? `<p class="text-[11px] text-gray-500 italic mt-0.5">📝 ${item.note}</p>` : ''}
@@ -927,7 +939,7 @@
                         </label>
                         <button onclick="deleteItem(${item.originalIndex})" class="text-gray-300 hover:text-rose-500 p-1">✕</button>
                     </li>
-                `).join('');
+                `}).join('');
 
                 deptCard.innerHTML = `
                     <h2 class="font-bold text-xs uppercase tracking-wider text-indigo-900 dark:text-indigo-400 border-b pb-2 mb-1.5 flex items-center gap-1.5">
@@ -988,7 +1000,9 @@
                 const deptSection = document.createElement('div');
                 deptSection.className = 'space-y-2';
 
-                let itemsHtml = deptItems.map(item => `
+                let itemsHtml = deptItems.map(item => {
+                    const qtyNum = parseQty(item.qty);
+                    return `
                     <label class="flex items-center gap-3.5 py-3 px-3 rounded-2xl hover:bg-gray-50 dark:hover:bg-zinc-900 cursor-pointer transition active:scale-[0.99] border border-transparent hover:border-gray-200 dark:hover:border-zinc-800">
                         <input type="checkbox" ${item.checked ? 'checked' : ''} onchange="toggleCheckFocus(${item.originalIndex})" class="w-6 h-6 rounded-lg text-indigo-600 focus:ring-0 cursor-pointer accent-indigo-600 flex-shrink-0">
                         <div class="flex-1 min-w-0 flex items-center justify-between gap-2">
@@ -996,12 +1010,12 @@
                                 ${item.name}
                             </span>
                             <div class="flex items-center gap-2 flex-shrink-0">
-                                ${item.qty ? `<span class="text-xs font-black bg-gray-100 dark:bg-zinc-800 text-gray-800 dark:text-zinc-200 px-2 py-0.5 rounded-md">${item.qty}</span>` : ''}
+                                <span class="text-xs font-black bg-gray-100 dark:bg-zinc-800 text-gray-800 dark:text-zinc-200 px-2 py-0.5 rounded-md">${qtyNum}x</span>
                                 ${item.note ? `<span class="text-xs text-gray-400 italic max-w-[120px] truncate">📝 ${item.note}</span>` : ''}
                             </div>
                         </div>
                     </label>
-                `).join('');
+                `}).join('');
 
                 deptSection.innerHTML = `
                     <h3 class="text-xs font-black uppercase tracking-wider text-indigo-600 dark:text-indigo-400 border-b border-gray-200 dark:border-zinc-800 pb-1.5 flex items-center gap-1.5">
@@ -1059,11 +1073,13 @@
         function rejectItem(index) { if (isCurrentuserAdmin()) deleteItem(index); }
         function handleQuickAdd(e) { e.preventDefault(); addItem(); }
 
-        function addNewItemToList({ name, dept, qty = '', note = '' }) {
+        // LOGICA INCREMENTALE SOMMATA ED AMBIGUITÀ AZZERATA
+        function addNewItemToList({ name, dept, qty = 1, note = '' }) {
             if (!name || !name.trim()) return;
             const cleanName = name.trim();
             const lowerName = cleanName.toLowerCase();
             const finalDept = dept || deduceDeptFromName(cleanName);
+            const addedQtyNum = parseQty(qty);
 
             saveUserProductPref(cleanName, finalDept, deptToLocationMap[finalDept] || 'Dispensa');
 
@@ -1074,31 +1090,50 @@
 
                 if (existingIndex !== -1) {
                     const existingItem = currentList[existingIndex];
+                    const currentQtyNum = parseQty(existingItem.qty);
+                    
                     existingItem.checked = false;
                     if (isOwner) existingItem.approved = true;
-                    existingItem.qty = qty || existingItem.qty || '1x';
+                    existingItem.qty = currentQtyNum + addedQtyNum; // Somma incrementale
                     existingItem.dept = finalDept;
+                    if (note) existingItem.note = note;
+                    
                     currentList[existingIndex] = existingItem;
                 } else {
-                    currentList.push({ name: cleanName, dept: finalDept, qty, note, checked: false, approved: isOwner, addedByUid: currentUser.uid });
+                    currentList.push({ 
+                        name: cleanName, 
+                        dept: finalDept, 
+                        qty: addedQtyNum, 
+                        note: note, 
+                        checked: false, 
+                        approved: isOwner, 
+                        addedByUid: currentUser.uid 
+                    });
                 }
                 listRef.set(currentList);
             });
         }
 
         function addItem() {
-            const name = document.getElementById('newItemText').value;
-            const qty = document.getElementById('newItemQty').value;
-            const note = document.getElementById('newItemNote').value;
-            const dept = document.getElementById('newItemDept').value;
+            const nameInput = document.getElementById('newItemText');
+            const qtyInput = document.getElementById('newItemQty');
+            const noteInput = document.getElementById('newItemNote');
+            const deptInput = document.getElementById('newItemDept');
+
+            const name = nameInput.value;
+            const qty = parseQty(qtyInput.value);
+            const note = noteInput.value;
+            const dept = deptInput.value;
+
             addNewItemToList({ name, dept, qty, note });
-            document.getElementById('newItemText').value = '';
-            document.getElementById('newItemQty').value = '';
-            document.getElementById('newItemNote').value = '';
+
+            nameInput.value = '';
+            qtyInput.value = '1';
+            noteInput.value = '';
         }
 
         function addFrequentItem(itemName) {
-            addNewItemToList({ name: itemName, dept: deduceDeptFromName(itemName), qty: '1x' });
+            addNewItemToList({ name: itemName, dept: deduceDeptFromName(itemName), qty: 1 });
         }
 
         function deleteItem(index) {
@@ -1173,7 +1208,7 @@
                         dept: item.dept || 'Dispensa',
                         location: location,
                         expireDate: '',
-                        qty: item.qty || '1x',
+                        qty: parseQty(item.qty),
                         addedAt: new Date().toISOString()
                     });
                 }
@@ -1210,7 +1245,7 @@
                     dept: dept,
                     location: locInput.value,
                     expireDate: dateInput.value || '',
-                    qty: '1x',
+                    qty: 1,
                     addedAt: new Date().toISOString()
                 });
                 pantryRef.set(currentPantry);
@@ -1274,7 +1309,7 @@ Restituisci ESCLUSIVAMENTE un oggetto JSON valido con la chiave "items" contenen
   "items": [
     {
       "name": "Nome Prodotto Pulito e Leggibile",
-      "qty": "1x",
+      "qty": 1,
       "dept": "Verdura",
       "location": "Frigo"
     }
@@ -1284,8 +1319,9 @@ Restituisci ESCLUSIVAMENTE un oggetto JSON valido con la chiave "items" contenen
 Regole importanti:
 1. IGNORA prezzi, importi, IVA, righe "TOTALE", "SUBTOTALE", sconti (es. -0,39), righe "SCONTO SOCI", "PUNTI", e sacchetti compostabili.
 2. Espandi e rendi leggibili i nomi contratti (es. "LENT.GIGANTI VVERDEB" -> "Lenticchie Giganti Bio", "ALTU.LAVAZZA250GX2" -> "Caffè Lavazza 250g x2", "LATTE ESL BIO INT1L" -> "Latte Intero Bio 1L").
-3. Assegna il reparto ("dept") scegliendo RIGOROSAMENTE tra: ["Frutta", "Verdura", "Carne e Pesce", "Latticini e Uova", "Dispensa", "Surgelati", "Casa e Pulizia", "Bucato", "Igiene Personale", "Sfizi e Dolci"].
-4. Assegna l'ubicazione ("location") scegliendo RIGOROSAMENTE tra: ["Frigo", "Freezer", "Dispensa", "Altro"].`
+3. La quantità ("qty") dev'essere SEMPRE un numero intero (es. 1, 2, 3).
+4. Assegna il reparto ("dept") scegliendo RIGOROSAMENTE tra: ["Frutta", "Verdura", "Carne e Pesce", "Latticini e Uova", "Dispensa", "Surgelati", "Casa e Pulizia", "Bucato", "Igiene Personale", "Sfizi e Dolci"].
+5. Assegna l'ubicazione ("location") scegliendo RIGOROSAMENTE tra: ["Frigo", "Freezer", "Dispensa", "Altro"].`
                             },
                             {
                                 role: 'user',
@@ -1339,13 +1375,14 @@ Regole importanti:
             const deptOptionsHtml = deptOrder.map(d => `<option value="${d}">${deptIcons[d] || ''} ${d}</option>`).join('');
 
             items.forEach((item, index) => {
+                const qtyNum = parseQty(item.qty);
                 const row = document.createElement('div');
                 row.className = "bg-gray-50 dark:bg-slate-800 p-3 rounded-2xl border border-gray-200 dark:border-slate-700 space-y-2";
                 row.innerHTML = `
                     <div class="flex items-center gap-2">
                         <input type="checkbox" id="receipt_check_${index}" checked class="w-4 h-4 text-indigo-600 rounded">
                         <input type="text" id="receipt_name_${index}" value="${(item.name || '').replace(/"/g, '&quot;')}" class="flex-1 bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-700 text-xs font-bold px-2.5 py-1.5 rounded-xl focus:outline-none">
-                        <input type="text" id="receipt_qty_${index}" value="${item.qty || '1x'}" placeholder="Qtà" class="w-14 bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-700 text-[11px] font-bold px-2 py-1.5 rounded-xl text-center">
+                        <input type="number" min="1" id="receipt_qty_${index}" value="${qtyNum}" placeholder="Qtà" class="w-14 bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-700 text-xs font-bold px-2 py-1.5 rounded-xl text-center">
                     </div>
                     <div class="grid grid-cols-3 gap-1.5 pl-6">
                         <select id="receipt_dept_${index}" class="bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-700 text-[11px] font-semibold px-2 py-1 rounded-xl truncate">
@@ -1387,7 +1424,7 @@ Regole importanti:
             for (let i = 0; i < rows.length; i++) {
                 const isChecked = document.getElementById(`receipt_check_${i}`).checked;
                 const name = document.getElementById(`receipt_name_${i}`).value.trim();
-                const qty = document.getElementById(`receipt_qty_${i}`).value.trim();
+                const qty = parseQty(document.getElementById(`receipt_qty_${i}`).value);
                 const dept = document.getElementById(`receipt_dept_${i}`).value;
                 const loc = document.getElementById(`receipt_loc_${i}`).value;
                 const exp = document.getElementById(`receipt_exp_${i}`).value;
@@ -1401,7 +1438,7 @@ Regole importanti:
                         dept: dept,
                         location: loc,
                         expireDate: exp || '',
-                        qty: qty || '1x',
+                        qty: qty,
                         addedAt: new Date().toISOString()
                     });
                 }
@@ -1586,7 +1623,7 @@ Regole importanti:
                 dept = userPref ? userPref.dept : deduceDeptFromName(itemName);
             }
 
-            addNewItemToList({ name: itemName, dept: dept, qty: '1x' });
+            addNewItemToList({ name: itemName, dept: dept, qty: 1 });
             showAlertModal("Aggiunto in Lista", `"${itemName}" è stato aggiunto nel reparto ${dept}!`, "🛒");
         }
 
