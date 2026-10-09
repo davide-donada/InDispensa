@@ -899,8 +899,29 @@
             filterList();
         }
         function clearSearch() { document.getElementById('searchInput').value = ''; filterList(); }
-        function toggleCheck(index) { listRef.child(index).child('checked').transaction(c => !c); }
-        function approveItem(index) { if (isCurrentuserAdmin()) listRef.child(index).child('approved').set(true); }
+        
+        function toggleCheck(index) {
+            if (!listRef) return;
+            listRef.once('value', snapshot => {
+                const currentList = ensureArray(snapshot.val());
+                if (currentList[index]) {
+                    currentList[index].checked = !currentList[index].checked;
+                    listRef.set(currentList);
+                }
+            });
+        }
+
+        function approveItem(index) {
+            if (!isCurrentuserAdmin() || !listRef) return;
+            listRef.once('value', snapshot => {
+                const currentList = ensureArray(snapshot.val());
+                if (currentList[index]) {
+                    currentList[index].approved = true;
+                    listRef.set(currentList);
+                }
+            });
+        }
+
         function rejectItem(index) { if (isCurrentuserAdmin()) deleteItem(index); }
         function handleQuickAdd(e) { e.preventDefault(); addItem(); }
 
@@ -943,6 +964,7 @@
         }
 
         function deleteItem(index) {
+            if (!listRef) return;
             listRef.once('value', snapshot => {
                 const currentList = ensureArray(snapshot.val());
                 currentList.splice(index, 1);
@@ -1058,7 +1080,7 @@
                 await worker.terminate();
 
                 loadingModal.classList.add('hidden');
-                event.target.value = ''; // reset file input
+                event.target.value = '';
 
                 const parsedItems = parseReceiptText(ret.data.text);
                 if (parsedItems.length === 0) {
@@ -1093,15 +1115,11 @@
                 let lower = clean.toLowerCase();
                 if (ignoreKeywords.some(kw => lower.includes(kw))) continue;
 
-                // Rimuove i prezzi in euro alla fine della riga (es. 1.99, 2,50 A, ecc.)
                 clean = clean.replace(/\d+[\.,]\d{2}\s*[a-zA-Z]?$/g, '');
-                // Rimuove codici a barre o numeri iniziali isolati
                 clean = clean.replace(/^[0-9]+\s*/, '');
-                // Rimuove indicazioni di quantità iniziali (es. 1x, 2 x, *1)
                 clean = clean.replace(/^[0-9]+\s*[xX*]\s*/, '');
                 clean = clean.trim();
 
-                // Se la stringa pulita ha ancora almeno 3 caratteri e non è solo un numero
                 if (clean.length >= 3 && !/^\d+$/.test(clean)) {
                     let defaultLoc = 'Dispensa';
                     let lowerClean = clean.toLowerCase();
@@ -1225,6 +1243,39 @@
             }
         }
 
+        function normalizeLocation(loc) {
+            if (!loc) return 'Dispensa';
+            const l = loc.toString().trim().toLowerCase();
+            if (l.includes('frig')) return 'Frigo';
+            if (l.includes('freez') || l.includes('congel')) return 'Freezer';
+            if (l.includes('dispens')) return 'Dispensa';
+            return 'Altro';
+        }
+
+        function getLocationBadgeStyle(loc) {
+            const l = normalizeLocation(loc).toLowerCase();
+            if (l === 'frigo') {
+                return 'bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-950/60 dark:text-blue-300 dark:border-blue-800 hover:bg-blue-100';
+            } else if (l === 'freezer') {
+                return 'bg-cyan-50 text-cyan-700 border-cyan-200 dark:bg-cyan-950/60 dark:text-cyan-300 dark:border-cyan-800 hover:bg-cyan-100';
+            } else if (l === 'dispensa') {
+                return 'bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-950/60 dark:text-amber-300 dark:border-amber-800 hover:bg-amber-100';
+            } else {
+                return 'bg-gray-100 text-gray-700 border-gray-200 dark:bg-slate-800 dark:text-slate-300 dark:border-slate-700 hover:bg-gray-200';
+            }
+        }
+
+        function updatePantryLocation(originalIndex, newLocation) {
+            if (!pantryRef) return;
+            pantryRef.once('value', snapshot => {
+                const currentPantry = ensureArray(snapshot.val());
+                if (currentPantry[originalIndex]) {
+                    currentPantry[originalIndex].location = newLocation;
+                    pantryRef.set(currentPantry);
+                }
+            });
+        }
+
         function renderPantryList() {
             const container = document.getElementById('pantryContainer');
             const noPantry = document.getElementById('noPantryResults');
@@ -1235,9 +1286,10 @@
 
             container.innerHTML = '';
 
-            let filtered = currentPantryData;
+            let indexedPantry = currentPantryData.map((item, idx) => ({ ...item, originalIndex: idx }));
+            let filtered = indexedPantry;
             if (pantryLocationFilter !== 'ALL') {
-                filtered = filtered.filter(i => i && i.location === pantryLocationFilter);
+                filtered = indexedPantry.filter(i => i && normalizeLocation(i.location) === pantryLocationFilter);
             }
 
             let expiredCount = 0;
@@ -1269,28 +1321,36 @@
                 noPantry.classList.add('hidden');
             }
 
-            const locationIcons = { 'Frigo': '❄️', 'Freezer': '🧊', 'Dispensa': '📦', 'Altro': '🚪' };
-
-            filtered.forEach((item, index) => {
+            filtered.forEach((item) => {
                 if (!item) return;
                 const expInfo = getExpirationStatus(item.expireDate);
-                const locIcon = locationIcons[item.location] || '📦';
+                const currentLoc = normalizeLocation(item.location);
+                const badgeStyle = getLocationBadgeStyle(currentLoc);
 
                 const card = document.createElement('div');
                 card.className = "bg-white dark:bg-slate-900 rounded-2xl p-3.5 shadow-sm border border-gray-200/80 dark:border-slate-800 flex flex-col justify-between space-y-2.5";
 
                 card.innerHTML = `
                     <div class="flex items-start justify-between gap-2">
-                        <div>
-                            <span class="text-[10px] bg-gray-100 dark:bg-slate-800 text-gray-700 dark:text-slate-300 font-bold px-2 py-0.5 rounded-md">${locIcon} ${item.location}</span>
-                            <h3 class="font-extrabold text-sm text-gray-900 dark:text-slate-100 mt-1">${item.name}</h3>
+                        <div class="flex-1 min-w-0">
+                            <!-- Badge Interattivo Posizione -->
+                            <div class="relative inline-block mb-1">
+                                <select onchange="updatePantryLocation(${item.originalIndex}, this.value)" class="appearance-none font-bold text-[11px] px-2.5 py-1 pr-6 rounded-xl cursor-pointer shadow-sm border transition focus:outline-none ${badgeStyle}">
+                                    <option value="Frigo" ${currentLoc === 'Frigo' ? 'selected' : ''}>❄️ Frigo</option>
+                                    <option value="Freezer" ${currentLoc === 'Freezer' ? 'selected' : ''}>🧊 Freezer</option>
+                                    <option value="Dispensa" ${currentLoc === 'Dispensa' ? 'selected' : ''}>📦 Dispensa</option>
+                                    <option value="Altro" ${currentLoc === 'Altro' ? 'selected' : ''}>🚪 Altro</option>
+                                </select>
+                                <span class="pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 text-[9px] opacity-70">▼</span>
+                            </div>
+                            <h3 class="font-extrabold text-sm text-gray-900 dark:text-slate-100 truncate">${item.name}</h3>
                         </div>
-                        <button onclick="deletePantryItem(${index})" class="text-gray-300 hover:text-rose-500 text-xs p-1">✕</button>
+                        <button onclick="deletePantryItem(${item.originalIndex})" class="text-gray-300 hover:text-rose-500 text-xs p-1">✕</button>
                     </div>
 
                     <div class="flex items-center justify-between pt-1 border-t border-gray-100 dark:border-slate-800 text-xs">
                         <span class="text-[10px] px-2 py-1 rounded-lg ${expInfo.colorClass}">${expInfo.label}</span>
-                        <button onclick="addPantryItemToShopping('${item.name}', '${index}')" class="bg-indigo-50 dark:bg-slate-800 hover:bg-indigo-100 text-indigo-700 dark:text-indigo-300 font-bold px-2.5 py-1 rounded-xl text-[11px] active:scale-95 transition">
+                        <button onclick="addPantryItemToShopping('${item.name.replace(/'/g, "\\'")}', '${item.originalIndex}')" class="bg-indigo-50 dark:bg-slate-800 hover:bg-indigo-100 text-indigo-700 dark:text-indigo-300 font-bold px-2.5 py-1 rounded-xl text-[11px] active:scale-95 transition">
                             + In Lista
                         </button>
                     </div>
@@ -1300,6 +1360,7 @@
         }
 
         function deletePantryItem(index) {
+            if (!pantryRef) return;
             pantryRef.once('value', snapshot => {
                 const currentPantry = ensureArray(snapshot.val());
                 currentPantry.splice(index, 1);
