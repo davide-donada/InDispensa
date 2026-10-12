@@ -340,23 +340,46 @@
         </div>
     </div>
 
-    <!-- MODALE: Verifica e Conferma Prodotti dallo Scontrino -->
-    <div id="receiptVerifyModal" class="hidden fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 flex items-center justify-center p-3">
-        <div class="bg-white dark:bg-slate-900 rounded-3xl max-w-lg w-full p-5 shadow-2xl border border-gray-100 dark:border-slate-800 space-y-4 text-gray-800 dark:text-slate-100 max-h-[90vh] flex flex-col">
+    <!-- MODALE RESPONSIVE (PC/MOBILE): VERIFICA PRODOTTI SCONTRINO -->
+    <div id="receiptVerifyModal" class="hidden fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 flex items-center justify-center p-3 md:p-6">
+        <div class="bg-white dark:bg-slate-900 rounded-3xl max-w-4xl w-full p-4 md:p-6 shadow-2xl border border-gray-100 dark:border-slate-800 space-y-4 text-gray-800 dark:text-slate-100 max-h-[92vh] flex flex-col">
             <div class="flex justify-between items-center border-b border-gray-100 dark:border-slate-800 pb-3">
-                <div>
-                    <h3 class="font-extrabold text-sm text-indigo-950 dark:text-indigo-400 flex items-center gap-1.5"><span>🧾</span> Prodotti Rilevati dall'AI</h3>
-                    <p class="text-[11px] text-gray-500 dark:text-slate-400">Verifica Reparto e Posizione prima di salvare in Dispensa.</p>
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-2xl bg-indigo-50 dark:bg-slate-800 text-indigo-600 dark:text-indigo-400 flex items-center justify-center text-xl shadow-inner">🧾</div>
+                    <div>
+                        <h3 class="font-extrabold text-base text-indigo-950 dark:text-indigo-400 flex items-center gap-2">
+                            <span>Verifica Prodotti Scontrino</span>
+                            <span id="receiptItemCountBadge" class="bg-indigo-100 dark:bg-slate-800 text-indigo-700 dark:text-indigo-300 text-xs font-black px-2.5 py-0.5 rounded-full">0 prodotti</span>
+                        </h3>
+                        <p class="text-xs text-gray-500 dark:text-slate-400">Modifica nomi, quantità e posizioni prima di confermare l'importazione.</p>
+                    </div>
                 </div>
-                <button onclick="closeReceiptVerifyModal()" class="text-gray-400 hover:text-gray-600 font-bold p-1">✕</button>
+                <button onclick="closeReceiptVerifyModal()" class="text-gray-400 hover:text-gray-600 font-bold text-lg p-1">✕</button>
+            </div>
+
+            <!-- Intestazione Colonne per Desktop / PC -->
+            <div class="hidden md:grid grid-cols-12 gap-2 text-[11px] font-black uppercase tracking-wider text-gray-400 dark:text-slate-500 px-3 pt-1">
+                <div class="col-span-1 text-center">Importa</div>
+                <div class="col-span-4">Nome Prodotto (Modificabile)</div>
+                <div class="col-span-1 text-center">Qtà</div>
+                <div class="col-span-2">Reparto</div>
+                <div class="col-span-2">Posizione</div>
+                <div class="col-span-2">Scadenza</div>
             </div>
 
             <!-- Lista Dinamica degli Elementi Trovati -->
-            <div id="receiptItemsContainer" class="space-y-2.5 overflow-y-auto flex-1 pr-1 max-h-[50vh]"></div>
+            <div id="receiptItemsContainer" class="space-y-2 overflow-y-auto flex-1 pr-1 max-h-[60vh]"></div>
 
-            <div class="flex items-center justify-between pt-2 border-t border-gray-100 dark:border-slate-800 gap-2">
-                <button onclick="closeReceiptVerifyModal()" class="bg-gray-100 dark:bg-slate-800 text-gray-700 dark:text-slate-300 font-bold py-2.5 px-4 rounded-xl text-xs">Annulla</button>
-                <button onclick="confirmReceiptItems()" class="flex-1 bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-2.5 rounded-xl text-xs shadow-md">Conferma e Inserisci in Dispensa</button>
+            <div class="flex items-center justify-between pt-3 border-t border-gray-100 dark:border-slate-800 gap-3 flex-wrap">
+                <div class="flex items-center gap-2">
+                    <button onclick="toggleSelectAllReceiptItems(true)" class="text-indigo-600 dark:text-indigo-400 text-xs font-bold hover:underline">Seleziona Tutti</button>
+                    <span class="text-gray-300 dark:text-slate-700">•</span>
+                    <button onclick="toggleSelectAllReceiptItems(false)" class="text-gray-500 dark:text-slate-400 text-xs font-bold hover:underline">Deseleziona Tutti</button>
+                </div>
+                <div class="flex items-center gap-2">
+                    <button onclick="closeReceiptVerifyModal()" class="bg-gray-100 dark:bg-slate-800 hover:bg-gray-200 text-gray-700 dark:text-slate-300 font-bold py-2.5 px-4 rounded-xl text-xs transition">Annulla</button>
+                    <button onclick="confirmReceiptItems()" class="bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold py-2.5 px-6 rounded-xl text-xs shadow-md transition active:scale-95">Conferma e Inserisci in Dispensa</button>
+                </div>
             </div>
         </div>
     </div>
@@ -532,7 +555,6 @@
             "Sfizi e Dolci": "Dispensa"
         };
 
-        // HELPER DI CONVERSIONE E PARSING NUMERICO SICURO
         function parseQty(val) {
             if (val === null || val === undefined || val === '') return 1;
             if (typeof val === 'number') return isNaN(val) || val < 1 ? 1 : val;
@@ -643,14 +665,14 @@
 
         const categoryDictionary = {
             "Frutta": ["mela", "mele", "pera", "pere", "banana", "banane", "limone", "limoni", "arancia", "arance", "avocado", "mirtilli", "kiwi", "uva", "fragola"],
-            "Verdura": ["broccoli", "cavolfiore", "zucca", "carota", "spinaci", "zucchina", "insalata", "pomodoro", "funghi", "cipolla", "radicchio"],
-            "Carne e Pesce": ["pollo", "tacchino", "macinato", "manzo", "pancetta", "speck", "salmone", "orata", "branzino", "tonno", "salsiccia", "sgombro"],
-            "Latticini e Uova": ["uova", "yogurt", "fiocchi di latte", "stracchino", "mozzarella", "grana", "parmigiano", "latte", "burro", "ricotta"],
-            "Dispensa": ["pasta", "riso", "olio", "mandorle", "noci", "nocciole", "ceci", "fagioli", "lenticchie", "farina", "zucchero", "caffe", "passata", "pane", "sfogliat"],
-            "Surgelati": ["piselli", "merluzzo", "minestrone", "gelato"],
+            "Verdura": ["broccoli", "cavolfiore", "zucca", "carota", "spinaci", "zucchina", "insalata", "pomodoro", "funghi", "cipolla", "radicchio", "verze", "crauti"],
+            "Carne e Pesce": ["pollo", "tacchino", "macinato", "manzo", "pancetta", "speck", "salmone", "orata", "branzino", "tonno", "salsiccia", "sgombro", "cotechino", "cefalo", "suino", "coppa", "braciole", "arrosto", "nervetti"],
+            "Latticini e Uova": ["uova", "yogurt", "fiocchi di latte", "stracchino", "mozzarella", "grana", "parmigiano", "latte", "burro", "ricotta", "asiago", "formaggino"],
+            "Dispensa": ["pasta", "riso", "olio", "mandorle", "noci", "nocciole", "ceci", "fagioli", "lenticchie", "farina", "zucchero", "caffe", "passata", "pane", "sfogliat", "pomodorini", "pelati", "lasagnette"],
+            "Surgelati": ["piselli", "merluzzo", "minestrone", "gelato", "soffritto", "bieta"],
             "Casa e Pulizia": ["detersivo piatti", "lavastoviglie", "sgrassatore", "scottex", "sacchetti spazzatura"],
             "Bucato": ["detersivo lavatrice", "ammorbidente"],
-            "Igiene Personale": ["carta igienica", "bagnoschiuma", "dentifricio", "shampoo", "salvaslip"],
+            "Igiene Personale": ["carta igienica", "bagnoschiuma", "dentifricio", "shampoo", "salvaslip", "sapone"],
             "Sfizi e Dolci": ["biscotti", "cioccolato", "snack"]
         };
 
@@ -1074,7 +1096,6 @@
         function rejectItem(index) { if (isCurrentuserAdmin()) deleteItem(index); }
         function handleQuickAdd(e) { e.preventDefault(); addItem(); }
 
-        // LOGICA INCREMENTALE SOMMATA ED AMBIGUITÀ AZZERATA
         function addNewItemToList({ name, dept, qty = 1, note = '' }) {
             if (!name || !name.trim()) return;
             const cleanName = name.trim();
@@ -1095,7 +1116,7 @@
                     
                     existingItem.checked = false;
                     if (isOwner) existingItem.approved = true;
-                    existingItem.qty = currentQtyNum + addedQtyNum; // Somma incrementale
+                    existingItem.qty = currentQtyNum + addedQtyNum;
                     existingItem.dept = finalDept;
                     if (note) existingItem.note = note;
                     
@@ -1274,6 +1295,7 @@
             });
         }
 
+        // --- AI VISION: PROMPT BLINDATO ANTI-IVA E AD ALTA RISOLUZIONE ---
         async function handleReceiptSelected(event) {
             const file = event.target.files[0];
             if (!file) return;
@@ -1287,7 +1309,7 @@
             const loadingModal = document.getElementById('receiptLoadingModal');
             const statusText = document.getElementById('receiptStatusText');
             loadingModal.classList.remove('hidden');
-            statusText.textContent = "Analisi ad alta risoluzione dello scontrino...";
+            statusText.textContent = "Scansione completa ad alta definizione in corso...";
 
             try {
                 const base64Image = await fileToBase64(file);
@@ -1300,13 +1322,13 @@
                     },
                     body: JSON.stringify({
                         model: 'gpt-4o-mini',
-                        max_tokens: 3000,
+                        max_tokens: 4000,
                         response_format: { type: 'json_object' },
                         messages: [
                             {
                                 role: 'system',
-                                content: `Sei un assistente esperto nell'estrazione e pulizia dati da scontrini italiani per la gestione dispensa.
-Restituisci ESCLUSIVAMENTE un oggetto JSON valido con la chiave "items" contenente l'array completo dei prodotti:
+                                content: `Sei un sistema OCR ed estrazione dati specializzato in scontrini fiscali italiani per la gestione della dispensa domestica.
+Restituisci ESCLUSIVAMENTE un JSON con la chiave "items":
 {
   "items": [
     {
@@ -1318,19 +1340,38 @@ Restituisci ESCLUSIVAMENTE un oggetto JSON valido con la chiave "items" contenen
   ]
 }
 
-REGOLE TASSATIVE DI ESTRAZIONE:
-1. LEGGERE TUTTI I PRODOTTI: Estrai ogni singola riga dal primo all'ultimo prodotto senza tralasciare nulla.
-2. DISCRIMINAZIONE COLONNA IVA: I numeri nella colonna "IVA" (es. 4, 10, 22) indicano la percentuale di tasse, NON LA QUANTITÀ! La quantità base è sempre 1.
-3. RIGHE MOLTIPLICATORE: Se sotto un prodotto appare una riga del tipo "3 X 0,78", assegna "qty": 3 a quel prodotto.
-4. IGNORA SOLO: Prezzi, importi totali, subtotali, righe IVA, metodi di pagamento (Ticket, Carte), sacchetti ortofrutta compostabili.
-5. PULIZIA NOMI: Espandi e rendi leggibili le abbreviazioni (es. "GIGLIO LASAGNETTE UOVO G5" -> "Lasagnette all'Uovo Giglio 500g").
-6. REPARTI AMMESSI ("dept"): ["Frutta", "Verdura", "Carne e Pesce", "Latticini e Uova", "Dispensa", "Surgelati", "Casa e Pulizia", "Bucato", "Igiene Personale", "Sfizi e Dolci"].
-7. UBICAZIONI AMMESSE ("location"): ["Frigo", "Freezer", "Dispensa", "Altro"].`
+REGOLE TASSATIVE E FERREE DI ESTRAZIONE:
+1. LEGGERE TUTTO LO SCONTRINO: Scorri l'immagine dall'alto verso il basso ed estrai OGNI SINGOLA RIGA di prodotto venduto, senza mai interrompere la scansione o limitarti a un campione. Su scontrini lunghi ci possono essere anche 40+ prodotti!
+
+2. ATTENZIONE CRITICA ALLA COLONNA IVA:
+   Sugli scontrini italiani la colonna tra il testo e il prezzo contiene l'ALIQUOTA IVA (es. 4, 10, 22). 
+   QUESTI NUMERI "4", "10", "22" SONO PERCENTUALI DI IVA E NON SONO MAI LA QUANTITÀ DEL PRODOTTO!
+   Esempi errati da EVITARE ASSOLUTAMENTE:
+   - "VERZE CAT.II 4 1,52" -> NO qty=4! Deve essere qty=1.
+   - "N.DERMA SAP.LIQ.D'ASINA L 22 0,99" -> NO qty=22! Deve essere qty=1.
+   - "SALMONE A TRANCI 10 11,63" -> NO qty=10! Deve essere qty=1.
+   La quantità base per ogni prodotto è SEMPRE 1 (numero intero).
+
+3. QUANTITÀ MAGGIORI DI 1:
+   La quantità è superiore a 1 ESCLUSIVAMENTE se presente una riga di moltiplicazione formattata come "3 X 0,78" o "2 x 1,50" posta sotto o accanto al prodotto. In tal caso imposta "qty": 3.
+
+4. ESCLUSIONI RIGIDE:
+   NON inserire nell'array i seguenti elementi:
+   - Sacchetti (es. "SACCHETTO ORTOFRUTTA BIO", "SACCHETTO COMPOSTABILE")
+   - Subtotali, Totali, IVA (es. "TOTALE COMPLESSIVO", "di cui IVA")
+   - Metodi di pagamento (es. "Pagamento elettronico", "Ticket", "Importo pagato")
+   - Intestazioni di negozio o P.IVA.
+
+5. PULIZIA E FORMATTAZIONE NOMI:
+   Rendi il nome del prodotto chiaro, leggibile e in italiano corretto, espandendo le abbreviazioni (es. "PINGUIN CAROTE RONDELLE K" -> "Carote a Rondelle Surgelate Pinguin", "GIGLIO LASAGNETTE UOVO G5" -> "Lasagnette all'Uovo Giglio 500g", "CEFALO CAUSTELLO" -> "Cefalo Caustello", "MACINATO NIS.SUI/BOU.CONF" -> "Macinato Misto Suino Bovino").
+
+6. REPARTI VALIDITÀ ("dept"): ["Frutta", "Verdura", "Carne e Pesce", "Latticini e Uova", "Dispensa", "Surgelati", "Casa e Pulizia", "Bucato", "Igiene Personale", "Sfizi e Dolci"].
+7. UBICAZIONI VALIDITÀ ("location"): ["Frigo", "Freezer", "Dispensa", "Altro"].`
                             },
                             {
                                 role: 'user',
                                 content: [
-                                    { type: 'text', text: 'Estrai tutti i prodotti presenti in questo scontrino:' },
+                                    { type: 'text', text: 'Estrai la lista completa di tutti i prodotti venduti in questo scontrino dal primo all\'ultimo:' },
                                     { 
                                         type: 'image_url', 
                                         image_url: { 
@@ -1378,33 +1419,64 @@ REGOLE TASSATIVE DI ESTRAZIONE:
             }
         }
 
+        // --- RENDER MODALE DI VERIFICA (RESPONSIVE PC / MOBILE) ---
         function showReceiptVerifyModal(items) {
             const container = document.getElementById('receiptItemsContainer');
+            const countBadge = document.getElementById('receiptItemCountBadge');
             container.innerHTML = '';
+
+            countBadge.textContent = `${items.length} prodotti rilevati`;
 
             const deptOptionsHtml = deptOrder.map(d => `<option value="${d}">${deptIcons[d] || ''} ${d}</option>`).join('');
 
             items.forEach((item, index) => {
                 const qtyNum = parseQty(item.qty);
                 const row = document.createElement('div');
-                row.className = "bg-gray-50 dark:bg-slate-800 p-3 rounded-2xl border border-gray-200 dark:border-slate-700 space-y-2";
+                row.className = "bg-gray-50 dark:bg-slate-800 p-2.5 rounded-2xl border border-gray-200 dark:border-slate-700 transition hover:border-indigo-300 dark:hover:border-indigo-700";
+                
                 row.innerHTML = `
-                    <div class="flex items-center gap-2">
-                        <input type="checkbox" id="receipt_check_${index}" checked class="w-4 h-4 text-indigo-600 rounded">
-                        <input type="text" id="receipt_name_${index}" value="${(item.name || '').replace(/"/g, '&quot;')}" class="flex-1 bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-700 text-xs font-bold px-2.5 py-1.5 rounded-xl focus:outline-none">
-                        <input type="number" min="1" id="receipt_qty_${index}" value="${qtyNum}" placeholder="Qtà" class="w-14 bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-700 text-xs font-bold px-2 py-1.5 rounded-xl text-center">
-                    </div>
-                    <div class="grid grid-cols-3 gap-1.5 pl-6">
-                        <select id="receipt_dept_${index}" class="bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-700 text-[11px] font-semibold px-2 py-1 rounded-xl truncate">
-                            ${deptOptionsHtml}
-                        </select>
-                        <select id="receipt_loc_${index}" class="bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-700 text-[11px] font-semibold px-2 py-1 rounded-xl">
-                            <option value="Frigo" ${item.location === 'Frigo' ? 'selected' : ''}>❄️ Frigo</option>
-                            <option value="Freezer" ${item.location === 'Freezer' ? 'selected' : ''}>🧊 Freezer</option>
-                            <option value="Dispensa" ${item.location === 'Dispensa' || !item.location ? 'selected' : ''}>📦 Dispensa</option>
-                            <option value="Altro" ${item.location === 'Altro' ? 'selected' : ''}>🚪 Altro</option>
-                        </select>
-                        <input type="date" id="receipt_exp_${index}" class="bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-700 text-[11px] px-2 py-1 rounded-xl">
+                    <div class="grid grid-cols-1 md:grid-cols-12 gap-2 items-center">
+                        <!-- Checkbox & Elimina su Mobile -->
+                        <div class="col-span-1 flex items-center justify-between md:justify-center">
+                            <label class="flex items-center gap-2 cursor-pointer">
+                                <input type="checkbox" id="receipt_check_${index}" checked class="w-5 h-5 text-indigo-600 rounded cursor-pointer accent-indigo-600">
+                                <span class="md:hidden font-bold text-xs">Importa</span>
+                            </label>
+                            <button type="button" onclick="this.closest('.bg-gray-50').remove(); updateReceiptBadgeCount();" class="md:hidden text-gray-400 hover:text-rose-500 font-bold p-1">✕</button>
+                        </div>
+
+                        <!-- Nome Prodotto Modificabile -->
+                        <div class="col-span-1 md:col-span-4">
+                            <input type="text" id="receipt_name_${index}" value="${(item.name || '').replace(/"/g, '&quot;')}" placeholder="Nome prodotto..." class="w-full bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-700 text-xs font-bold px-3 py-2 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 shadow-sm text-gray-900 dark:text-slate-100">
+                        </div>
+
+                        <!-- Quantità Numerica -->
+                        <div class="col-span-1 md:col-span-1">
+                            <input type="number" min="1" id="receipt_qty_${index}" value="${qtyNum}" placeholder="Qtà" class="w-full bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-700 text-xs font-extrabold px-2 py-2 rounded-xl text-center focus:outline-none focus:ring-2 focus:ring-indigo-500 shadow-sm">
+                        </div>
+
+                        <!-- Reparto -->
+                        <div class="col-span-1 md:col-span-2">
+                            <select id="receipt_dept_${index}" class="w-full bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-700 text-[11px] font-semibold px-2 py-2 rounded-xl truncate focus:outline-none focus:ring-2 focus:ring-indigo-500 shadow-sm cursor-pointer">
+                                ${deptOptionsHtml}
+                            </select>
+                        </div>
+
+                        <!-- Posizione Casa -->
+                        <div class="col-span-1 md:col-span-2">
+                            <select id="receipt_loc_${index}" class="w-full bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-700 text-[11px] font-semibold px-2 py-2 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 shadow-sm cursor-pointer">
+                                <option value="Frigo" ${item.location === 'Frigo' ? 'selected' : ''}>❄️ Frigo</option>
+                                <option value="Freezer" ${item.location === 'Freezer' ? 'selected' : ''}>🧊 Freezer</option>
+                                <option value="Dispensa" ${item.location === 'Dispensa' || !item.location ? 'selected' : ''}>📦 Dispensa</option>
+                                <option value="Altro" ${item.location === 'Altro' ? 'selected' : ''}>🚪 Altro</option>
+                            </select>
+                        </div>
+
+                        <!-- Data Scadenza -->
+                        <div class="col-span-1 md:col-span-2 flex items-center gap-1">
+                            <input type="date" id="receipt_exp_${index}" class="w-full bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-700 text-[11px] px-2 py-1.5 rounded-xl focus:outline-none shadow-sm">
+                            <button type="button" onclick="this.closest('.bg-gray-50').remove(); updateReceiptBadgeCount();" class="hidden md:block text-gray-300 hover:text-rose-500 font-bold p-1.5" title="Rimuovi">✕</button>
+                        </div>
                     </div>
                 `;
                 container.appendChild(row);
@@ -1416,6 +1488,17 @@ REGOLE TASSATIVE DI ESTRAZIONE:
             });
 
             document.getElementById('receiptVerifyModal').classList.remove('hidden');
+        }
+
+        function updateReceiptBadgeCount() {
+            const rows = document.getElementById('receiptItemsContainer').children;
+            const countBadge = document.getElementById('receiptItemCountBadge');
+            if (countBadge) countBadge.textContent = `${rows.length} prodotti in lista`;
+        }
+
+        function toggleSelectAllReceiptItems(select) {
+            const checkboxes = document.querySelectorAll('#receiptItemsContainer input[type="checkbox"]');
+            checkboxes.forEach(cb => cb.checked = select);
         }
 
         function closeReceiptVerifyModal() {
@@ -1432,14 +1515,20 @@ REGOLE TASSATIVE DI ESTRAZIONE:
             const itemsToAdd = [];
 
             for (let i = 0; i < rows.length; i++) {
-                const isChecked = document.getElementById(`receipt_check_${i}`).checked;
-                const name = document.getElementById(`receipt_name_${i}`).value.trim();
-                const qty = parseQty(document.getElementById(`receipt_qty_${i}`).value);
-                const dept = document.getElementById(`receipt_dept_${i}`).value;
-                const loc = document.getElementById(`receipt_loc_${i}`).value;
-                const exp = document.getElementById(`receipt_exp_${i}`).value;
+                const row = rows[i];
+                const checkInput = row.querySelector('input[type="checkbox"]');
+                const nameInput = row.querySelector('input[type="text"]');
+                const qtyInput = row.querySelector('input[type="number"]');
+                const selects = row.querySelectorAll('select');
+                const expInput = row.querySelector('input[type="date"]');
 
-                if (isChecked && name) {
+                if (checkInput && checkInput.checked && nameInput && nameInput.value.trim()) {
+                    const name = nameInput.value.trim();
+                    const qty = parseQty(qtyInput ? qtyInput.value : 1);
+                    const dept = selects[0] ? selects[0].value : 'Dispensa';
+                    const loc = selects[1] ? selects[1].value : 'Dispensa';
+                    const exp = expInput ? expInput.value : '';
+
                     saveUserProductPref(name, dept, loc);
 
                     itemsToAdd.push({
