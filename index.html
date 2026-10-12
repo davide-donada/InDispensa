@@ -188,6 +188,7 @@
                             <input type="text" id="newItemText" list="productsList" oninput="onProductInput(this.value)" placeholder="Nome (es. Latte, Mele...)" class="w-full bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-700 text-gray-800 dark:text-slate-100 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 shadow-inner">
                             <datalist id="productsList"></datalist>
                         </div>
+                        
                         <!-- CAMPO QUANTITÀ NUMERICO PURO -->
                         <input type="number" id="newItemQty" min="1" value="1" placeholder="Qtà" class="w-16 bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-700 text-gray-800 dark:text-slate-100 font-extrabold text-center rounded-xl px-2 py-2 text-xs focus:outline-none focus:ring-2 focus:ring-indigo-500 shadow-inner">
                         
@@ -210,7 +211,7 @@
                     </div>
                 </form>
 
-                <!-- Prodotti Frequenti (1-Tap) -->
+                <!-- Prodotti Frequenti (1-Tap Incrementale) -->
                 <div class="bg-white dark:bg-slate-900 p-2.5 rounded-2xl shadow-sm border border-gray-200/80 dark:border-slate-800">
                     <div class="text-[10px] font-bold text-gray-400 dark:text-slate-500 uppercase tracking-wider mb-1.5 px-1 flex justify-between">
                         <span>⚡ Frequenti (1-Tap Incrementale)</span>
@@ -280,7 +281,7 @@
                         <div class="w-10 h-10 rounded-xl bg-white/20 backdrop-blur-md flex items-center justify-center text-xl shadow-inner">🤖</div>
                         <div>
                             <h3 class="font-extrabold text-xs">Lettura AI Scontrino</h3>
-                            <p class="text-[11px] text-indigo-100">Estrazione intelligente di Reparto e Posizione.</p>
+                            <p class="text-[11px] text-indigo-100">Estrazione intelligente ad alta definizione.</p>
                         </div>
                     </div>
                     <button type="button" onclick="triggerReceiptScan()" class="bg-white text-indigo-900 hover:bg-indigo-50 font-extrabold px-3 py-2 rounded-xl text-xs active:scale-95 transition shadow-md flex-shrink-0">
@@ -334,7 +335,7 @@
             </div>
             <div>
                 <h3 class="font-extrabold text-base text-gray-900 dark:text-slate-100">Analisi AI Scontrino...</h3>
-                <p id="receiptStatusText" class="text-xs text-gray-500 dark:text-slate-400 mt-1">L'IA sta estraendo e classificando i prodotti...</p>
+                <p id="receiptStatusText" class="text-xs text-gray-500 dark:text-slate-400 mt-1">L'IA sta analizzando l'immagine ad alta risoluzione...</p>
             </div>
         </div>
     </div>
@@ -1286,7 +1287,7 @@
             const loadingModal = document.getElementById('receiptLoadingModal');
             const statusText = document.getElementById('receiptStatusText');
             loadingModal.classList.remove('hidden');
-            statusText.textContent = "Invio immagine a GPT-4o-mini Vision...";
+            statusText.textContent = "Analisi ad alta risoluzione dello scontrino...";
 
             try {
                 const base64Image = await fileToBase64(file);
@@ -1299,16 +1300,17 @@
                     },
                     body: JSON.stringify({
                         model: 'gpt-4o-mini',
+                        max_tokens: 3000,
                         response_format: { type: 'json_object' },
                         messages: [
                             {
                                 role: 'system',
-                                content: `Sei un assistente esperto nell'estrazione e pulizia dati da scontrini italiani per la gestione dispensa e spesa.
-Restituisci ESCLUSIVAMENTE un oggetto JSON valido con la chiave "items" contenente un array di oggetti:
+                                content: `Sei un assistente esperto nell'estrazione e pulizia dati da scontrini italiani per la gestione dispensa.
+Restituisci ESCLUSIVAMENTE un oggetto JSON valido con la chiave "items" contenente l'array completo dei prodotti:
 {
   "items": [
     {
-      "name": "Nome Prodotto Pulito e Leggibile",
+      "name": "Nome Prodotto Pulito",
       "qty": 1,
       "dept": "Verdura",
       "location": "Frigo"
@@ -1316,18 +1318,26 @@ Restituisci ESCLUSIVAMENTE un oggetto JSON valido con la chiave "items" contenen
   ]
 }
 
-Regole importanti:
-1. IGNORA prezzi, importi, IVA, righe "TOTALE", "SUBTOTALE", sconti (es. -0,39), righe "SCONTO SOCI", "PUNTI", e sacchetti compostabili.
-2. Espandi e rendi leggibili i nomi contratti (es. "LENT.GIGANTI VVERDEB" -> "Lenticchie Giganti Bio", "ALTU.LAVAZZA250GX2" -> "Caffè Lavazza 250g x2", "LATTE ESL BIO INT1L" -> "Latte Intero Bio 1L").
-3. La quantità ("qty") dev'essere SEMPRE un numero intero (es. 1, 2, 3).
-4. Assegna il reparto ("dept") scegliendo RIGOROSAMENTE tra: ["Frutta", "Verdura", "Carne e Pesce", "Latticini e Uova", "Dispensa", "Surgelati", "Casa e Pulizia", "Bucato", "Igiene Personale", "Sfizi e Dolci"].
-5. Assegna l'ubicazione ("location") scegliendo RIGOROSAMENTE tra: ["Frigo", "Freezer", "Dispensa", "Altro"].`
+REGOLE TASSATIVE DI ESTRAZIONE:
+1. LEGGERE TUTTI I PRODOTTI: Estrai ogni singola riga dal primo all'ultimo prodotto senza tralasciare nulla.
+2. DISCRIMINAZIONE COLONNA IVA: I numeri nella colonna "IVA" (es. 4, 10, 22) indicano la percentuale di tasse, NON LA QUANTITÀ! La quantità base è sempre 1.
+3. RIGHE MOLTIPLICATORE: Se sotto un prodotto appare una riga del tipo "3 X 0,78", assegna "qty": 3 a quel prodotto.
+4. IGNORA SOLO: Prezzi, importi totali, subtotali, righe IVA, metodi di pagamento (Ticket, Carte), sacchetti ortofrutta compostabili.
+5. PULIZIA NOMI: Espandi e rendi leggibili le abbreviazioni (es. "GIGLIO LASAGNETTE UOVO G5" -> "Lasagnette all'Uovo Giglio 500g").
+6. REPARTI AMMESSI ("dept"): ["Frutta", "Verdura", "Carne e Pesce", "Latticini e Uova", "Dispensa", "Surgelati", "Casa e Pulizia", "Bucato", "Igiene Personale", "Sfizi e Dolci"].
+7. UBICAZIONI AMMESSE ("location"): ["Frigo", "Freezer", "Dispensa", "Altro"].`
                             },
                             {
                                 role: 'user',
                                 content: [
-                                    { type: 'text', text: 'Estrai e classifica i prodotti da questo scontrino:' },
-                                    { type: 'image_url', image_url: { url: base64Image } }
+                                    { type: 'text', text: 'Estrai tutti i prodotti presenti in questo scontrino:' },
+                                    { 
+                                        type: 'image_url', 
+                                        image_url: { 
+                                            url: base64Image,
+                                            detail: 'high'
+                                        } 
+                                    }
                                 ]
                             }
                         ]
