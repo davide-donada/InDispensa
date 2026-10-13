@@ -119,28 +119,28 @@
     <!-- Main App Content -->
     <div id="appContent" class="hidden">
         
-        <!-- HEADER PULITO & STREAMLINED -->
+        <!-- HEADER PULITO & RESPONSIVE PER MOBILE -->
         <header class="sticky top-0 z-30 glass-nav border-b border-slate-200/80 dark:border-slate-800/80 transition-colors">
-            <div class="max-w-md md:max-w-5xl lg:max-w-7xl mx-auto px-4 py-3 flex items-center justify-between gap-3">
+            <div class="max-w-md md:max-w-5xl lg:max-w-7xl mx-auto px-2.5 sm:px-4 py-2.5 flex items-center justify-between gap-1 sm:gap-3">
                 
                 <!-- Logo + Spazio/Lista Select Integrato -->
-                <div class="flex items-center gap-2.5 flex-1 min-w-0">
-                    <img src="./icon-192.png" alt="InDispensa Logo" class="w-8 h-8 rounded-xl shadow-sm flex-shrink-0">
-                    <div class="flex items-center gap-1.5 flex-1 min-w-0">
-                        <span id="houseIcon" class="text-sm flex-shrink-0">🏡</span>
-                        <select id="houseSelect" onchange="onHouseSelectChange(this.value)" class="bg-slate-100 dark:bg-slate-800/80 border-0 text-slate-900 dark:text-slate-100 font-extrabold rounded-xl px-2.5 py-1.5 text-xs focus:ring-2 focus:ring-indigo-500 truncate cursor-pointer shadow-inner flex-1 max-w-[190px] md:max-w-xs"></select>
+                <div class="flex items-center gap-1.5 min-w-0 flex-1">
+                    <img src="./icon-192.png" alt="InDispensa Logo" class="w-7 h-7 sm:w-8 sm:h-8 rounded-xl shadow-sm flex-shrink-0">
+                    <div class="flex items-center gap-1 min-w-0 flex-1">
+                        <select id="houseSelect" onchange="onHouseSelectChange(this.value)" class="w-full max-w-[125px] min-[380px]:max-w-[160px] sm:max-w-xs bg-slate-100 dark:bg-slate-800/80 border-0 text-slate-900 dark:text-slate-100 font-extrabold rounded-xl px-2 py-1.5 text-xs focus:ring-2 focus:ring-indigo-500 truncate cursor-pointer shadow-inner"></select>
                         <button id="deleteHouseBtn" onclick="eliminaListaCorrente()" title="Rimuovi lista" class="text-slate-400 hover:text-rose-500 p-1 text-xs transition rounded-lg hover:bg-rose-50 dark:hover:bg-slate-800 flex-shrink-0">🗑️</button>
                     </div>
                 </div>
 
                 <!-- Status Badge + Azioni Profilo -->
-                <div class="flex items-center gap-1.5 flex-shrink-0">
-                    <span id="networkBadge" class="hidden text-[9px] bg-rose-500 text-white font-bold px-2 py-0.5 rounded-full animate-pulse">Offline</span>
-                    <button onclick="configureApiKey()" title="Imposta OpenAI Key" class="text-slate-500 dark:text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 p-2 rounded-xl text-xs active:scale-95 transition">🔑</button>
-                    <button onclick="toggleDarkMode()" id="themeToggleBtn" title="Cambia tema" class="text-slate-500 dark:text-slate-400 p-2 rounded-xl text-xs active:scale-95 transition">🌙</button>
+                <div class="flex items-center gap-1 flex-shrink-0">
+                    <span id="networkBadge" class="hidden text-[9px] bg-rose-500 text-white font-bold px-1.5 py-0.5 rounded-full animate-pulse">Offline</span>
+                    <button onclick="configureApiKey()" title="Imposta OpenAI Key" class="text-slate-500 dark:text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 p-1.5 rounded-xl text-xs active:scale-95 transition">🔑</button>
+                    <button onclick="toggleDarkMode()" id="themeToggleBtn" title="Cambia tema" class="text-slate-500 dark:text-slate-400 p-1.5 rounded-xl text-xs active:scale-95 transition">🌙</button>
+                    
                     <div class="flex items-center gap-1 bg-slate-100 dark:bg-slate-800/80 p-1 rounded-xl">
-                        <img id="userAvatar" src="" class="w-6 h-6 rounded-full object-cover">
-                        <button onclick="logoutGoogle()" class="text-[10px] px-1.5 py-0.5 text-slate-500 dark:text-slate-400 font-bold hover:text-rose-500">Esci</button>
+                        <img id="userAvatar" onclick="logoutGoogle()" src="" title="Clicca per uscire" class="w-6 h-6 rounded-full object-cover cursor-pointer">
+                        <button onclick="logoutGoogle()" class="hidden sm:inline-block text-[10px] px-1 py-0.5 text-slate-500 dark:text-slate-400 font-bold hover:text-rose-500">Esci</button>
                     </div>
                 </div>
             </div>
@@ -328,7 +328,7 @@
         </nav>
     </div>
 
-    <!-- MODALI UI (MANTENUTE E RAFFINATE) -->
+    <!-- MODALI UI -->
 
     <!-- MODALE: Scansione AI Scontrino in Corso -->
     <div id="receiptLoadingModal" class="hidden fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
@@ -463,7 +463,7 @@
         </div>
     </div>
 
-    <!-- SCRIPT APPLICATION LOGIC (INVARIATO E COMPLETO) -->
+    <!-- SCRIPT APPLICATION LOGIC -->
     <script>
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
@@ -775,14 +775,11 @@
         function renderHouseSelect() {
             const select = document.getElementById('houseSelect');
             const deleteBtn = document.getElementById('deleteHouseBtn');
-            const houseIcon = document.getElementById('houseIcon');
 
             select.innerHTML = '';
             
             const listArray = ensureArray(userLists);
             const currentObj = listArray.find(l => l && l.id === activeListId) || listArray[0];
-            
-            houseIcon.textContent = (currentObj && currentObj.type === 'private') ? '🔒' : '👥';
 
             if (listArray.length > 1) deleteBtn.classList.remove('hidden');
             else deleteBtn.classList.add('hidden');
@@ -798,7 +795,7 @@
 
             const addOption = document.createElement('option');
             addOption.value = '__ADD_NEW__';
-            addOption.textContent = '➕ Nuova Lista / Spazio...';
+            addOption.textContent = '➕ Nuova Lista...';
             select.appendChild(addOption);
         }
 
